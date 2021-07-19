@@ -1,0 +1,8 @@
+{
+    "C_Cpp.errorSquiggles": "Enabled",
+    "C_Cpp.autoAddFileAssociations": false,
+    "files.associations": {
+        "*.tpp" : "cpp"
+    },
+    "CppHelper.HeaderGuardPattern": "__CHESTNUT_{FILE}_H__"
+}
