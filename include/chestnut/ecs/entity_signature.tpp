@@ -3,13 +3,13 @@ namespace chestnut
 namespace ecs
 {
     template<typename T>
-    CEntitySignature& CEntitySignature::add() 
+    void CEntitySignature::add() 
     {
         m_setComponentTindices.insert( std::type_index( typeid(T) ) );
     }
 
     template<typename T>
-    CEntitySignature& CEntitySignature::remove() 
+    void CEntitySignature::remove() 
     {
         m_setComponentTindices.erase( std::type_index( typeid(T) ) );
     }

@@ -17,10 +17,10 @@ namespace ecs
 
     public:
         template< typename T >
-        CEntitySignature& add();
+        void add();
 
         template< typename T >
-        CEntitySignature& remove();
+        void remove();
 
         template< typename T >
         bool has() const;

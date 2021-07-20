@@ -1,4 +1,4 @@
-#include "entity_signature.hpp"
+#include "chestnut/ecs/entity_signature.hpp"
 
 #include <sstream>
 
@@ -6,7 +6,6 @@ namespace chestnut
 {
 namespace ecs
 {
-    
     bool CEntitySignature::isEmpty() 
     {
         return m_setComponentTindices.empty();
@@ -18,6 +17,8 @@ namespace ecs
         {
             m_setComponentTindices.insert( tindex );
         }
+
+        return *this;
     }
 
     CEntitySignature& CEntitySignature::operator-=(const CEntitySignature& other) 
@@ -26,6 +27,8 @@ namespace ecs
         {
             m_setComponentTindices.erase( tindex );
         }
+
+        return *this;
     }
 
     CEntitySignature operator+( const CEntitySignature& lhs, const CEntitySignature& rhs )
