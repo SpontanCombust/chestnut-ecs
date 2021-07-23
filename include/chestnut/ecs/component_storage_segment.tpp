@@ -1,72 +1,19 @@
-#include <algorithm>
 #include <exception>
 #include <numeric>
-#include <sstream>
 
-namespace chestnut
+namespace chestnut::internal
 {    
     template<class C>
     CComponentStorageSegment<C>::CComponentStorageSegment( segid id, segsize size ) 
+    : CComponentStorageSegment_Base( id, size )
     {
-        m_id = id;
-
-        m_size = size;
-
         m_arrComponentSlots = new C[ size ];
-
-        m_vecAvailableIndices.resize( size );
-        // fill vector with all possible slot numbers
-        std::iota( m_vecAvailableIndices.rbegin(), m_vecAvailableIndices.rend(), 0 );
     }
 
     template<class C>
     CComponentStorageSegment<C>::~CComponentStorageSegment() 
     {
         delete[] m_arrComponentSlots;
-    }
-
-    template<class C>
-    segid CComponentStorageSegment<C>::getID() const
-    {
-        return m_id;
-    }
-
-    template<class C>
-    segsize CComponentStorageSegment<C>::getSize() const
-    {
-        return m_size;
-    }
-
-    template<class C>
-    bool CComponentStorageSegment<C>::isEmpty() const
-    {
-        if( m_mapEntityIDToIndex.empty() )
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    template<class C>
-    bool CComponentStorageSegment<C>::isFull() const
-    {
-        if( m_vecAvailableIndices.empty() )
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    template<class C>
-    segsize CComponentStorageSegment<C>::getTakenSlotCount() const
-    {
-        return m_size - m_vecAvailableIndices.size();
     }
 
     template<class C>
@@ -89,19 +36,6 @@ namespace chestnut
         m_mapEntityIDToIndex[ entityID ] = slot;
 
         return slot;
-    }
-
-    template<class C>
-    bool CComponentStorageSegment<C>::hasSlottedComponent( entityid entityID ) const
-    {
-        if( m_mapEntityIDToIndex.find( entityID ) != m_mapEntityIDToIndex.end() )
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
     }
 
     template<class C>
@@ -137,27 +71,12 @@ namespace chestnut
     }
 
     template<class C>
-    segsize CComponentStorageSegment<C>::getIndexByEntity( entityid entityID ) const
-    {
-        auto it = m_mapEntityIDToIndex.find( entityID );
-
-        if( it != m_mapEntityIDToIndex.end() )
-        {
-            return it->second;
-        }
-        else
-        {
-            throw std::out_of_range( "Entity not found. No index to return!" );
-        }
-    }
-
-    template<class C>
     void CComponentStorageSegment<C>::freeSlotByEntity( entityid entityID ) 
     {
         auto it = m_mapEntityIDToIndex.find( entityID );
         if( it != m_mapEntityIDToIndex.end() )
         {
-            // reset the component
+            // reset the component to default state
             m_arrComponentSlots[ it->second ] = C();
             m_mapEntityIDToIndex.erase( it );
             m_vecAvailableIndices.push_back( it->second );
@@ -177,6 +96,7 @@ namespace chestnut
         // ENTITY_ID_INVALID means that component at that slot has default values and does not belong to any entity
         if( ent != ENTITY_ID_INVALID )
         {
+            // reset the component to default state
             m_arrComponentSlots[ index ] = C();
             m_mapEntityIDToIndex.erase( ent );
             m_vecAvailableIndices.push_back( index );
@@ -191,28 +111,12 @@ namespace chestnut
         std::iota( m_vecAvailableIndices.rbegin(), m_vecAvailableIndices.rend(), 0 );
 
         m_mapEntityIDToIndex.clear();
-    }
 
-    template<class C>
-    std::string CComponentStorageSegment<C>::toString() const
-    {
-        std::stringstream ss;
-
-        ss << "[";
-        if( !m_mapEntityIDToIndex.empty() )
+        // reset all components to default state
+        for (segsize i = 0; i < m_size; i++)
         {
-            auto it = m_mapEntityIDToIndex.begin();
-            ss << std::to_string( it->first );
-            it++;
-
-            for(; it != m_mapEntityIDToIndex.end(); it++ )
-            {
-                ss << ", " << std::to_string( it->first );
-            }
+            m_arrComponentSlots[i] = C();   
         }
-        ss << "]";
-
-        return ss.str();
     }
 
-} // namespace chestnut
+} // namespace chestnut::internal

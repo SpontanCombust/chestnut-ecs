@@ -3,6 +3,7 @@
 #include "../include/chestnut/ecs/component_storage_segment.hpp"
 
 using namespace chestnut;
+using namespace chestnut::internal;
 
 class Foo : public CComponent {
 public:
