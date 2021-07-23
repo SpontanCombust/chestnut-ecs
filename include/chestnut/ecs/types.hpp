@@ -3,14 +3,19 @@
 
 #include <cstdint>
 
-namespace chestnut
-{
-namespace ecs
+namespace chestnut::ecs
 {
     typedef uint32_t entityid;
 
-} // namespace ecs
+    typedef uint16_t segid;
+    typedef uint16_t segsize;
 
-} // namespace chestnut
+    struct SComponentIndex
+    {
+        segid segmentID;
+        segsize indexInSegment;
+    };
+
+} // namespace chestnut::ecs
 
 #endif // __CHESTNUT_TYPES_H__
