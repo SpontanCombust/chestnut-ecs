@@ -3,18 +3,24 @@
 
 #include "types.hpp"
 
-namespace chestnut
+#include <type_traits>
+
+namespace chestnut::ecs
 {
-namespace ecs
-{ 
+    const entityid ENTITY_ID_INVALID = 0;
+
     class CComponent
     {
     public:
         entityid owner;
+
+        CComponent();
     };
 
-} // namespace ecs
 
-} // namespace chestnut
+    #define ASSERT_DERIVED_FROM_COMPONENT(T) static_assert( std::is_base_of< CComponent, T >::value, "Component class " #T " must inherit from CComponent" );
+
+
+} // namespace chestnut::ecs
 
 #endif // __CHESTNUT_COMPONENT_H__
