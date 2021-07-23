@@ -5,7 +5,7 @@
 #include <typeindex>
 #include <unordered_set>
 
-namespace chestnut::ecs
+namespace chestnut
 {
     class CEntitySignature
     {
@@ -37,7 +37,7 @@ namespace chestnut::ecs
 
     bool operator==( const CEntitySignature& lhs, const CEntitySignature& rhs );
 
-} // namespace chestnut::ecs
+} // namespace chestnut
 
 
 #include "entity_signature.tpp"

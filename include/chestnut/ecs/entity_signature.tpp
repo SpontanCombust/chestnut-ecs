@@ -1,4 +1,4 @@
-namespace chestnut::ecs
+namespace chestnut
 {    
     template<typename T>
     void CEntitySignature::add() 

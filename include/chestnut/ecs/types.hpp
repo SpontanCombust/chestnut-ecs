@@ -3,7 +3,7 @@
 
 #include <cstdint>
 
-namespace chestnut::ecs
+namespace chestnut
 {
     typedef uint32_t entityid;
 
@@ -16,6 +16,6 @@ namespace chestnut::ecs
         segsize indexInSegment;
     };
 
-} // namespace chestnut::ecs
+} // namespace chestnut
 
 #endif // __CHESTNUT_TYPES_H__

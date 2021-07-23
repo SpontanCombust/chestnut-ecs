@@ -5,7 +5,7 @@
 
 #include <type_traits>
 
-namespace chestnut::ecs
+namespace chestnut
 {
     const entityid ENTITY_ID_INVALID = 0;
 
@@ -21,6 +21,6 @@ namespace chestnut::ecs
     #define ASSERT_DERIVED_FROM_COMPONENT(T) static_assert( std::is_base_of< CComponent, T >::value, "Component class " #T " must inherit from CComponent" );
 
 
-} // namespace chestnut::ecs
+} // namespace chestnut
 
 #endif // __CHESTNUT_COMPONENT_H__

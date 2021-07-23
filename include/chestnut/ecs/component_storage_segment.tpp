@@ -3,7 +3,7 @@
 #include <numeric>
 #include <sstream>
 
-namespace chestnut::ecs
+namespace chestnut
 {    
     template<class C>
     CComponentStorageSegment<C>::CComponentStorageSegment( segid id, segsize size ) 
@@ -215,4 +215,4 @@ namespace chestnut::ecs
         return ss.str();
     }
 
-} // namespace chestnut::ecs
+} // namespace chestnut

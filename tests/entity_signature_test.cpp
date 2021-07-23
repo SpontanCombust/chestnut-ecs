@@ -8,7 +8,7 @@ struct Baz {};
 
 TEST_CASE( "Entity signature test" )
 {
-    using namespace chestnut::ecs;
+    using namespace chestnut;
 
     SECTION( "Adding types to the signature" )
     {

@@ -8,9 +8,9 @@
 #include <unordered_map>
 #include <vector>
 
-namespace chestnut::ecs
+namespace chestnut
 {
-
+    //TODO Divide it into a base non-template class that can be normally compiled
     template< class C >
     class CComponentStorageSegment
     {
