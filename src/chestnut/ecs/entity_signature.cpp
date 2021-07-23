@@ -2,9 +2,7 @@
 
 #include <sstream>
 
-namespace chestnut
-{
-namespace ecs
+namespace chestnut::ecs
 {
     bool CEntitySignature::isEmpty() 
     {
@@ -54,6 +52,4 @@ namespace ecs
         return lhs.m_setComponentTindices == rhs.m_setComponentTindices;
     }
 
-} // namespace ecs
-   
-} // namespace chestnut
+} // namespace chestnut::ecs
