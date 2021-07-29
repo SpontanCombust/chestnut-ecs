@@ -8,12 +8,12 @@ namespace chestnut
     typedef uint32_t entityid;
 
     typedef uint16_t segid;
-    typedef uint16_t segsize;
+    typedef uint32_t segsize;
 
     struct SComponentIndex
     {
-        segid segmentID;
-        segsize indexInSegment;
+        segid segmentIndex;
+        segsize segmentSlotIndex;
     };
 
 } // namespace chestnut
