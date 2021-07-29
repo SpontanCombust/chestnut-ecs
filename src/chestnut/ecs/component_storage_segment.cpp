@@ -6,20 +6,13 @@
 
 namespace chestnut::internal
 {    
-    CComponentStorageSegment_Base::CComponentStorageSegment_Base( segid id, segsize size ) 
+    CComponentStorageSegment_Base::CComponentStorageSegment_Base( segsize size ) 
     {
-        m_id = id;
-
         m_size = size;
 
         m_vecAvailableIndices.resize( size );
         // fill vector with all possible slot numbers
         std::iota( m_vecAvailableIndices.rbegin(), m_vecAvailableIndices.rend(), 0 );
-    }
-
-    segsize CComponentStorageSegment_Base::getID() const
-    {
-        return m_id;
     }
 
     segsize CComponentStorageSegment_Base::getSize() const

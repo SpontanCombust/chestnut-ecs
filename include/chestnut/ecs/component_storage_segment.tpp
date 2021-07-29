@@ -4,8 +4,8 @@
 namespace chestnut::internal
 {    
     template<class C>
-    CComponentStorageSegment<C>::CComponentStorageSegment( segid id, segsize size ) 
-    : CComponentStorageSegment_Base( id, size )
+    CComponentStorageSegment<C>::CComponentStorageSegment( segsize size ) 
+    : CComponentStorageSegment_Base( size )
     {
         m_arrComponentSlots = new C[ size ];
     }
@@ -17,15 +17,19 @@ namespace chestnut::internal
     }
 
     template<class C>
-    segsize CComponentStorageSegment<C>::tryTakeUpSlot( entityid entityID ) 
+    C* CComponentStorageSegment<C>::tryTakeUpSlot( entityid entityID ) 
     {
-        if( hasSlottedComponent( entityID ) )
+        if( entityID == ENTITY_ID_INVALID )
         {
-            return m_mapEntityIDToIndex[ entityID ];
+            return nullptr;
+        }
+        else if( hasSlottedComponent( entityID ) )
+        {
+            return getComponentByEntity( entityID );
         }
         else if( isFull() )
         {
-            throw std::out_of_range( "Segment is full. Can't take up a slot!" );
+            return nullptr;
         }
 
         size_t slot = m_vecAvailableIndices.back();
@@ -35,7 +39,7 @@ namespace chestnut::internal
 
         m_mapEntityIDToIndex[ entityID ] = slot;
 
-        return slot;
+        return &m_arrComponentSlots[ slot ];
     }
 
     template<class C>
@@ -58,7 +62,7 @@ namespace chestnut::internal
     {
         if( index >= m_size )
         {
-            throw std::out_of_range( "Segment index out of size range!" );
+            throw std::out_of_range( "Segment slot index out of size range!" );
         }
 
         return &m_arrComponentSlots[ index ];
@@ -67,7 +71,12 @@ namespace chestnut::internal
     template<class C>
     C* CComponentStorageSegment<C>::operator[]( segsize index ) const
     {
-        return getComponentByIndex( index );
+        if( index >= m_size )
+        {
+            throw std::out_of_range( "Segment slot index out of size range!" );
+        }
+
+        return &m_arrComponentSlots[ index ];
     }
 
     template<class C>
@@ -88,12 +97,13 @@ namespace chestnut::internal
     {
         if( index >= m_size )
         {
-            throw std::out_of_range( "Segment index out of size range!" );
+            throw std::out_of_range( "Segment slot index out of size range!" );
         }
 
         entityid ent = m_arrComponentSlots[ index ].owner;
 
         // ENTITY_ID_INVALID means that component at that slot has default values and does not belong to any entity
+        // check in tryTakeUpSlot() assures we can use this method to validate a slot
         if( ent != ENTITY_ID_INVALID )
         {
             // reset the component to default state

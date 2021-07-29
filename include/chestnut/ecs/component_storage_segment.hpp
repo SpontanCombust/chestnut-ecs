@@ -13,18 +13,14 @@ namespace chestnut::internal
     class CComponentStorageSegment_Base
     {
     protected:
-        segid m_id;
-
         segsize m_size;
 
         std::vector< segsize > m_vecAvailableIndices;
         std::unordered_map< entityid, segsize > m_mapEntityIDToIndex;
 
     public:
-        CComponentStorageSegment_Base( segid id, segsize size );
+        CComponentStorageSegment_Base( segsize size );
         CComponentStorageSegment_Base( const CComponentStorageSegment_Base& ) = delete; // we don't copy segments
-
-        segsize getID() const;
 
         segsize getSize() const;
         bool isEmpty() const;
@@ -56,15 +52,15 @@ namespace chestnut::internal
         C *m_arrComponentSlots;
 
     public:
-        CComponentStorageSegment( segid id, segsize size );
+        CComponentStorageSegment( segsize size );
         CComponentStorageSegment( const CComponentStorageSegment& ) = delete; // we don't copy segments
         ~CComponentStorageSegment();
 
         
-        // Returns index of the slot taken by the component
-        // Throws std::out_of_range exception if no slots are available
-        // If entity already has taken up a slot, no action is taken aside from returning its index
-        segsize tryTakeUpSlot( entityid entityID );
+        // Returns the slotted component or null if there was no place left for it
+        // If entity already has taken up a slot, no action is taken aside from returning component at that slot
+        // If entityID is equal to ENTITY_ID_INVALID returns null
+        C* tryTakeUpSlot( entityid entityID );
 
         // Returns null if entity component is not slotted
         C* getComponentByEntity( entityid entityID ) const;
