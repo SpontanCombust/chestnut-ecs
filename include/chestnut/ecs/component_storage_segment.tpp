@@ -25,7 +25,7 @@ namespace chestnut::internal
         }
         else if( hasSlottedComponent( entityID ) )
         {
-            return getComponentByEntity( entityID );
+            return getSlottedComponent( entityID );
         }
         else if( isFull() )
         {
@@ -43,7 +43,7 @@ namespace chestnut::internal
     }
 
     template<class C>
-    C* CComponentStorageSegment<C>::getComponentByEntity( entityid entityID ) const
+    C* CComponentStorageSegment<C>::getSlottedComponent( entityid entityID ) const
     {
         auto it = m_mapEntityIDToIndex.find( entityID );
 
@@ -56,31 +56,9 @@ namespace chestnut::internal
             return nullptr;
         }
     }
-
+    
     template<class C>
-    C* CComponentStorageSegment<C>::getComponentByIndex( segsize index ) const
-    {
-        if( index >= m_size )
-        {
-            throw std::out_of_range( "Segment slot index out of size range!" );
-        }
-
-        return &m_arrComponentSlots[ index ];
-    }
-
-    template<class C>
-    C* CComponentStorageSegment<C>::operator[]( segsize index ) const
-    {
-        if( index >= m_size )
-        {
-            throw std::out_of_range( "Segment slot index out of size range!" );
-        }
-
-        return &m_arrComponentSlots[ index ];
-    }
-
-    template<class C>
-    void CComponentStorageSegment<C>::freeSlotByEntity( entityid entityID ) 
+    void CComponentStorageSegment<C>::freeSlot( entityid entityID ) 
     {
         auto it = m_mapEntityIDToIndex.find( entityID );
         if( it != m_mapEntityIDToIndex.end() )
@@ -89,27 +67,6 @@ namespace chestnut::internal
             m_arrComponentSlots[ it->second ] = C();
             m_mapEntityIDToIndex.erase( it );
             m_vecAvailableIndices.push_back( it->second );
-        }
-    }
-
-    template<class C>
-    void CComponentStorageSegment<C>::freeSlotByIndex( segsize index ) 
-    {
-        if( index >= m_size )
-        {
-            throw std::out_of_range( "Segment slot index out of size range!" );
-        }
-
-        entityid ent = m_arrComponentSlots[ index ].owner;
-
-        // ENTITY_ID_INVALID means that component at that slot has default values and does not belong to any entity
-        // check in tryTakeUpSlot() assures we can use this method to validate a slot
-        if( ent != ENTITY_ID_INVALID )
-        {
-            // reset the component to default state
-            m_arrComponentSlots[ index ] = C();
-            m_mapEntityIDToIndex.erase( ent );
-            m_vecAvailableIndices.push_back( index );
         }
     }
 

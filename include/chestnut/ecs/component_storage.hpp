@@ -25,19 +25,11 @@ namespace chestnut
 
         // Returns created component or component that has already existed with that entityID
         // if entityID is equal to ENTITY_ID_INVALID returns null
-        virtual CComponent *createComponent( entityid entityID ) = 0;
+        virtual CComponent *storeComponent( entityid entityID ) = 0;
         virtual bool hasComponent( entityid entityID ) const = 0;
         // Returns null if component doesn't exists
-        virtual CComponent *getComponentByEntity( entityid entityID ) const = 0;
-        // Throws std::out_of_range if index is invalid
-        virtual CComponent *getComponentByIndex( SComponentIndex index ) const = 0;
-        // Throws std::out_of_range if index is invalid
-        virtual CComponent *operator[]( SComponentIndex index ) const = 0;
-        // Throws std::out_of_range if there's no component belonging to this entity
-        virtual SComponentIndex getComponentIndexByEntity( entityid entityID ) const = 0;
-        virtual void eraseComponentByEntity( entityid entityID ) = 0;
-        // Throws std::out_of_range if index is invalid
-        virtual void eraseComponentByIndex( SComponentIndex index ) = 0;
+        virtual CComponent *getComponent( entityid entityID ) const = 0;
+        virtual void eraseComponent( entityid entityID ) = 0;
         // Erases all stored components; doesn't modify capacity
         virtual void clearComponents() = 0;
 
@@ -114,19 +106,11 @@ namespace chestnut
 
         // Returns created component or component that has already existed with that entityID,
         // if entityID is equal to ENTITY_ID_INVALID returns null
-        CComponent *createComponent( entityid entityID ) override;
+        CComponent *storeComponent( entityid entityID ) override;
         bool hasComponent( entityid entityID ) const override;
         // Returns null if component doesn't exists
-        CComponent *getComponentByEntity( entityid entityID ) const override;
-        // Throws std::out_of_range if index is invalid
-        CComponent *getComponentByIndex( SComponentIndex index ) const override;
-        // Throws std::out_of_range if index is invalid
-        CComponent *operator[]( SComponentIndex index ) const override;
-        // Throws std::out_of_range if there's no component belonging to this entity
-        SComponentIndex getComponentIndexByEntity( entityid entityID ) const override;
-        void eraseComponentByEntity( entityid entityID ) override;
-        // Throws std::out_of_range if index is invalid
-        void eraseComponentByIndex( SComponentIndex index ) override;
+        CComponent *getComponent( entityid entityID ) const override;
+        void eraseComponent( entityid entityID ) override;
         // Erases all stored components; doesn't modify capacity
         void clearComponents() override;
 

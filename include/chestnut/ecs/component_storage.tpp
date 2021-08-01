@@ -49,7 +49,7 @@ namespace chestnut
     }
 
     template<class C>
-    CComponent *CComponentStorage<C>::createComponent( entityid entityID ) 
+    CComponent *CComponentStorage<C>::storeComponent( entityid entityID ) 
     {
         if( entityID == ENTITY_ID_INVALID )
         {
@@ -57,7 +57,7 @@ namespace chestnut
         }
         else if( hasComponent( entityID ) )
         {
-            return getComponentByEntity( entityID );
+            return getComponent( entityID );
         }
         
         // get the index of an available segment
@@ -93,12 +93,12 @@ namespace chestnut
     }
 
     template<class C>
-    CComponent *CComponentStorage<C>::getComponentByEntity( entityid entityID ) const
+    CComponent *CComponentStorage<C>::getComponent( entityid entityID ) const
     {
         CComponent *comp = nullptr;
         for( const auto& [ idx, segment ] : m_mapSegmentIndexToSegment )
         {
-            comp = segment->getComponentByEntity( entityID );
+            comp = segment->getSlottedComponent( entityID );
 
             if( comp )
             {
@@ -110,50 +110,7 @@ namespace chestnut
     }
 
     template<class C>
-    CComponent* CComponentStorage<C>::getComponentByIndex( SComponentIndex index ) const 
-    {
-        // Letting potential exceptions propagate to the user space
-        SegType *segment = m_mapSegmentIndexToSegment.at( index.segmentIndex );
-        return segment->getComponentByIndex( index.segmentSlotIndex );
-    }
-
-    template<class C>
-    CComponent* CComponentStorage<C>::operator[]( SComponentIndex index ) const 
-    {
-        // Letting potential exceptions propagate to the user space
-        SegType *segment = m_mapSegmentIndexToSegment.at( index.segmentIndex );
-        return segment->getComponentByIndex( index.segmentSlotIndex );
-    }
-
-    template<class C>
-    SComponentIndex CComponentStorage<C>::getComponentIndexByEntity( entityid entityID ) const 
-    {
-        SComponentIndex index;
-
-        bool entityFound = false;
-        for( const auto& [ idx, segment ] : m_mapSegmentIndexToSegment )
-        {
-            if( segment->hasSlottedComponent( entityID ) )
-            {
-                entityFound = true;
-
-                index.segmentIndex = idx;
-                index.segmentSlotIndex = segment->getIndexByEntity( entityID );        
-            }
-        }
-
-        if( entityFound )
-        {
-            return index;
-        }
-        else
-        {
-            throw std::out_of_range( "This component storage does not know of entity with id=" + std::to_string( entityID ) );
-        }
-    }
-
-    template<class C>
-    void CComponentStorage<C>::eraseComponentByEntity( entityid entityID )
+    void CComponentStorage<C>::eraseComponent( entityid entityID )
     {
         for( const auto& [ idx, segment ] : m_mapSegmentIndexToSegment )
         {
@@ -162,7 +119,7 @@ namespace chestnut
                 // if the segment is full now, after we free one slot it should be available to be reslotted later
                 bool shouldAddToAvailableSegments = segment->isFull();
 
-                segment->freeSlotByEntity( entityID );
+                segment->freeSlot( entityID );
 
                 if( shouldAddToAvailableSegments )
                 {
@@ -170,32 +127,6 @@ namespace chestnut
                     m_dequeAvailableSegmentIndices.push_front( idx );
                 }
             }
-        }
-    }
-
-    template<class C>
-    void CComponentStorage<C>::eraseComponentByIndex( SComponentIndex index ) 
-    {
-        auto it = m_mapSegmentIndexToSegment.find( index.segmentIndex );
-        if( it != m_mapSegmentIndexToSegment.end() )
-        {
-            SegType *segment = it->second;
-
-            // if the segment is full now, after we free one slot it should be available to be reslotted later
-            bool shouldAddToAvailableSegments = segment->isFull();
-
-            // Let the potential std::out_of_range exception propagate  
-            segment->freeSlotByIndex( index.segmentSlotIndex ); 
-
-            if( shouldAddToAvailableSegments )
-            {
-                // push front as it's got only 1 slot left at this moment
-                m_dequeAvailableSegmentIndices.push_front( it->first );
-            }          
-        }
-        else
-        {
-            throw std::out_of_range( "Segment index invalid." );
         }
     }
 

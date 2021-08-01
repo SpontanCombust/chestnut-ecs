@@ -73,7 +73,7 @@ TEST_CASE( "Component storage segment test" )
         REQUIRE( seg.tryTakeUpSlot(12) == nullptr );   
     }
 
-    SECTION( "Getting component by different means" )
+    SECTION( "Getting component" )
     {
         segsize idx;
         Foo *foo;
@@ -83,87 +83,36 @@ TEST_CASE( "Component storage segment test" )
         REQUIRE( foo->owner == 1 );
         foo->i = 2137;
 
-
-        SECTION( "...by entity" )
-        {
-            foo = seg.getComponentByEntity(1);
-            REQUIRE( foo != nullptr );
-            REQUIRE( foo->owner == 1 );
-            REQUIRE( foo->i == 2137 );
-        }
-
-        SECTION( "...by index" )
-        {
-            idx = seg.getIndexByEntity(1);
-            REQUIRE_NOTHROW( foo = seg.getComponentByIndex( idx ) );
-            REQUIRE( foo != nullptr );
-            REQUIRE( foo->owner == 1 );
-            REQUIRE( foo->i == 2137 );
-
-            // Get component using brackets operator, check if it's the same component as before
-            REQUIRE_NOTHROW( foo = seg[ idx ] );
-            REQUIRE( foo->i == 2137 );
-        }
-
-        SECTION( "exceptions" )
-        {
-            // range check for index that exceeds range
-            REQUIRE_THROWS( seg.getComponentByIndex(10) );
-            // range check for index for nonexisting entity
-            REQUIRE_THROWS( seg.getIndexByEntity(2) );
-        }
+        foo = seg.getSlottedComponent(1);
+        REQUIRE( foo != nullptr );
+        REQUIRE( foo->owner == 1 );
+        REQUIRE( foo->i == 2137 );        
     }
 
     SECTION( "Freeing slots" )
     {
         seg.tryTakeUpSlot(1);
         seg.tryTakeUpSlot(2);
-        seg.tryTakeUpSlot(3); segsize idx1 = seg.getIndexByEntity(3);
+        seg.tryTakeUpSlot(3);
         seg.tryTakeUpSlot(4);
-        seg.tryTakeUpSlot(5); segsize idx2 = seg.getIndexByEntity(5);
+        seg.tryTakeUpSlot(5);
 
         REQUIRE( seg.getTakenSlotCount() == 5 );
 
 
-        SECTION( "...by entity" )
-        {
-            seg.freeSlotByEntity(1);
-            seg.freeSlotByEntity(2);
+        seg.freeSlot(1);
+        seg.freeSlot(2);
 
-            REQUIRE( seg.getTakenSlotCount() == 3 );
-            REQUIRE_FALSE( seg.hasSlottedComponent(1) );
-            REQUIRE_FALSE( seg.hasSlottedComponent(2) );
-        }
-
-        SECTION( "...by index" )
-        {
-            seg.freeSlotByIndex(idx1);
-            REQUIRE( seg.getTakenSlotCount() == 4 );
-            REQUIRE_FALSE( seg.hasSlottedComponent(3) );
+        REQUIRE( seg.getTakenSlotCount() == 3 );
+        REQUIRE_FALSE( seg.hasSlottedComponent(1) );
+        REQUIRE_FALSE( seg.hasSlottedComponent(2) );
 
 
-            // testing for already freed slot
-            seg.freeSlotByEntity(5);
-            REQUIRE( seg.getTakenSlotCount() == 3 );
-            REQUIRE_FALSE( seg.hasSlottedComponent(3) );
+        // Clearing all slots
+        seg.clearSlots();
 
-            seg.freeSlotByIndex(idx2);
-            REQUIRE( seg.getTakenSlotCount() == 3 );
-            REQUIRE_FALSE( seg.hasSlottedComponent(3) );
-
-
-            // testing exception for exceeding index range
-            REQUIRE_THROWS( seg.freeSlotByIndex(10) );
-        }
-
-        SECTION( "clearing all" )
-        {
-            // Clearing all slots
-            seg.clearSlots();
-
-            REQUIRE_FALSE( seg.hasSlottedComponent(3) );
-            REQUIRE( seg.isEmpty() );
-        }
+        REQUIRE_FALSE( seg.hasSlottedComponent(3) );
+        REQUIRE( seg.isEmpty() );
     }
 
     // SECTION()

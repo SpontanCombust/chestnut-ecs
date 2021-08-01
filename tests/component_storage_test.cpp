@@ -56,7 +56,7 @@ TEST_CASE( "Component storage test" )
     SECTION( "Creating components and checking storage size" )
     {
         // test the invalid entity check
-        REQUIRE( storage.createComponent(0) == nullptr );
+        REQUIRE( storage.storeComponent(0) == nullptr );
 
         REQUIRE( storage.getSize() == 0 );
         REQUIRE( storage.getCapacity() == 10 );
@@ -66,7 +66,7 @@ TEST_CASE( "Component storage test" )
         // filling up 1st segment
         for (size_t i = 1; i < 6; i++)
         {
-            storage.createComponent(i);
+            storage.storeComponent(i);
         }
 
         REQUIRE( storage.getSize() == 5 );
@@ -76,7 +76,7 @@ TEST_CASE( "Component storage test" )
         // filling up 2nd segment
         for (size_t i = 6; i < 11; i++)
         {
-            storage.createComponent(i);
+            storage.storeComponent(i);
         }
 
         REQUIRE( storage.getSize() == 10 );
@@ -87,7 +87,7 @@ TEST_CASE( "Component storage test" )
         // filling 1st one fully and 2nd one partially
         for (size_t i = 11; i < 19; i++)
         {
-            storage.createComponent(i);
+            storage.storeComponent(i);
         }
 
         REQUIRE( storage.getSize() == 18 );
@@ -98,7 +98,7 @@ TEST_CASE( "Component storage test" )
         // should change nothing
         for (size_t i = 1; i < 6; i++)
         {
-            storage.createComponent(i);
+            storage.storeComponent(i);
         }
 
         REQUIRE( storage.getSize() == 18 );
@@ -106,56 +106,26 @@ TEST_CASE( "Component storage test" )
         REQUIRE( storage.getEmptySegmentTotalSize() == 0 );
     }
 
-    SECTION( "Checking and fetching components by entity" )
+    SECTION( "Checking and fetching components" )
     {
         Foo *foo;
         for (size_t i = 1; i < 7; i++)
         {
-            foo = (Foo *)storage.createComponent(i);
+            foo = (Foo *)storage.storeComponent(i);
             foo->i = i;
 
             REQUIRE( storage.hasComponent(i) );
 
-            foo = (Foo *)storage.getComponentByEntity(i);
+            foo = (Foo *)storage.getComponent(i);
             REQUIRE( foo != nullptr );
             REQUIRE( foo->i == i );
 
-            foo = (Foo *)storage.createComponent(i);
+            foo = (Foo *)storage.storeComponent(i);
             REQUIRE( foo->i == i );
         }
 
         REQUIRE_FALSE( storage.hasComponent(0) );
         REQUIRE_FALSE( storage.hasComponent(7) );
-    }
-
-    SECTION( "Fetching components by index" )
-    {
-        Foo *foo;
-        SComponentIndex index;
-        for (size_t i = 1; i < 12; i++)
-        {
-            foo = (Foo *)storage.createComponent(i);
-            foo->i = i;
-
-            REQUIRE_NOTHROW( index = storage.getComponentIndexByEntity(i) );
-
-            REQUIRE_NOTHROW( foo = (Foo *)storage.getComponentByIndex( index ) );
-            REQUIRE( foo->i == i );
-
-            REQUIRE_NOTHROW( foo = (Foo *)storage[ index ] );
-            REQUIRE( foo->i == i );
-        }
-
-        REQUIRE_THROWS( storage.getComponentIndexByEntity(0) );
-        REQUIRE_THROWS( storage.getComponentIndexByEntity(12) );
-
-        index.segmentIndex = 9707;
-        index.segmentSlotIndex = 0;
-        REQUIRE_THROWS( storage.getComponentByIndex( index ) );
-
-        index.segmentIndex = 0;
-        index.segmentSlotIndex = 178241;
-        REQUIRE_THROWS( storage.getComponentByIndex( index ) );
     }
 
     SECTION( "Erasing components" )
@@ -164,7 +134,7 @@ TEST_CASE( "Component storage test" )
 
         for (size_t i = 1; i < 21; i++)
         {
-            storage.createComponent(i);
+            storage.storeComponent(i);
         }
 
         REQUIRE( storage.getSize() == 20 );
@@ -176,7 +146,7 @@ TEST_CASE( "Component storage test" )
 
         for (size_t i = 6; i < 11; i++)
         {
-            storage.eraseComponentByEntity(i);
+            storage.eraseComponent(i);
 
             REQUIRE_FALSE( storage.hasComponent(i) );
         }
@@ -190,17 +160,13 @@ TEST_CASE( "Component storage test" )
 
         for (size_t i = 3; i < 6; i++)
         {
-            SComponentIndex index = storage.getComponentIndexByEntity(i);
-
-            REQUIRE_NOTHROW( storage.eraseComponentByIndex( index ) );
+            REQUIRE_NOTHROW( storage.eraseComponent(i) );
 
             REQUIRE_FALSE( storage.hasComponent(i) );
         }
         for (size_t i = 11; i < 13; i++)
         {
-            SComponentIndex index = storage.getComponentIndexByEntity(i);
-
-            REQUIRE_NOTHROW( storage.eraseComponentByIndex( index ) );
+            REQUIRE_NOTHROW( storage.eraseComponent(i) );
 
             REQUIRE_FALSE( storage.hasComponent(i) );
         }
@@ -210,28 +176,11 @@ TEST_CASE( "Component storage test" )
         REQUIRE( storage.getEmptySegmentTotalSize() == 5 );
 
 
-        // try erasing using invalid index
-
-        SComponentIndex index;
-
-        index.segmentIndex = 23386;
-        index.segmentSlotIndex = 0;
-        REQUIRE_THROWS( storage.eraseComponentByIndex( index ) );
-
-        index.segmentIndex = 0;
-        index.segmentSlotIndex = 12946;
-        REQUIRE_THROWS( storage.eraseComponentByIndex( index ) );
-
-        REQUIRE( storage.getSize() == 10 );
-        REQUIRE( storage.getCapacity() == 20 );
-        REQUIRE( storage.getEmptySegmentTotalSize() == 5 );
-
-
         // try erasing already erased components
 
-        storage.eraseComponentByEntity(4);
-        storage.eraseComponentByEntity(7);
-        storage.eraseComponentByEntity(12);
+        storage.eraseComponent(4);
+        storage.eraseComponent(7);
+        storage.eraseComponent(12);
 
         REQUIRE( storage.getSize() == 10 );
         REQUIRE( storage.getCapacity() == 20 );
@@ -321,23 +270,23 @@ TEST_CASE( "Component storage test" )
 
         for (size_t i = 1; i < 16; i++)
         {
-            storage.createComponent(i);
+            storage.storeComponent(i);
         }
-        storage.eraseComponentByEntity(1);
-        storage.eraseComponentByEntity(2);
-        storage.eraseComponentByEntity(3);
-        storage.eraseComponentByEntity(4);
+        storage.eraseComponent(1);
+        storage.eraseComponent(2);
+        storage.eraseComponent(3);
+        storage.eraseComponent(4);
 
-        storage.eraseComponentByEntity(7);
-        storage.eraseComponentByEntity(8);
-        storage.eraseComponentByEntity(9);
-        storage.eraseComponentByEntity(10);
+        storage.eraseComponent(7);
+        storage.eraseComponent(8);
+        storage.eraseComponent(9);
+        storage.eraseComponent(10);
 
-        storage.eraseComponentByEntity(11);
-        storage.eraseComponentByEntity(12);
-        storage.eraseComponentByEntity(13);
-        storage.eraseComponentByEntity(14);
-        storage.eraseComponentByEntity(15);
+        storage.eraseComponent(11);
+        storage.eraseComponent(12);
+        storage.eraseComponent(13);
+        storage.eraseComponent(14);
+        storage.eraseComponent(15);
 
         // only one segment left empty
         // first 2 segments have 1 component in each of them

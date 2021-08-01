@@ -61,20 +61,6 @@ namespace chestnut::internal
         }
     }
 
-    segsize CComponentStorageSegment_Base::getIndexByEntity( entityid entityID ) const
-    {
-        auto it = m_mapEntityIDToIndex.find( entityID );
-
-        if( it != m_mapEntityIDToIndex.end() )
-        {
-            return it->second;
-        }
-        else
-        {
-            throw std::out_of_range( "Entity not found. No index to return!" );
-        }
-    }
-
     std::string CComponentStorageSegment_Base::toString() const
     {
         std::stringstream ss;
