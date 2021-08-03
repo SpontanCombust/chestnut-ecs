@@ -24,7 +24,6 @@ namespace chestnut
         virtual segsize getSegmentSize() const = 0;
 
         // Returns created component or component that has already existed with that entityID
-        // if entityID is equal to ENTITY_ID_INVALID returns null
         virtual CComponent *storeComponent( entityid entityID ) = 0;
         virtual bool hasComponent( entityid entityID ) const = 0;
         // Returns null if component doesn't exists
@@ -68,10 +67,14 @@ namespace chestnut
      * of components. If the amount of these new ones exceeds the capacity of the vector the memory has to be reallocated
      * for bigger size. This can invalidate the pointer we talked about. This does not need to happen accross the whole tick.
      * You can simply have a situation where one thread is caching component and the other is creating them.
-     * "We'll, you can just use indices instead of actual pointers" - this is true and it's also done to some degree here 
-     * using SComponentIndex and is the way the access to components is done in systems. Using direct pointers is more 
-     * user friendly and transparent when it comes to code outside of systems, like scripts in my opinion. User does not need to care
-     * how the data is stored - all he/she cares about is that no weird stuff will happen to pointers they cached during a tick
+     * I decided to do it this way and focus on making sure that important objects like component batches will have their contents modified 
+     * whenever component creation/eraseure happens. Using indices would be safer, but would require more preperation.
+     * 
+     * Using direct pointers is also more user friendly and transparent when it comes to code outside of systems, like scripts in my opinion. 
+     * The only thing to remember is that user is not the *direct* owner of components themselves, so it's safer to repeat fetching components
+     * (and checking if they're valid) from these places on every tick rather than clinging onto them for an unspecified amount of time. 
+     * 
+     * User does not need to care how the data is stored - all he/she cares about is that no weird stuff will happen to pointers they cached during a tick
      * if they decide to create some components and forget to explicitly preallocate more memory before that.
      * In practice this allows for safely caching pointers not just for the duration of a tick, but for the entire lifetime 
      * of the component.
@@ -105,7 +108,6 @@ namespace chestnut
         segsize getSegmentSize() const override;
 
         // Returns created component or component that has already existed with that entityID,
-        // if entityID is equal to ENTITY_ID_INVALID returns null
         CComponent *storeComponent( entityid entityID ) override;
         bool hasComponent( entityid entityID ) const override;
         // Returns null if component doesn't exists

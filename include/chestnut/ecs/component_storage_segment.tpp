@@ -1,3 +1,4 @@
+#include <cassert>
 #include <exception>
 #include <numeric>
 
@@ -19,11 +20,9 @@ namespace chestnut::internal
     template<class C>
     C* CComponentStorageSegment<C>::tryTakeUpSlot( entityid entityID ) 
     {
-        if( entityID == ENTITY_ID_INVALID )
-        {
-            return nullptr;
-        }
-        else if( hasSlottedComponent( entityID ) )
+        assert( entityID != ENTITY_ID_INVALID );
+        
+        if( hasSlottedComponent( entityID ) )
         {
             return getSlottedComponent( entityID );
         }

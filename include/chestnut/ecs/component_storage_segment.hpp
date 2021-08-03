@@ -55,7 +55,7 @@ namespace chestnut::internal
         
         // Returns the slotted component or null if there was no place left for it
         // If entity already has taken up a slot, no action is taken aside from returning component at that slot
-        // If entityID is equal to ENTITY_ID_INVALID returns null
+        // Asserts entityID is not ENTITY_ID_INVALID
         C* tryTakeUpSlot( entityid entityID );
 
         // Returns null if entity component is not slotted

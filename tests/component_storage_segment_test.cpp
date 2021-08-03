@@ -52,11 +52,14 @@ TEST_CASE( "Component storage segment test" )
         REQUIRE_FALSE( seg.hasSlottedComponent(4) );
     }
 
+    // uncomment when wanting to test
+    // SECTION( "Test assert on invalid entity" )
+    // {
+    //     seg.tryTakeUpSlot( ENTITY_ID_INVALID );
+    // }
+
     SECTION( "Test special or illegal cases for taking up slots" )
     {
-        // Try passing ENTITY_ID_INVALID
-        REQUIRE( seg.tryTakeUpSlot( ENTITY_ID_INVALID ) == nullptr );
-
         // Fill up the segment to the full
         for (entityid i = 1; i < 11; i++)
         {

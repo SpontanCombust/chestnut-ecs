@@ -51,11 +51,7 @@ namespace chestnut
     template<class C>
     CComponent *CComponentStorage<C>::storeComponent( entityid entityID ) 
     {
-        if( entityID == ENTITY_ID_INVALID )
-        {
-            return nullptr;
-        }
-        else if( hasComponent( entityID ) )
+        if( hasComponent( entityID ) )
         {
             return getComponent( entityID );
         }

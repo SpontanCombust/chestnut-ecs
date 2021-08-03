@@ -55,9 +55,6 @@ TEST_CASE( "Component storage test" )
 
     SECTION( "Creating components and checking storage size" )
     {
-        // test the invalid entity check
-        REQUIRE( storage.storeComponent(0) == nullptr );
-
         REQUIRE( storage.getSize() == 0 );
         REQUIRE( storage.getCapacity() == 10 );
         REQUIRE( storage.getEmptySegmentTotalSize() == 10 );
