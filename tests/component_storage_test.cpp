@@ -20,7 +20,7 @@ TEST_CASE( "Component storage test" )
 
     SECTION( "Initial state for initial capacity equal zero" )
     {
-        CComponentStorage<Foo> storage = CComponentStorage<Foo>( 10 );
+        CComponentStorage<Foo> storage = CComponentStorage<Foo>( 10, 0 );
 
         REQUIRE( storage.getSize() == 0 );
         REQUIRE( storage.getCapacity() == 0 );

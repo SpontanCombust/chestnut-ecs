@@ -15,6 +15,7 @@ namespace chestnut
         entityid owner;
 
         CComponent();
+        virtual ~CComponent() = default;
     };
 
 

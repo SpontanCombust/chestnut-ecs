@@ -6,6 +6,7 @@
 #include "component_storage_segment.hpp"
 
 #include <deque>
+#include <typeindex>
 #include <unordered_map>
 
 namespace chestnut
@@ -101,7 +102,7 @@ namespace chestnut
         std::deque< segid > m_dequeAvailableSegmentIndices;
 
     public:
-        CComponentStorage( segsize segmentSize, segsize initCapacity = 0 );
+        CComponentStorage( segsize segmentSize, segsize initCapacity );
         CComponentStorage( CComponentStorage& ) = delete; // no copying allowed
         ~CComponentStorage();
 
@@ -140,6 +141,10 @@ namespace chestnut
         // Returns index of that segment
         segid createNewSegment();
     };
+
+
+    typedef std::unordered_map< std::type_index, IComponentStorage * > CComponentStorageTypeMap;
+
 
 } // namespace chestnut
 
