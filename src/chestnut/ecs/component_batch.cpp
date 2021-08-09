@@ -2,14 +2,14 @@
 
 #include <algorithm>
 
-namespace chestnut
+namespace chestnut::internal
 {    
     CComponentBatchGuard::CComponentBatchGuard( const CEntitySignature& signature ) 
     {
         m_targetBatch.signature = signature;
 
         // initialize batch's component map
-        for( const std::type_index& type : signature.m_setComponentTindices )
+        for( std::type_index type : signature.m_setComponentTypes )
         {
             m_targetBatch.mapCompTypeToCompVec[ type ] = std::vector< CComponent * >();
         }
@@ -33,7 +33,7 @@ namespace chestnut
         {
             m_pendingIn_vecEntityIDs.push_back( entityID );
 
-            for( const std::type_index& type : m_targetBatch.signature.m_setComponentTindices )
+            for( std::type_index type : m_targetBatch.signature.m_setComponentTypes )
             {
                 // This ~~shouldn't~~ throw an exception if systems using this class are setup correctly
                 IComponentStorage *typedStorage = storageMap.at( type );
@@ -154,4 +154,4 @@ namespace chestnut
     }
 
 
-} // namespace chestnut
+} // namespace chestnut::internal

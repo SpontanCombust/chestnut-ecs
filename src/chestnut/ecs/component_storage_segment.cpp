@@ -13,6 +13,8 @@ namespace chestnut::internal
         m_vecAvailableIndices.resize( size );
         // fill vector with all possible slot numbers
         std::iota( m_vecAvailableIndices.rbegin(), m_vecAvailableIndices.rend(), 0 );
+
+        m_mapEntityIDToIndex.reserve( size );
     }
 
     segsize CComponentStorageSegment_Base::getSize() const

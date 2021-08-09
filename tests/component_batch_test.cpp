@@ -5,6 +5,7 @@
 #include <memory>
 
 using namespace chestnut;
+using namespace chestnut::internal;
 
 class Foo : public CComponent
 {

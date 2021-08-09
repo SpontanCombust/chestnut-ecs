@@ -9,7 +9,7 @@
 #include <typeindex>
 #include <unordered_map>
 
-namespace chestnut
+namespace chestnut::internal
 {
     /**
      * @brief Interface for CComponentStorage.
@@ -146,7 +146,7 @@ namespace chestnut
     typedef std::unordered_map< std::type_index, IComponentStorage * > CComponentStorageTypeMap;
 
 
-} // namespace chestnut
+} // namespace chestnut::internal
 
 
 #include "component_storage.tpp"

@@ -33,7 +33,8 @@ namespace chestnut
         std::unordered_map< std::type_index, std::vector< CComponent * > > mapCompTypeToCompVec;
     };
 
-
+namespace internal
+{
     /**
      * @brief A helper class for managing component batches
      * 
@@ -77,6 +78,7 @@ namespace chestnut
         const SComponentBatch *getBatchPtr() const;
     };
     
+} // namespace internal
     
 } // namespace chestnut
 
