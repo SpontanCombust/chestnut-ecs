@@ -13,8 +13,8 @@ TEST_CASE( "Entity signature test" )
     SECTION( "Adding types to the signature" )
     {
         CEntitySignature singature;
-        singature.add<Foo>();
-        singature.add<Bar>();
+        singature.add<Foo>(); // template method
+        singature.__add( typeid(Bar) ); // type index method
 
         REQUIRE( singature.has<Foo>() );
         REQUIRE( singature.has<Bar>() );
@@ -30,8 +30,12 @@ TEST_CASE( "Entity signature test" )
 
         signature.remove<Foo>();
 
-        REQUIRE( !signature.has<Foo>() );
+        REQUIRE_FALSE( signature.has<Foo>() );
         REQUIRE( signature.has<Baz>() );
+
+        signature.__remove( typeid(Baz) );
+        REQUIRE_FALSE( signature.__has( typeid(Foo) ) );
+        REQUIRE_FALSE( signature.__has( typeid(Baz) ) );
     }
 
     SECTION( "Signature is empty" )
@@ -42,6 +46,35 @@ TEST_CASE( "Entity signature test" )
         
         signature.add<Foo>();
         REQUIRE( !signature.isEmpty() );
+    }
+
+    SECTION( "Clear signature" )
+    {
+        CEntitySignature signature;
+
+        signature.add<Foo>();
+        signature.add<Bar>();
+
+        signature.clear();
+
+        REQUIRE( signature.isEmpty() );
+    }
+
+    SECTION( "Signature size" )
+    {
+        CEntitySignature signature;
+
+        signature.add<Foo>();
+        signature.add<Bar>();
+        signature.add<Bar>(); // repeat
+        signature.add<Baz>();
+        REQUIRE( signature.getSize() == 3 );
+
+        signature.remove<Bar>();
+        REQUIRE( signature.getSize() == 2 );
+
+        signature.clear();
+        REQUIRE( signature.getSize() == 0 );
     }
 
     SECTION( "Signature sum" )
