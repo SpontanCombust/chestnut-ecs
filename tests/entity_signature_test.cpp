@@ -14,7 +14,7 @@ TEST_CASE( "Entity signature test" )
     {
         CEntitySignature singature;
         singature.add<Foo>(); // template method
-        singature.__add( typeid(Bar) ); // type index method
+        singature.add( typeid(Bar) ); // type index method
 
         REQUIRE( singature.has<Foo>() );
         REQUIRE( singature.has<Bar>() );
@@ -33,9 +33,9 @@ TEST_CASE( "Entity signature test" )
         REQUIRE_FALSE( signature.has<Foo>() );
         REQUIRE( signature.has<Baz>() );
 
-        signature.__remove( typeid(Baz) );
-        REQUIRE_FALSE( signature.__has( typeid(Foo) ) );
-        REQUIRE_FALSE( signature.__has( typeid(Baz) ) );
+        signature.remove( typeid(Baz) );
+        REQUIRE_FALSE( signature.has( typeid(Foo) ) );
+        REQUIRE_FALSE( signature.has( typeid(Baz) ) );
     }
 
     SECTION( "Signature is empty" )
@@ -116,5 +116,20 @@ TEST_CASE( "Entity signature test" )
         signDiff -= sign3;
         REQUIRE( ( !signDiff.has<Foo>() && !signDiff.has<Bar>() && !signDiff.has<Baz>() ) );
         REQUIRE( ( signDiff.isEmpty() ) );
+    }
+
+    SECTION( "Signature being a part of other signature" )
+    {
+        CEntitySignature sign1, sign2;
+
+        sign1.add( typeid(Foo) );
+        sign1.add( typeid(Bar) );
+
+        sign2.add( typeid(Foo) );
+        sign2.add( typeid(Bar) );
+        sign2.add( typeid(Baz) );
+
+        REQUIRE( sign2.has( sign1 ) );
+        REQUIRE_FALSE( sign1.has( sign2 ) );
     }
 }

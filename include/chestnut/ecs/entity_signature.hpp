@@ -22,6 +22,21 @@ namespace chestnut
         template< typename T >
         bool has() const;
 
+
+        void add( std::type_index compType );
+
+        void remove( std::type_index compType );
+
+        bool has( std::type_index compType ) const;
+
+        
+        void add( const CEntitySignature& otherSign );
+
+        void remove( const CEntitySignature& otherSign );
+
+        bool has( const CEntitySignature& otherSign ) const;
+
+
         void clear();
 
 
@@ -34,12 +49,6 @@ namespace chestnut
 
         CEntitySignature& operator-=( const CEntitySignature& other );
 
-    public:
-        void __add( std::type_index compType );
-
-        void __remove( std::type_index compType );
-
-        bool __has( std::type_index compType ) const;
     };
 
     CEntitySignature operator+( const CEntitySignature& lhs, const CEntitySignature& rhs );
