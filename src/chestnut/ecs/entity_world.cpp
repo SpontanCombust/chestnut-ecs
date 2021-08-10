@@ -92,6 +92,24 @@ namespace chestnut
         m_entityRegistry.removeAllEntities();
     }
 
+    int CEntityWorld::queryEntities( SEntityQuery& query ) const
+    {
+        query.vecBatches.clear();
+        
+        int batchesQueried = 0;
+        for( CComponentBatchGuard& batchGuard : m_vecBatchGuards )
+        {
+            if( query.entitySignCond( batchGuard.getBatchSignature() ) )
+            {
+                batchGuard.updateBatch();
+                query.vecBatches.push_back( batchGuard.getBatchPtr() );
+                batchesQueried++;
+            }
+        }
+
+        return batchesQueried;
+    }
+
 
 
 
@@ -116,7 +134,7 @@ namespace chestnut
         // compute signatures //
         oldSignature = m_entityRegistry.getEntitySignature( entityID ); // hasEntity() assures entity exists
         newSignature = oldSignature; 
-        newSignature.__add( compType );
+        newSignature.add( compType );
         
         // create an instance of the component //
         // we know it won't return null as publicly only functions assuring storages' later existence are available
@@ -150,7 +168,7 @@ namespace chestnut
         CEntitySignature signature;
 
         signature = m_entityRegistry.getEntitySignature( entityID ); // hasEntity() assures entity exists
-        return signature.__has( compType );
+        return signature.has( compType );
     }
 
     CComponent* CEntityWorld::getComponentInternal( std::type_index compType, entityid entityID ) const
@@ -182,7 +200,7 @@ namespace chestnut
         // compute signatures //
         oldSignature = m_entityRegistry.getEntitySignature( entityID ); // hasComponent() assures entity exists
         newSignature = oldSignature;
-        newSignature.__remove( compType );
+        newSignature.remove( compType );
 
         IComponentStorage *storage = m_mapCompTypeToStorage[ compType ];
         storage->eraseComponent( entityID );

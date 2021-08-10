@@ -241,3 +241,126 @@ TEST_CASE( "Entity world test - general" )
     }
 
 }
+
+
+
+
+
+
+
+TEST_CASE( "Entity world test - batching" )
+{
+    CEntityWorld world;
+
+    // 10 entities with Foo
+    for (size_t i = 0; i < 10; i++)
+    {
+        entityid ent = world.createEntity();
+        world.createComponent<Foo>( ent )->x = ent;
+    }
+    // 10 with Foo and Bar
+    for (size_t i = 0; i < 10; i++)
+    {
+        entityid ent = world.createEntity();
+        world.createComponent<Foo>( ent )->x = ent;
+        world.createComponent<Bar>( ent )->y = ent + 1;
+    }
+    // 10 with Bar and Baz
+    for (size_t i = 0; i < 10; i++)
+    {
+        entityid ent = world.createEntity();
+        world.createComponent<Bar>( ent )->y = ent;
+        world.createComponent<Baz>( ent )->z = ent + 1;
+    }
+    // 10 with Foo and Baz
+    for (size_t i = 0; i < 10; i++)
+    {
+        entityid ent = world.createEntity();
+        world.createComponent<Foo>( ent )->x = ent;
+        world.createComponent<Baz>( ent )->z = ent + 1;
+    }
+    // 10 with Foo, Bar and Baz
+    for (size_t i = 0; i < 10; i++)
+    {
+        entityid ent = world.createEntity();
+        world.createComponent<Foo>( ent )->x = ent;
+        world.createComponent<Bar>( ent )->y = ent + 1;
+        world.createComponent<Baz>( ent )->z = ent + 2;
+    }
+    
+
+    SEntityQuery query;
+
+    SECTION( "Query entities with Foo" )
+    {
+        query.entitySignCond = []( const CEntitySignature& sign ) -> bool
+        {
+            return sign.has<Foo>();
+        };
+
+        REQUIRE( world.queryEntities( query ) == 4 );
+
+        REQUIRE_NOTHROW(
+            forEachEntityInQuery<Foo>( query, 
+            []( Foo& foo ) -> void
+            {
+                foo.x *= foo.x;
+                REQUIRE( foo.x == foo.owner * foo.owner );
+            })
+        );
+    }
+
+    SECTION( "Doing incorrect forEach on query" )
+    {
+        query.entitySignCond = []( const CEntitySignature& sign ) -> bool
+        {
+            return sign.has<Baz>() && ( sign.has<Foo>() || sign.has<Bar>() );
+        };
+
+        REQUIRE( world.queryEntities( query ) == 3 );
+
+        REQUIRE_THROWS( 
+            forEachEntityInQuery<Foo, Bar>( query,
+            []( Foo *foo, Bar *bar ) 
+            {
+                foo->x = bar->y * bar->y;
+            })
+        );
+    }
+
+    SECTION( "Query entities with Foo, Bar and Baz" )
+    {
+        query.entitySignCond = []( const CEntitySignature& sign ) -> bool
+        {
+            return sign.has<Foo>() && sign.has<Bar>() && sign.has<Baz>();
+        };
+
+        REQUIRE( world.queryEntities( query ) == 1 );
+
+        REQUIRE_NOTHROW(
+            forEachEntityInQuery<Foo, Bar, Baz>( query, 
+            []( Foo *foo, Bar *bar, Baz *baz ) 
+            {
+                baz->w *= foo->x + bar->y;
+            })
+        );
+    }
+
+    SECTION( "Query entities with Baz but no Foo" )
+    {
+        query.entitySignCond = []( const CEntitySignature& sign ) -> bool
+        {
+            return sign.has<Baz>() && !sign.has<Foo>();
+        };
+
+        REQUIRE( world.queryEntities( query ) == 1 );
+
+        REQUIRE_NOTHROW( 
+            forEachEntityInQuery<Baz>( query,
+            []( Baz& baz )
+            {
+                baz.w *= baz.z;
+            })
+        );
+    }
+}

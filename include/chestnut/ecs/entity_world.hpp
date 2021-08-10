@@ -1,5 +1,5 @@
-#ifndef __CHESTNUT_ENTITY_MANAGER_H__
-#define __CHESTNUT_ENTITY_MANAGER_H__
+#ifndef __CHESTNUT_ENTITY_WORLD_H__
+#define __CHESTNUT_ENTITY_WORLD_H__
 
 #include "types.hpp"
 #include "entity_signature.hpp"
@@ -7,6 +7,7 @@
 #include "component_storage.hpp"
 #include "entity_registry.hpp"
 #include "component_batch.hpp"
+#include "entity_query.hpp"
 
 #include <vector>
 
@@ -30,7 +31,9 @@ namespace chestnut
         internal::CComponentStorageTypeMap m_mapCompTypeToStorage;
 
         // A vector of batch objects organizing components by entity signature
-        std::vector< internal::CComponentBatchGuard > m_vecBatchGuards;
+        // They're mutable, because we cache pending components inside them and want to update them when performing a query
+        // This doesn't affect World's state
+        mutable std::vector< internal::CComponentBatchGuard > m_vecBatchGuards;
 
 
     public:
@@ -82,7 +85,7 @@ namespace chestnut
 
         //TODO eighter make getter for storages or allow to reserve component space somehow
 
-        //TODO queries
+        int queryEntities( SEntityQuery& query ) const;
 
 
     private:
@@ -106,4 +109,4 @@ namespace chestnut
 #include "entity_world.tpp"
 
 
-#endif // __CHESTNUT_ENTITY_MANAGER_H__
+#endif // __CHESTNUT_ENTITY_WORLD_H__

@@ -26,7 +26,7 @@ namespace chestnut
     template< class C >
     C* CEntityWorld::createComponent( entityid entityID ) 
     {
-        ASSERT_DERIVED_FROM_COMPONENT(C);
+        CHESTNUT_STATIC_ASSERT_VALID_COMPONENT_CLASS(C);
 
         setupComponentType<C>( CHESTNUT_DEFAULT_STORAGE_SEGMENT_SIZE ); // if it wasn't done before then try to
 
