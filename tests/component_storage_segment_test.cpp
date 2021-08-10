@@ -12,13 +12,31 @@ public:
 
 TEST_CASE( "Component storage segment test" )
 {
-    SECTION( "Assert if segment accepts only CComponent derived types" )
+    // v Uncomment before testing
+    /*
+    SECTION( "Compile time assert if segment accepts only valid classes" )
     {
-        // v Uncomment before testing
-        // CComponentStorageSegment<int> seg(10);
+        class Bar
+        {
+        public:
+            long j;
+        };
 
-        SUCCEED("CComponentStorageSegment didn't accept int as its type.");
+        class Baz : public CComponent
+        {
+        public:
+            short k;
+
+            Baz( short _k ) { _k = k; }
+        };
+
+        // test if doesn't compile non CComponent inherited class
+        CComponentStorageSegment<Bar> seg1(10);
+
+        // test if doesn't compile non default constructible class
+        CComponentStorageSegment<Baz> seg2(20);
     }
+    */
 
 
     CComponentStorageSegment<Foo> seg(10);

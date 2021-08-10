@@ -90,7 +90,7 @@ namespace chestnut::internal
     template< class C >
     class CComponentStorage : public IComponentStorage
     {
-        ASSERT_DERIVED_FROM_COMPONENT(C);
+        CHESTNUT_STATIC_ASSERT_VALID_COMPONENT_CLASS(C);
 
     private:
         using SegType = internal::CComponentStorageSegment<C>;

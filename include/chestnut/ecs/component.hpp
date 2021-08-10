@@ -19,7 +19,7 @@ namespace chestnut
     };
 
 
-    #define ASSERT_DERIVED_FROM_COMPONENT(T) static_assert( std::is_base_of< CComponent, T >::value, "Component class " #T " must inherit from CComponent" );
+    #define CHESTNUT_STATIC_ASSERT_VALID_COMPONENT_CLASS(T) static_assert( ( std::is_base_of_v< CComponent, T > && std::is_default_constructible_v< T > ), "Component class " #T " must inherit from CComponent and be default constructible" );
 
 
 } // namespace chestnut

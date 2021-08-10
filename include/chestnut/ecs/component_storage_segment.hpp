@@ -42,7 +42,7 @@ namespace chestnut::internal
     template< class C >
     class CComponentStorageSegment : public CComponentStorageSegment_Base
     {
-        ASSERT_DERIVED_FROM_COMPONENT(C);
+        CHESTNUT_STATIC_ASSERT_VALID_COMPONENT_CLASS(C);
 
     private:
         C *m_arrComponentSlots;

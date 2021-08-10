@@ -14,10 +14,10 @@
 namespace chestnut
 {
     /**
-     * @brief A struct-of-arrays containing component pointers belonging to multiple entities having the same component signature
+     * @brief A struct emulating the SOA layout using a map. Contains component pointers belonging to multiple entities having the same component signature
      * 
      * @details
-     * A struct housing parallel arrays (vectors) of component pointers. A batch is created for a specified component set signature. 
+     * A struct housing map of parallel arrays (vectors) of component pointers. A batch is created for a specified component set signature. 
      * A struct created from need of storing unspecified number of components of unspecified number of types. 
      * Allows for convenient access to components that belong to an entity with specific set of components, 
      * which streamlines component systems' process of fetching very specific component configurations if they need more than one 
@@ -38,6 +38,7 @@ namespace internal
     /**
      * @brief A helper class for managing component batches
      * 
+     * @details
      * With access to CComponentStorageTypeMap this class can manage the actual component batch they store
      * by fetching appropriate sets of components for different entities and laying them out in the batch
      * in the coherent manner, such that you can traverse vectors in mapCompTypeToCompVec as if they are
