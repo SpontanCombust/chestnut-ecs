@@ -1,9 +1,9 @@
 #include "chestnut/ecs/entity_world.hpp"
 
-#include <algorithm>
-#include <exception>
+#include <algorithm> // find_if
+#include <exception> // invalid_argument
 
-namespace chestnut
+namespace chestnut::ecs
 {
     using namespace internal;
 
@@ -379,4 +379,4 @@ namespace chestnut
         }
     }
 
-} // namespace chestnut
+} // namespace chestnut::ecs

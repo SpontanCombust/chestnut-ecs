@@ -1,4 +1,4 @@
-namespace chestnut
+namespace chestnut::ecs
 {
     template< class C1 >
     void forEachEntityInQuery( const SEntityQuery& query, std::function< void( C1& ) > func )
@@ -192,4 +192,4 @@ namespace chestnut
         }
     }
     
-} // namespace chestnut
+} // namespace chestnut::ecs

@@ -2,10 +2,10 @@
 
 #include "../include/chestnut/ecs/component_batch_guard.hpp"
 
-#include <memory>
+#include <memory> // unique_ptr
 
-using namespace chestnut;
-using namespace chestnut::internal;
+using namespace chestnut::ecs;
+using namespace chestnut::ecs::internal;
 
 class Foo : public CComponent
 {

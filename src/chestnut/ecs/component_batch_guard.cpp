@@ -1,8 +1,8 @@
 #include "chestnut/ecs/component_batch_guard.hpp"
 
-#include <algorithm>
+#include <iterator> // next
 
-namespace chestnut::internal
+namespace chestnut::ecs::internal
 {    
     CComponentBatchGuard::CComponentBatchGuard( const CEntitySignature& signature ) 
     {
@@ -169,4 +169,4 @@ namespace chestnut::internal
     }
 
 
-} // namespace chestnut::internal
+} // namespace chestnut::ecs::internal

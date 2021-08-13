@@ -2,8 +2,8 @@
 
 #include "../include/chestnut/ecs/component_storage.hpp"
 
-using namespace chestnut;
-using namespace chestnut::internal;
+using namespace chestnut::ecs;
+using namespace chestnut::ecs::internal;
 
 class Foo : public CComponent
 {

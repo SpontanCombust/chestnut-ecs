@@ -2,7 +2,7 @@
 
 #include "../include/chestnut/ecs/entity_world.hpp"
 
-using namespace chestnut;
+using namespace chestnut::ecs;
 
 class Foo : public CComponent
 {

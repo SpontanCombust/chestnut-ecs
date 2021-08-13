@@ -1,4 +1,4 @@
-namespace chestnut
+namespace chestnut::ecs
 {
     // ========================= PUBLIC ========================= //
 
@@ -78,4 +78,4 @@ namespace chestnut
         destroyComponentInternal( std::type_index( typeid( C ) ), entityID );
     }
 
-} // namespace chestnut
+} // namespace chestnut::ecs

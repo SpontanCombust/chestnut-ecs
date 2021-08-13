@@ -1,8 +1,7 @@
-#include <cassert>
-#include <exception>
-#include <numeric>
+#include <cassert> // assert()
+#include <numeric> // iota()
 
-namespace chestnut::internal
+namespace chestnut::ecs::internal
 {    
     template<class C>
     CComponentStorageSegment<C>::CComponentStorageSegment( segsize size ) 
@@ -110,4 +109,4 @@ namespace chestnut::internal
         }
     }
 
-} // namespace chestnut::internal
+} // namespace chestnut::ecs::internal

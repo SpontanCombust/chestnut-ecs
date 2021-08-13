@@ -4,5 +4,5 @@
     "files.associations": {
         "*.tpp" : "cpp"
     },
-    "CppHelper.HeaderGuardPattern": "__CHESTNUT_{FILE}_H__"
+    "CppHelper.HeaderGuardPattern": "__CHESTNUT_ECS_{FILE}_H__"
 }

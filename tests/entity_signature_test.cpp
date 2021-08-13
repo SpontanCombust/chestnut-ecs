@@ -2,13 +2,14 @@
 
 #include "../include/chestnut/ecs/entity_signature.hpp"
 
+using namespace chestnut::ecs;
+
 struct Foo {};
 struct Bar {};
 struct Baz {};
 
 TEST_CASE( "Entity signature test" )
 {
-    using namespace chestnut;
 
     SECTION( "Adding types to the signature" )
     {

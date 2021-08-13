@@ -1,15 +1,15 @@
-#ifndef __CHESTNUT_TYPES_H__
-#define __CHESTNUT_TYPES_H__
+#ifndef __CHESTNUT_ECS_TYPES_H__
+#define __CHESTNUT_ECS_TYPES_H__
 
-#include <cstdint>
+#include <cstdint> // uint16_t, uint32_t
 
-namespace chestnut
+namespace chestnut::ecs
 {
     typedef uint32_t entityid;
 
     typedef uint16_t segid;
     typedef uint32_t segsize;
 
-} // namespace chestnut
+} // namespace chestnut::ecs
 
-#endif // __CHESTNUT_TYPES_H__
+#endif // __CHESTNUT_ECS_TYPES_H__

@@ -1,8 +1,8 @@
 #include "chestnut/ecs/entity_registry.hpp"
 
-#include <exception>
+#include <exception> // invalid_argument
 
-namespace chestnut::internal
+namespace chestnut::ecs::internal
 {    
     void CEntityRegistry::registerEntity( entityid id, bool isTemplateEntity ) 
     {
@@ -109,4 +109,4 @@ namespace chestnut::internal
         }
     }
 
-} // namespace chestnut
+} // namespace chestnut::ecs::internal

@@ -1,5 +1,5 @@
-#ifndef __CHESTNUT_COMPONENT_BATCH_H__
-#define __CHESTNUT_COMPONENT_BATCH_H__
+#ifndef __CHESTNUT_ECS_COMPONENT_BATCH_H__
+#define __CHESTNUT_ECS_COMPONENT_BATCH_H__
 
 #include "types.hpp"
 #include "entity_signature.hpp"
@@ -9,7 +9,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace chestnut
+namespace chestnut::ecs
 {
     /**
      * @brief A struct emulating the SOA layout using a map. Contains component pointers belonging to multiple entities having the same component signature
@@ -31,6 +31,6 @@ namespace chestnut
         std::unordered_map< std::type_index, std::vector< CComponent * > > mapCompTypeToCompVec;
     };
     
-} // namespace chestnut
+} // namespace chestnut::ecs
 
-#endif // __CHESTNUT_COMPONENT_BATCH_H__
+#endif // __CHESTNUT_ECS_COMPONENT_BATCH_H__

@@ -1,12 +1,12 @@
-#ifndef __CHESTNUT_ENTITY_REGISTRY_H__
-#define __CHESTNUT_ENTITY_REGISTRY_H__
+#ifndef __CHESTNUT_ECS_ENTITY_REGISTRY_H__
+#define __CHESTNUT_ECS_ENTITY_REGISTRY_H__
 
 #include "types.hpp"
 #include "entity_signature.hpp"
 
 #include <unordered_map>
 
-namespace chestnut::internal
+namespace chestnut::ecs::internal
 {
     struct SEntityRegistryRecord
     {
@@ -44,7 +44,7 @@ namespace chestnut::internal
         const CEntitySignature& getEntitySignature( entityid id ) const;
     };
     
-} // namespace chestnut
+} // namespace chestnut::ecs::internal
 
 
-#endif // __CHESTNUT_ENTITY_REGISTRY_H__
+#endif // __CHESTNUT_ECS_ENTITY_REGISTRY_H__

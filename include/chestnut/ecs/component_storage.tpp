@@ -1,4 +1,4 @@
-namespace chestnut::internal
+namespace chestnut::ecs::internal
 {
     template<class C>
     CComponentStorage<C>::CComponentStorage( segsize segmentSize, segsize initCapacity )
@@ -339,4 +339,4 @@ namespace chestnut::internal
         }
     }
 
-} // namespace chestnut::internal
+} // namespace chestnut::ecs::internal

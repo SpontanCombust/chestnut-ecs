@@ -2,8 +2,8 @@
 
 #include "../include/chestnut/ecs/component_storage_segment.hpp"
 
-using namespace chestnut;
-using namespace chestnut::internal;
+using namespace chestnut::ecs;
+using namespace chestnut::ecs::internal;
 
 class Foo : public CComponent {
 public:
@@ -60,8 +60,6 @@ TEST_CASE( "Component storage segment test" )
         REQUIRE( seg.tryTakeUpSlot(5) != nullptr );
 
         REQUIRE( seg.getTakenSlotCount() == 4 );
-
-        WARN( seg.toString() );
     
         // Check for component presence
         REQUIRE_FALSE( seg.hasSlottedComponent(0) );

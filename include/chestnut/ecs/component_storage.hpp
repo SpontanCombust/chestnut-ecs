@@ -1,5 +1,5 @@
-#ifndef __CHESTNUT_COMPONENT_STORAGE_H__
-#define __CHESTNUT_COMPONENT_STORAGE_H__
+#ifndef __CHESTNUT_ECS_COMPONENT_STORAGE_H__
+#define __CHESTNUT_ECS_COMPONENT_STORAGE_H__
 
 #include "types.hpp"
 #include "component.hpp"
@@ -9,7 +9,7 @@
 #include <typeindex>
 #include <unordered_map>
 
-namespace chestnut::internal
+namespace chestnut::ecs::internal
 {
     /**
      * @brief Interface for CComponentStorage.
@@ -152,10 +152,10 @@ namespace chestnut::internal
     typedef std::unordered_map< std::type_index, IComponentStorage * > CComponentStorageTypeMap;
 
 
-} // namespace chestnut::internal
+} // namespace chestnut::ecs::internal
 
 
 #include "component_storage.tpp"
 
 
-#endif // __CHESTNUT_COMPONENT_STORAGE_H__
+#endif // __CHESTNUT_ECS_COMPONENT_STORAGE_H__

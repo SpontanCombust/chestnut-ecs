@@ -1,10 +1,8 @@
 #include "chestnut/ecs/component_storage_segment.hpp"
 
-#include <exception>
-#include <numeric>
-#include <sstream>
+#include <numeric> // iota
 
-namespace chestnut::internal
+namespace chestnut::ecs::internal
 {    
     CComponentStorageSegment_Base::CComponentStorageSegment_Base( segsize size ) 
     {
@@ -63,26 +61,4 @@ namespace chestnut::internal
         }
     }
 
-    std::string CComponentStorageSegment_Base::toString() const
-    {
-        std::stringstream ss;
-
-        ss << "[";
-        if( !m_mapEntityIDToIndex.empty() )
-        {
-            auto it = m_mapEntityIDToIndex.begin();
-            ss << std::to_string( it->first );
-            it++;
-
-            for(; it != m_mapEntityIDToIndex.end(); it++ )
-            {
-                ss << ", " << std::to_string( it->first );
-            }
-        }
-        ss << "]";
-
-        return ss.str();
-    }
-
-
-} // namespace chestnut::internal
+} // namespace chestnut::ecs::internal

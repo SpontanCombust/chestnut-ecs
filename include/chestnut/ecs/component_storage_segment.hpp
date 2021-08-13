@@ -1,5 +1,5 @@
-#ifndef __CHESTNUT_COMPONENT_STORAGE_SEGMENT_H__
-#define __CHESTNUT_COMPONENT_STORAGE_SEGMENT_H__
+#ifndef __CHESTNUT_ECS_COMPONENT_STORAGE_SEGMENT_H__
+#define __CHESTNUT_ECS_COMPONENT_STORAGE_SEGMENT_H__
 
 #include "types.hpp"
 #include "component.hpp"
@@ -8,7 +8,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace chestnut::internal
+namespace chestnut::ecs::internal
 {
     class CComponentStorageSegment_Base
     {
@@ -31,9 +31,6 @@ namespace chestnut::internal
 
         // Returns whether entity with id equal entityID has its component slotted in this segment 
         bool hasSlottedComponent( entityid entityID ) const;
-
-        // Returns a string with IDs of all entities that take up slots in the segment
-        std::string toString() const;
     };
 
 
@@ -73,10 +70,10 @@ namespace chestnut::internal
         void clearSlots();
     };
 
-} // namespace chestnut::internal
+} // namespace chestnut::ecs::internal
 
 
 #include "component_storage_segment.tpp"
 
 
-#endif // __CHESTNUT_COMPONENT_STORAGE_SEGMENT_H__
+#endif // __CHESTNUT_ECS_COMPONENT_STORAGE_SEGMENT_H__

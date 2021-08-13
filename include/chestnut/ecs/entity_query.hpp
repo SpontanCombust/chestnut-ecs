@@ -1,5 +1,5 @@
-#ifndef __CHESTNUT_ENTITY_QUERY_H__
-#define __CHESTNUT_ENTITY_QUERY_H__
+#ifndef __CHESTNUT_ECS_ENTITY_QUERY_H__
+#define __CHESTNUT_ECS_ENTITY_QUERY_H__
 
 #include "entity_signature.hpp"
 #include "component_batch.hpp"
@@ -7,7 +7,7 @@
 #include <functional>
 #include <vector>
 
-namespace chestnut
+namespace chestnut::ecs
 {
     struct SEntityQuery
     {
@@ -47,10 +47,10 @@ namespace chestnut
     template< class C1, class C2, class C3, class C4 >
     void forEachEntityInQuery( const SEntityQuery& query, std::function< void( C1*, C2*, C3*, C4* ) > func );
 
-} // namespace chestnut
+} // namespace chestnut::ecs
 
 
 #include "entity_query.tpp"
 
 
-#endif // __CHESTNUT_ENTITY_QUERY_H__
+#endif // __CHESTNUT_ECS_ENTITY_QUERY_H__

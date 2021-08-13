@@ -1,11 +1,11 @@
-#ifndef __CHESTNUT_ENTITY_SIGNATURE_H__
-#define __CHESTNUT_ENTITY_SIGNATURE_H__
+#ifndef __CHESTNUT_ECS_ENTITY_SIGNATURE_H__
+#define __CHESTNUT_ECS_ENTITY_SIGNATURE_H__
 
 #include <string>
 #include <typeindex>
 #include <unordered_set>
 
-namespace chestnut
+namespace chestnut::ecs
 {
     class CEntitySignature
     {
@@ -57,10 +57,10 @@ namespace chestnut
 
     bool operator==( const CEntitySignature& lhs, const CEntitySignature& rhs );
 
-} // namespace chestnut
+} // namespace chestnut::ecs
 
 
 #include "entity_signature.tpp"
 
 
-#endif // __CHESTNUT_ENTITY_SIGNATURE_H__
+#endif // __CHESTNUT_ECS_ENTITY_SIGNATURE_H__

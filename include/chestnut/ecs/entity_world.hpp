@@ -1,5 +1,5 @@
-#ifndef __CHESTNUT_ENTITY_WORLD_H__
-#define __CHESTNUT_ENTITY_WORLD_H__
+#ifndef __CHESTNUT_ECS_ENTITY_WORLD_H__
+#define __CHESTNUT_ECS_ENTITY_WORLD_H__
 
 #include "types.hpp"
 #include "entity_signature.hpp"
@@ -12,7 +12,7 @@
 
 #include <vector>
 
-namespace chestnut
+namespace chestnut::ecs
 {
 #ifndef CHESTNUT_DEFAULT_STORAGE_SEGMENT_SIZE
     #define CHESTNUT_DEFAULT_STORAGE_SEGMENT_SIZE 100
@@ -130,10 +130,10 @@ namespace chestnut
         internal::CComponentBatchGuard& getBatchGuardWithSignature( const CEntitySignature& signature );
     };
     
-} // namespace chestnut
+} // namespace chestnut::ecs
 
 
 #include "entity_world.tpp"
 
 
-#endif // __CHESTNUT_ENTITY_WORLD_H__
+#endif // __CHESTNUT_ECS_ENTITY_WORLD_H__

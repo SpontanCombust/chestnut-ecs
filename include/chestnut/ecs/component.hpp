@@ -1,11 +1,11 @@
-#ifndef __CHESTNUT_COMPONENT_H__
-#define __CHESTNUT_COMPONENT_H__
+#ifndef __CHESTNUT_ECS_COMPONENT_H__
+#define __CHESTNUT_ECS_COMPONENT_H__
 
 #include "types.hpp"
 
-#include <type_traits>
+#include <type_traits> // is_base_of_v, is_default_constructible_v
 
-namespace chestnut
+namespace chestnut::ecs
 {
     const entityid ENTITY_ID_INVALID = 0;
 
@@ -22,6 +22,6 @@ namespace chestnut
     #define CHESTNUT_STATIC_ASSERT_VALID_COMPONENT_CLASS(T) static_assert( ( std::is_base_of_v< CComponent, T > && std::is_default_constructible_v< T > ), "Component class " #T " must inherit from CComponent and be default constructible" );
 
 
-} // namespace chestnut
+} // namespace chestnut::ecs
 
-#endif // __CHESTNUT_COMPONENT_H__
+#endif // __CHESTNUT_ECS_COMPONENT_H__

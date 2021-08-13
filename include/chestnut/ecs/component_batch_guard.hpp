@@ -1,12 +1,12 @@
-#ifndef __CHESTNUT_COMPONENT_BATCH_GUARD_H__
-#define __CHESTNUT_COMPONENT_BATCH_GUARD_H__
+#ifndef __CHESTNUT_ECS_COMPONENT_BATCH_GUARD_H__
+#define __CHESTNUT_ECS_COMPONENT_BATCH_GUARD_H__
 
 #include "component_batch.hpp"
 #include "component_storage.hpp"
 
 #include <unordered_set>
 
-namespace chestnut::internal
+namespace chestnut::ecs::internal
 {
     /**
      * @brief A helper class for managing component batches
@@ -57,6 +57,6 @@ namespace chestnut::internal
         const SComponentBatch *getBatchPtr() const;
     };
 
-} // namespace chestnut::internal
+} // namespace chestnut::ecs::internal
 
-#endif // __CHESTNUT_COMPONENT_BATCH_GUARD_H__
+#endif // __CHESTNUT_ECS_COMPONENT_BATCH_GUARD_H__

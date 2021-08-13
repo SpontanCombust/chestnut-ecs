@@ -2,8 +2,8 @@
 
 #include "../include/chestnut/ecs/entity_registry.hpp"
 
-using namespace chestnut;
-using namespace chestnut::internal;
+using namespace chestnut::ecs;
+using namespace chestnut::ecs::internal;
 
 TEST_CASE( "Entity registry test" )
 {

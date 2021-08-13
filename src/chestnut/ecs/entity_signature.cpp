@@ -1,8 +1,6 @@
 #include "chestnut/ecs/entity_signature.hpp"
 
-#include <sstream>
-
-namespace chestnut
+namespace chestnut::ecs
 {
     void CEntitySignature::add( std::type_index compType ) 
     {
@@ -105,4 +103,4 @@ namespace chestnut
         return lhs.m_setComponentTypes == rhs.m_setComponentTypes;
     }
 
-} // namespace chestnut
+} // namespace chestnut::ecs
