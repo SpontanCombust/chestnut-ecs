@@ -1,4 +1,4 @@
-#include "chestnut/ecs/component_batch.hpp"
+#include "chestnut/ecs/component_batch_guard.hpp"
 
 #include <algorithm>
 

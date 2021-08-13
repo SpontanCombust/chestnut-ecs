@@ -1,6 +1,6 @@
 #include <catch2/catch.hpp>
 
-#include "../include/chestnut/ecs/component_batch.hpp"
+#include "../include/chestnut/ecs/component_batch_guard.hpp"
 
 #include <memory>
 

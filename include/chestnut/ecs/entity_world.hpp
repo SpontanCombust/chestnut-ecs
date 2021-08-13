@@ -7,6 +7,7 @@
 #include "component_storage.hpp"
 #include "entity_registry.hpp"
 #include "component_batch.hpp"
+#include "component_batch_guard.hpp"
 #include "entity_query.hpp"
 
 #include <vector>
