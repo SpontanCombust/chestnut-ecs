@@ -71,8 +71,13 @@ namespace internal
 
         void removeEntityWithComponents( entityid entityID );
 
-        void updateBatch();
+        // Returns whether the underlying batch has any components stored inside it after the update
+        bool updateBatch();
 
+
+        // Returns whether the underlying batch has any components stored inside it
+        // Note that it won't take into consideration any components that are currently pending in/out to it
+        bool hasAnyComponentsInBatch() const;
 
         const CEntitySignature& getBatchSignature() const;
 

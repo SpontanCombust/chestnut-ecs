@@ -80,35 +80,38 @@ namespace chestnut::internal
         }
     }
 
-    void CComponentBatchGuard::updateBatch() 
+    bool CComponentBatchGuard::updateBatch() 
     {
         // first do the removal
 
-        // iterate over all IDs in the target batch vector of entity IDs
-        // remove those that are in the set of IDs sheduled for removal 
-
-        std::vector< entityid > vecIndicesToEraseInOrder;
-
-        for (entityid i = 0; i < m_targetBatch.vecEntityIDs.size(); /*NOP*/)
+        if( !m_pendingOut_setEntityIDs.empty() )
         {
-            entityid entityID = m_targetBatch.vecEntityIDs[i];
+            // iterate over all IDs in the target batch vector of entity IDs
+            // remove those that are in the set of IDs sheduled for removal 
 
-            if( m_pendingOut_setEntityIDs.find( entityID ) != m_pendingOut_setEntityIDs.end() )
-            {
-                m_targetBatch.vecEntityIDs.erase( std::next( m_targetBatch.vecEntityIDs.begin(), i ) );
-                vecIndicesToEraseInOrder.push_back(i);
-            }
-            else
-            {
-                i++;
-            }
-        }
+            std::vector< entityid > vecIndicesToEraseInOrder;
 
-        for( auto& [ type, vecComp ] : m_targetBatch.mapCompTypeToCompVec )
-        {
-            for( entityid index : vecIndicesToEraseInOrder )
+            for (entityid i = 0; i < m_targetBatch.vecEntityIDs.size(); /*NOP*/)
             {
-                vecComp.erase( std::next( vecComp.begin(), index ) );
+                entityid entityID = m_targetBatch.vecEntityIDs[i];
+
+                if( m_pendingOut_setEntityIDs.find( entityID ) != m_pendingOut_setEntityIDs.end() )
+                {
+                    m_targetBatch.vecEntityIDs.erase( std::next( m_targetBatch.vecEntityIDs.begin(), i ) );
+                    vecIndicesToEraseInOrder.push_back(i);
+                }
+                else
+                {
+                    i++;
+                }
+            }
+
+            for( auto& [ type, vecComp ] : m_targetBatch.mapCompTypeToCompVec )
+            {
+                for( entityid index : vecIndicesToEraseInOrder )
+                {
+                    vecComp.erase( std::next( vecComp.begin(), index ) );
+                }
             }
         }
         
@@ -116,17 +119,20 @@ namespace chestnut::internal
 
         // then addition
 
-        // add to target batch all the IDs of entities of pending components
-        m_targetBatch.vecEntityIDs.insert( m_targetBatch.vecEntityIDs.end(),
-                                           m_pendingIn_vecEntityIDs.begin(),
-                                           m_pendingIn_vecEntityIDs.end() );
-
-        // now add the actual components to target batch
-        for( auto& [ type, vecComp ] : m_targetBatch.mapCompTypeToCompVec )
+        if( !m_pendingIn_vecEntityIDs.empty() )
         {
-            vecComp.insert( vecComp.end(),
-                            m_pendingIn_mapCompTypeToVecComp[ type ].begin(), 
-                            m_pendingIn_mapCompTypeToVecComp[ type ].end() );
+            // add to target batch all the IDs of entities of pending components
+            m_targetBatch.vecEntityIDs.insert( m_targetBatch.vecEntityIDs.end(),
+                                               m_pendingIn_vecEntityIDs.begin(),
+                                               m_pendingIn_vecEntityIDs.end() );
+
+            // now add the actual components to target batch
+            for( auto& [ type, vecComp ] : m_targetBatch.mapCompTypeToCompVec )
+            {
+                vecComp.insert( vecComp.end(),
+                                m_pendingIn_mapCompTypeToVecComp[ type ].begin(), 
+                                m_pendingIn_mapCompTypeToVecComp[ type ].end() );
+            }
         }
 
 
@@ -141,6 +147,15 @@ namespace chestnut::internal
         {
             vecComp.clear();
         }
+
+
+        // return whether the target batch has any components now
+        return m_targetBatch.vecEntityIDs.size() > 0;
+    }
+
+    bool CComponentBatchGuard::hasAnyComponentsInBatch() const
+    {
+        return m_targetBatch.vecEntityIDs.size() > 0;
     }
 
     const CEntitySignature& CComponentBatchGuard::getBatchSignature() const
