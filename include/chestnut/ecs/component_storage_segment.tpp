@@ -42,6 +42,31 @@ namespace chestnut::internal
     }
 
     template<class C>
+    C* CComponentStorageSegment<C>::tryTakeUpSlot( entityid entityID, const C& copySrc ) 
+    {
+        assert( entityID != ENTITY_ID_INVALID );
+        
+        if( hasSlottedComponent( entityID ) )
+        {
+            return getSlottedComponent( entityID );
+        }
+        else if( isFull() )
+        {
+            return nullptr;
+        }
+
+        size_t slot = m_vecAvailableIndices.back();
+        m_vecAvailableIndices.pop_back();
+
+        m_arrComponentSlots[ slot ] = copySrc;
+        m_arrComponentSlots[ slot ].owner = entityID;
+
+        m_mapEntityIDToIndex[ entityID ] = slot;
+
+        return &m_arrComponentSlots[ slot ];
+    }
+
+    template<class C>
     C* CComponentStorageSegment<C>::getSlottedComponent( entityid entityID ) const
     {
         auto it = m_mapEntityIDToIndex.find( entityID );

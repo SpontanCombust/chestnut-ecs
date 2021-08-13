@@ -26,6 +26,9 @@ namespace chestnut::internal
 
         // Returns created component or component that has already existed with that entityID
         virtual CComponent *storeComponent( entityid entityID ) = 0;
+        // Returns created component or component that has already existed with that entityID
+        // Attempts to copy contents from entity srcEntityID to entityID if entity with srcEntityID exists
+        virtual CComponent *storeComponentCopy( entityid entityID, entityid srcEntityID ) = 0;
         virtual bool hasComponent( entityid entityID ) const = 0;
         // Returns null if component doesn't exists
         virtual CComponent *getComponent( entityid entityID ) const = 0;
@@ -110,6 +113,9 @@ namespace chestnut::internal
 
         // Returns created component or component that has already existed with that entityID,
         CComponent *storeComponent( entityid entityID ) override;
+        // Returns created component or component that has already existed with that entityID
+        // Attempts to copy contents from entity srcEntityID to entityID if entity with srcEntityID exists
+        CComponent *storeComponentCopy( entityid entityID, entityid srcEntityID ) override;
         bool hasComponent( entityid entityID ) const override;
         // Returns null if component doesn't exists
         CComponent *getComponent( entityid entityID ) const override;

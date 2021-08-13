@@ -58,6 +58,12 @@ namespace chestnut::internal
         // Asserts entityID is not ENTITY_ID_INVALID
         C* tryTakeUpSlot( entityid entityID );
 
+        // Returns the slotted component or null if there was no place left for it
+        // If entity already has taken up a slot, no action is taken aside from returning component at that slot
+        // Copies contents from copySrc into the slotted component
+        // Asserts entityID is not ENTITY_ID_INVALID
+        C* tryTakeUpSlot( entityid entityID, const C& copySrc );
+
         // Returns null if entity component is not slotted
         C* getSlottedComponent( entityid entityID ) const;
 

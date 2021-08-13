@@ -11,11 +11,8 @@ namespace chestnut::internal
     struct SEntityRegistryRecord
     {
         entityid id;
+        bool isTemplate;
         CEntitySignature signature;
-
-        SEntityRegistryRecord() = default; // we won't be fetching records that don't exist
-        SEntityRegistryRecord( entityid _id );
-        SEntityRegistryRecord( entityid _id, const CEntitySignature& _signature );
     };
 
     class CEntityRegistry
@@ -25,15 +22,17 @@ namespace chestnut::internal
 
     public:
         // Ignores request if entity is already registered
-        void registerEntity( entityid id );
+        void registerEntity( entityid id, bool isTemplateEntity );
 
         // Ignores request if entity is already registered
-        void registerEntity( entityid id, const CEntitySignature& signature );
+        void registerEntity( entityid id, bool isTemplateEntity, const CEntitySignature& signature );
 
         // Ignores request if entity is not yet registered
         void updateEntity( entityid id, const CEntitySignature& newSignature );
 
-        bool hasEntity( entityid id ) const;
+        bool hasEntity( entityid id, bool canBeTemplateEntity = true ) const;
+
+        bool hasTemplateEntity( entityid id ) const;
 
         void removeEntity( entityid id );
 

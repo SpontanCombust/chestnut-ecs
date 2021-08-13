@@ -50,8 +50,14 @@ namespace chestnut
         template< class C >
         void setupComponentType( segsize segmentSize );
 
+        template< class C >
+        bool hasComponentTypeSetup() const;
+
+
 
         entityid createEntity();
+
+        std::vector< entityid > createEntities( unsigned int amount );
 
         bool hasEntity( entityid entityID ) const;
 
@@ -59,10 +65,6 @@ namespace chestnut
 
         void destroyEntities( const std::vector< entityid >& entityIDs );
 
-        void destroyAllEntities();
-
-
-        // TODO entity templates
 
 
         // Returns null if entity doesn't exist
@@ -83,12 +85,35 @@ namespace chestnut
         void destroyComponent( entityid entityID );
 
 
-        //TODO eighter make getter for storages or allow to reserve component space somehow
 
+        entityid createTemplateEntity();
+
+        bool hasTemplateEntity( entityid templateEntityID ) const;
+
+        void destroyTemplateEntity( entityid templateEntityID );
+
+
+
+        // Creates entity based on component data owned by entity template with given ID
+        // If no such template entity exists doesn't create any new entity or components and returns ENTITY_ID_INVALID
+        entityid createEntityFromTemplate( entityid templateEntityID );
+
+        // Creates entity based on component data owned by entity template with given ID
+        // If no such template entity exists doesn't create any new entity or components and returns empty vector
+        std::vector< entityid > createEntitiesFromTemplate( entityid templateEntityID, unsigned int amount );
+
+
+
+        //TODO eighter make getter for storages or allow to reserve component space somehow; also gettable segment size
+
+        // Returns the number of entity variations (and thus batches) queried
         int queryEntities( SEntityQuery& query ) const;
 
 
     private:
+        entityid getNewEntityID();
+
+
         CComponent *createComponentInternal( std::type_index compType, entityid entityID );
 
         bool hasComponentInternal( std::type_index compType, entityid entityID ) const;
@@ -96,6 +121,7 @@ namespace chestnut
         CComponent *getComponentInternal( std::type_index compType, entityid entityID ) const;
 
         void destroyComponentInternal( std::type_index compType, entityid entityID );
+
 
         // Throws std::invalid_argument if signature is empty
         // We don't make batches for empty signatures, so always check it before you call this function

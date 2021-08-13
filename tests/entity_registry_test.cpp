@@ -13,10 +13,10 @@ TEST_CASE( "Entity registry test" )
     {
         REQUIRE( registry.getEntityCount() == 0 );
 
-        registry.registerEntity(1);
-        registry.registerEntity(2);
-        registry.registerEntity(3);
-        registry.registerEntity(5);
+        registry.registerEntity(1, false);
+        registry.registerEntity(2, false);
+        registry.registerEntity(3, false);
+        registry.registerEntity(5, false);
 
         REQUIRE( registry.getEntityCount() == 4 );
 
@@ -28,8 +28,8 @@ TEST_CASE( "Entity registry test" )
         REQUIRE( registry.hasEntity(5) );
 
         // try register again
-        registry.registerEntity(1);
-        registry.registerEntity(2);
+        registry.registerEntity(1, true);
+        registry.registerEntity(2, true);
 
         REQUIRE( registry.getEntityCount() == 4 );
         REQUIRE( registry.hasEntity(1) );
@@ -42,8 +42,8 @@ TEST_CASE( "Entity registry test" )
         signature.add<int>();
         signature.add<char>();
 
-        registry.registerEntity( 1 );
-        registry.registerEntity( 2, signature );
+        registry.registerEntity( 1, false );
+        registry.registerEntity( 2, false, signature );
 
         REQUIRE( registry.hasEntity(1) );
         REQUIRE_NOTHROW( signature = registry.getEntitySignature(1) );
@@ -62,7 +62,7 @@ TEST_CASE( "Entity registry test" )
     {
         CEntitySignature signature;
 
-        registry.registerEntity(2);
+        registry.registerEntity(2, false);
 
         signature = registry.getEntitySignature(2);
         REQUIRE( signature.isEmpty() ); 
@@ -77,10 +77,10 @@ TEST_CASE( "Entity registry test" )
 
     SECTION( "Removing entities" )
     {
-        registry.registerEntity(1);
-        registry.registerEntity(2);
-        registry.registerEntity(4);
-        registry.registerEntity(5);
+        registry.registerEntity(1, false);
+        registry.registerEntity(2, false);
+        registry.registerEntity(4, false);
+        registry.registerEntity(5, false);
 
         REQUIRE( registry.hasEntity(1) );
         REQUIRE( registry.hasEntity(2) );
@@ -89,7 +89,7 @@ TEST_CASE( "Entity registry test" )
         REQUIRE( registry.hasEntity(5) );
         
         registry.removeEntity(2);
-        registry.registerEntity(3);
+        registry.registerEntity(3, false);
         registry.removeEntity(4);
         registry.removeEntity(5);
 
@@ -108,5 +108,35 @@ TEST_CASE( "Entity registry test" )
         REQUIRE_FALSE( registry.hasEntity(3) );
         REQUIRE_FALSE( registry.hasEntity(4) );
         REQUIRE_FALSE( registry.hasEntity(5) );
+    }
+
+    SECTION( "Checking for template entities" )
+    {
+        registry.registerEntity(1, false);
+        registry.registerEntity(2, true);
+        registry.registerEntity(3, false);
+        registry.registerEntity(4, false);
+        registry.registerEntity(5, true);
+
+
+        REQUIRE( registry.hasEntity(1, true) );
+        REQUIRE( registry.hasEntity(1, false) );
+
+        REQUIRE( registry.hasEntity(2, true) );
+        REQUIRE_FALSE( registry.hasEntity(2, false) );
+
+        REQUIRE( registry.hasEntity(4, true) );
+        REQUIRE( registry.hasEntity(4, false) );
+
+        REQUIRE( registry.hasEntity(5, true) );
+        REQUIRE_FALSE( registry.hasEntity(5, false) );
+
+
+        REQUIRE( registry.getEntityCount() == 5 );
+
+
+        registry.removeEntity(2);
+        REQUIRE_FALSE( registry.hasEntity(2, true) );
+        REQUIRE_FALSE( registry.hasEntity(2, false) );
     }
 }

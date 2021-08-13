@@ -5,21 +5,36 @@ namespace chestnut
     template< class C >
     void CEntityWorld::setupComponentType( segsize segmentSize, segsize initCapacity ) 
     {
-        std::type_index compType = typeid(C);
-
-        auto it = m_mapCompTypeToStorage.find( compType );
-        
-        if( it == m_mapCompTypeToStorage.end() )
+        if( !hasComponentTypeSetup<C>() )
         {
-            m_mapCompTypeToStorage[ compType ] = new internal::CComponentStorage<C>( segmentSize, initCapacity );
+            m_mapCompTypeToStorage[ typeid(C) ] = new internal::CComponentStorage<C>( segmentSize, initCapacity );
         }
     }
 
     template<class C>
     void CEntityWorld::setupComponentType( segsize segmentSize ) 
     {
-        setupComponentType<C>( segmentSize, segmentSize );
+        if( !hasComponentTypeSetup<C>() )
+        {
+            m_mapCompTypeToStorage[ typeid(C) ] = new internal::CComponentStorage<C>( segmentSize, segmentSize );
+        }
     }
+
+    template<class C>
+    bool CEntityWorld::hasComponentTypeSetup() const
+    {
+        auto it = m_mapCompTypeToStorage.find( typeid(C) );
+        
+        if( it != m_mapCompTypeToStorage.end() )
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
 
 
 

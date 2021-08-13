@@ -65,11 +65,8 @@ TEST_CASE( "Entity world test - general" )
     {
         std::vector< entityid > ids1, ids2;
 
-        for (size_t i = 0; i < 10; i++)
-        {
-            ids1.push_back( world.createEntity() );
-            ids2.push_back( world.createEntity() );
-        }
+        ids1 = world.createEntities(10);
+        ids2 = world.createEntities(10);
         
 
         world.destroyEntities( ids2 );
@@ -77,18 +74,6 @@ TEST_CASE( "Entity world test - general" )
         for( entityid id : ids1 )
         {
             REQUIRE( world.hasEntity( id ) );
-        }
-        for( entityid id : ids2 )
-        {
-            REQUIRE_FALSE( world.hasEntity( id ) );
-        }
-
-
-        world.destroyAllEntities();
-
-        for( entityid id : ids1 )
-        {
-            REQUIRE_FALSE( world.hasEntity( id ) );
         }
         for( entityid id : ids2 )
         {
@@ -362,5 +347,205 @@ TEST_CASE( "Entity world test - batching" )
                 baz.w *= baz.z;
             })
         );
+    }
+
+    SECTION( "Query non-existing entities" )
+    {
+        query.entitySignCond = []( const CEntitySignature& sign ) -> bool
+        {
+            return sign.has<Bar>() && !sign.has<Foo>() && !sign.has<Baz>();
+        };
+
+        REQUIRE( world.queryEntities( query ) == 0 );
+    }
+}
+
+
+
+
+
+
+
+TEST_CASE( "Entity world test - entity templates" )
+{
+    CEntityWorld world;
+
+    SECTION( "Simple create-has-destroy check" )
+    {
+        entityid ent1 = world.createTemplateEntity();
+        entityid ent2 = world.createTemplateEntity();
+        entityid ent3 = world.createTemplateEntity();
+        entityid ent4 = world.createTemplateEntity();
+        entityid ent5 = world.createTemplateEntity();
+
+        REQUIRE( world.hasTemplateEntity( ent1 ) );
+        REQUIRE( world.hasTemplateEntity( ent2 ) );
+        REQUIRE( world.hasTemplateEntity( ent3 ) );
+        REQUIRE( world.hasTemplateEntity( ent4 ) );
+        REQUIRE( world.hasTemplateEntity( ent5 ) );
+
+        world.destroyTemplateEntity( ent1 );
+        world.destroyTemplateEntity( ent2 );
+        world.destroyTemplateEntity( ent3 );
+        world.destroyTemplateEntity( ent4 );
+        world.destroyTemplateEntity( ent5 );
+
+        REQUIRE_FALSE( world.hasTemplateEntity( ent1 ) );
+        REQUIRE_FALSE( world.hasTemplateEntity( ent2 ) );
+        REQUIRE_FALSE( world.hasTemplateEntity( ent3 ) );
+        REQUIRE_FALSE( world.hasTemplateEntity( ent4 ) );
+        REQUIRE_FALSE( world.hasTemplateEntity( ent5 ) );
+    }
+
+    SECTION( "Destinguishing between regular and template entity" )
+    {
+        entityid regularEnt = world.createEntity();
+        entityid templateEnt = world.createTemplateEntity();
+
+        REQUIRE( world.hasEntity( regularEnt ) );
+        REQUIRE_FALSE( world.hasTemplateEntity( regularEnt ) );
+
+        REQUIRE_FALSE( world.hasEntity( templateEnt ) );
+        REQUIRE( world.hasTemplateEntity( templateEnt ) );
+    }
+
+    SECTION( "Applying components to template entity" )
+    {
+        entityid templEnt = world.createTemplateEntity();
+
+        Foo *foo = world.createComponent<Foo>( templEnt );
+        REQUIRE( foo );
+        foo->x = 2;
+        Bar *bar = world.createComponent<Bar>( templEnt );
+        REQUIRE( bar );
+        bar->y = 3;
+
+        REQUIRE( world.hasComponent<Foo>( templEnt ) );
+        REQUIRE( world.hasComponent<Bar>( templEnt ) );
+        REQUIRE_FALSE( world.hasComponent<Baz>( templEnt ) );
+
+
+        foo = world.getComponent<Foo>( templEnt );
+        REQUIRE( foo );
+        REQUIRE( foo->x == 2 );
+        bar = world.getComponent<Bar>( templEnt );
+        REQUIRE( bar );
+        REQUIRE( bar->y == 3 );
+
+
+        world.destroyComponent<Foo>( templEnt );
+        REQUIRE_FALSE( world.hasComponent<Foo>( templEnt ) );
+        REQUIRE( world.hasComponent<Bar>( templEnt ) );
+    }
+
+    SECTION( "Creating entities using templates" )
+    {
+        entityid templEnt1 = world.createTemplateEntity();
+        entityid templEnt2 = world.createTemplateEntity();
+        entityid regularEnt = world.createEntity();
+
+        Foo *foo; Bar *bar; Baz *baz;
+
+        foo = world.createComponent<Foo>( templEnt1 );
+        foo->x = 1;
+        bar = world.createComponent<Bar>( templEnt1 );
+        bar->y = 2;
+
+        bar = world.createComponent<Bar>( templEnt2 );
+        bar->y = 3;
+        baz = world.createComponent<Baz>( templEnt2 );
+        baz->z = 4;
+
+
+        // try creating copy with non-template entity
+        entityid entFromTemplateInvalid = world.createEntityFromTemplate( regularEnt );
+        REQUIRE_FALSE( world.hasEntity( entFromTemplateInvalid ) );
+
+        
+        entityid ent1 = world.createEntityFromTemplate( templEnt1 );
+        entityid ent2 = world.createEntityFromTemplate( templEnt2 );
+
+
+
+        REQUIRE( world.hasEntity( ent1 ) );
+
+        REQUIRE( world.hasComponent<Foo>( ent1 ) );
+        foo = world.getComponent<Foo>( ent1 );
+        REQUIRE( foo->x == 1 );
+
+        REQUIRE( world.hasComponent<Bar>( ent1 ) );
+        bar = world.getComponent<Bar>( ent1 );
+        REQUIRE( bar->y == 2 );
+
+
+        REQUIRE( world.hasEntity( ent2 ) );
+
+        REQUIRE( world.hasComponent<Bar>( ent2 ) );
+        bar = world.getComponent<Bar>( ent2 );
+        REQUIRE( bar->y == 3 );
+
+        REQUIRE( world.hasComponent<Baz>( ent2 ) );
+        baz = world.getComponent<Baz>( ent2 );
+        REQUIRE( baz->z == 4 );
+    }
+
+    SECTION( "Creating multiple entities using a template and querying" )
+    {
+        entityid templ1 = world.createTemplateEntity();
+        entityid templ2 = world.createTemplateEntity();
+
+        Foo *foo; Bar *bar; Baz *baz;
+
+        foo = world.createComponent<Foo>( templ1 );
+        foo->x = 1;
+        bar = world.createComponent<Bar>( templ1 );
+        bar->y = 2;
+
+        foo = world.createComponent<Foo>( templ2 );
+        foo->x = 3;
+        baz = world.createComponent<Baz>( templ2 );
+        baz->z = 4;
+
+
+        auto vecEnt1 = world.createEntitiesFromTemplate( templ1, 10 );
+        REQUIRE( vecEnt1.size() == 10 );
+        auto vecEnt2 = world.createEntitiesFromTemplate( templ2, 20 );
+        REQUIRE( vecEnt2.size() == 20 );
+
+
+
+        SEntityQuery query1;
+        query1.entitySignCond = []( const CEntitySignature& signature ) -> bool
+        {
+            return signature.has<Foo>();
+        };
+
+        REQUIRE( world.queryEntities( query1 ) == 2 );
+        
+        entityid entCount = 0;
+        for( const SComponentBatch *batch : query1.vecBatches )
+        {
+            entCount += batch->vecEntityIDs.size();
+        }
+
+        REQUIRE( entCount == 30 );
+
+
+
+        SEntityQuery query2;
+        query2.entitySignCond = []( const CEntitySignature& signature ) -> bool
+        {
+            return signature.has<Foo>() && signature.has<Bar>(); 
+        };
+
+        REQUIRE( world.queryEntities( query2 ) == 1 );
+        
+        entCount = 0;
+        for( const SComponentBatch *batch : query2.vecBatches )
+        {
+            entCount += batch->vecEntityIDs.size();
+        }
+
+        REQUIRE( entCount == 10 );
     }
 }

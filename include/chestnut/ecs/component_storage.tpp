@@ -89,6 +89,51 @@ namespace chestnut::internal
     }
 
     template<class C>
+    CComponent* CComponentStorage<C>::storeComponentCopy( entityid entityID, entityid srcEntityID ) 
+    {
+        if( hasComponent( entityID ) )
+        {
+            return getComponent( entityID );
+        }
+
+        segid segIdx;
+        if( m_dequeAvailableSegmentIndices.empty() )
+        {
+            segIdx = createNewSegment();
+            m_dequeAvailableSegmentIndices.push_front( segIdx );
+        }
+        else
+        {
+            segIdx = m_dequeAvailableSegmentIndices.front();
+        }
+        
+        SegType *segment = m_mapSegmentIndexToSegment[ segIdx ];
+
+
+        CComponent *srcComp, *dstComp; 
+
+        srcComp = getComponent( srcEntityID );
+        if( srcComp )
+        {
+            C *srcCompCasted = static_cast< C* >( srcComp );
+            dstComp = segment->tryTakeUpSlot( entityID, *srcCompCasted );
+        }
+        else
+        {
+            dstComp = segment->tryTakeUpSlot( entityID );
+        }
+
+        // if segment is full, toss it out of available segments deque
+        // we took the segment from the front, so we're going to pop the front
+        if( segment->isFull() )
+        {
+            m_dequeAvailableSegmentIndices.pop_front();
+        }
+
+        return dstComp;
+    }
+
+    template<class C>
     CComponent *CComponentStorage<C>::getComponent( entityid entityID ) const
     {
         CComponent *comp = nullptr;
