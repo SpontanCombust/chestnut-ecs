@@ -13,6 +13,9 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/in
 add_subdirectory(src/chestnut/ecs)
 
 
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/ DESTINATION include)
+install(TARGETS ${PROJECT_NAME} DESTINATION lib)
+
 ## ========================================== Tests ========================================
 
 add_executable(${PROJECT_NAME}_Test)
