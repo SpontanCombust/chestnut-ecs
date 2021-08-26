@@ -1,39 +1,25 @@
+#include "component_traits.hpp"
+
 namespace chestnut::ecs
 {
     // ========================= PUBLIC ========================= //
 
-    template< class C >
-    void CEntityWorld::setupComponentType( segsize segmentSize, segsize initCapacity ) 
-    {
-        if( !hasComponentTypeSetup<C>() )
-        {
-            m_mapCompTypeToStorage[ typeid(C) ] = new internal::CComponentStorage<C>( segmentSize, initCapacity );
-        }
-    }
-
     template<class C>
-    void CEntityWorld::setupComponentType( segsize segmentSize ) 
+    void CEntityWorld::setupComponentTypeIfDidntAlready() 
     {
-        if( !hasComponentTypeSetup<C>() )
-        {
-            m_mapCompTypeToStorage[ typeid(C) ] = new internal::CComponentStorage<C>( segmentSize, segmentSize );
-        }
-    }
+        std::type_index type = typeid(C);
 
-    template<class C>
-    bool CEntityWorld::hasComponentTypeSetup() const
-    {
-        auto it = m_mapCompTypeToStorage.find( typeid(C) );
+        auto it = m_mapCompTypeToStorage.find( type );
         
-        if( it != m_mapCompTypeToStorage.end() )
+        if( it == m_mapCompTypeToStorage.end() )
         {
-            return true;
-        }
-        else
-        {
-            return false;
+            m_mapCompTypeToStorage[ type ] = new internal::CComponentStorage<C>( 
+                ComponentTraits<C>::storageSegmentSize, 
+                ComponentTraits<C>::storageInitCapacity 
+            );
         }
     }
+
 
 
 
@@ -43,7 +29,7 @@ namespace chestnut::ecs
     {
         CHESTNUT_STATIC_ASSERT_VALID_COMPONENT_CLASS(C);
 
-        setupComponentType<C>( CHESTNUT_DEFAULT_STORAGE_SEGMENT_SIZE ); // if it wasn't done before then try to
+        setupComponentTypeIfDidntAlready<C>();
 
         CComponent *uncastedComp;
         C *castedComp;

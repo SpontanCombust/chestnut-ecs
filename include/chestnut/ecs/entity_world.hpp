@@ -6,7 +6,6 @@
 #include "component.hpp"
 #include "component_storage.hpp"
 #include "entity_registry.hpp"
-#include "component_batch.hpp"
 #include "component_batch_guard.hpp"
 #include "entity_query.hpp"
 
@@ -14,10 +13,6 @@
 
 namespace chestnut::ecs
 {
-#ifndef CHESTNUT_DEFAULT_STORAGE_SEGMENT_SIZE
-    #define CHESTNUT_DEFAULT_STORAGE_SEGMENT_SIZE 100
-#endif
-
     class CEntityWorld
     {
     private:
@@ -43,16 +38,6 @@ namespace chestnut::ecs
         CEntityWorld( const CEntityWorld& ) = delete; // we don't allow copying components
 
         ~CEntityWorld();
-
-
-        template< class C >
-        void setupComponentType( segsize segmentSize, segsize initCapacity );
-
-        template< class C >
-        void setupComponentType( segsize segmentSize );
-
-        template< class C >
-        bool hasComponentTypeSetup() const;
 
 
 
@@ -112,6 +97,10 @@ namespace chestnut::ecs
 
 
     private:
+        template< class C >
+        void setupComponentTypeIfDidntAlready();
+
+
         entityid getNewEntityID();
 
 
