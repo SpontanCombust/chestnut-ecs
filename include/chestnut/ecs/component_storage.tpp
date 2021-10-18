@@ -49,11 +49,11 @@ namespace chestnut::ecs::internal
     }
 
     template<class C>
-    CComponent *CComponentStorage<C>::storeComponent( entityid entityID ) 
+    IComponentWrapper *CComponentStorage<C>::storeComponent( entityid entityID ) 
     {
-        if( hasComponent( entityID ) )
+        if( IComponentWrapper *component = getComponent( entityID ) )
         {
-            return getComponent( entityID );
+            return component;
         }
         
         // get the index of an available segment
@@ -76,7 +76,7 @@ namespace chestnut::ecs::internal
         SegType *segment = m_mapSegmentIndexToSegment[ segIdx ];
 
         // the segment was in the deque, so we can be sure it has at least one free slot
-        CComponent *comp = segment->tryTakeUpSlot( entityID );
+        IComponentWrapper *comp = segment->tryTakeUpSlot( entityID );
 
         // if segment is full, toss it out of available segments deque
         // we took the segment from the front, so we're going to pop the front
@@ -89,11 +89,11 @@ namespace chestnut::ecs::internal
     }
 
     template<class C>
-    CComponent* CComponentStorage<C>::storeComponentCopy( entityid entityID, entityid srcEntityID ) 
+    IComponentWrapper* CComponentStorage<C>::storeComponentCopy( entityid entityID, entityid srcEntityID ) 
     {
-        if( hasComponent( entityID ) )
+        if( IComponentWrapper *component = getComponent( entityID ) )
         {
-            return getComponent( entityID );
+            return component;
         }
 
         segid segIdx;
@@ -110,13 +110,13 @@ namespace chestnut::ecs::internal
         SegType *segment = m_mapSegmentIndexToSegment[ segIdx ];
 
 
-        CComponent *srcComp, *dstComp; 
+        IComponentWrapper *srcComp, *dstComp; 
 
         srcComp = getComponent( srcEntityID );
         if( srcComp )
         {
-            C *srcCompCasted = static_cast< C* >( srcComp );
-            dstComp = segment->tryTakeUpSlot( entityID, *srcCompCasted );
+            SComponentWrapper<C> *srcCompCasted = static_cast< SComponentWrapper<C> * >( srcComp );
+            dstComp = segment->tryTakeUpSlot( entityID, srcCompCasted );
         }
         else
         {
@@ -134,9 +134,9 @@ namespace chestnut::ecs::internal
     }
 
     template<class C>
-    CComponent *CComponentStorage<C>::getComponent( entityid entityID ) const
+    IComponentWrapper *CComponentStorage<C>::getComponent( entityid entityID ) const
     {
-        CComponent *comp = nullptr;
+        IComponentWrapper *comp = nullptr;
         for( const auto& [ idx, segment ] : m_mapSegmentIndexToSegment )
         {
             comp = segment->getSlottedComponent( entityID );

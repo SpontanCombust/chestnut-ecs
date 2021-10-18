@@ -17,7 +17,7 @@ namespace chestnut::ecs::internal
 
     class CEntityRegistry
     {
-    private:
+    public:
         std::unordered_map< entityid, SEntityRegistryRecord > m_mapEntityIDToEntityRecord;
 
     public:

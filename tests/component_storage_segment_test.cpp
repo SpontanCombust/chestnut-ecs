@@ -5,40 +5,13 @@
 using namespace chestnut::ecs;
 using namespace chestnut::ecs::internal;
 
-class Foo : public CComponent {
+class Foo {
 public:
     int i;
 };
 
 TEST_CASE( "Component storage segment test" )
 {
-    // v Uncomment before testing
-    /*
-    SECTION( "Compile time assert if segment accepts only valid classes" )
-    {
-        class Bar
-        {
-        public:
-            long j;
-        };
-
-        class Baz : public CComponent
-        {
-        public:
-            short k;
-
-            Baz( short _k ) { _k = k; }
-        };
-
-        // test if doesn't compile non CComponent inherited class
-        CComponentStorageSegment<Bar> seg1(10);
-
-        // test if doesn't compile non default constructible class
-        CComponentStorageSegment<Baz> seg2(20);
-    }
-    */
-
-
     CComponentStorageSegment<Foo> seg(10);
 
     SECTION( "Initial segment state" )
@@ -68,12 +41,6 @@ TEST_CASE( "Component storage segment test" )
         REQUIRE_FALSE( seg.hasSlottedComponent(4) );
     }
 
-    // uncomment when wanting to test
-    // SECTION( "Test assert on invalid entity" )
-    // {
-    //     seg.tryTakeUpSlot( ENTITY_ID_INVALID );
-    // }
-
     SECTION( "Test special or illegal cases for taking up slots" )
     {
         // Fill up the segment to the full
@@ -95,17 +62,15 @@ TEST_CASE( "Component storage segment test" )
     SECTION( "Getting component" )
     {
         segsize idx;
-        Foo *foo;
+        SComponentWrapper<Foo> *foo;
 
         foo = seg.tryTakeUpSlot(1);
         REQUIRE( foo != nullptr );
-        REQUIRE( foo->owner == 1 );
-        foo->i = 2137;
+        foo->data.i = 2137;
 
         foo = seg.getSlottedComponent(1);
         REQUIRE( foo != nullptr );
-        REQUIRE( foo->owner == 1 );
-        REQUIRE( foo->i == 2137 );        
+        REQUIRE( foo->data.i == 2137 );        
     }
 
     SECTION( "Freeing slots" )

@@ -1,6 +1,7 @@
 #ifndef __CHESTNUT_ECS_COMPONENT_BATCH_GUARD_H__
 #define __CHESTNUT_ECS_COMPONENT_BATCH_GUARD_H__
 
+#include "component_wrapper.hpp"
 #include "component_batch.hpp"
 #include "component_storage.hpp"
 
@@ -20,11 +21,13 @@ namespace chestnut::ecs::internal
     class CComponentBatchGuard
     {
     private:
+        CComponentStorageTypeMap *m_storageMapPtr;
+
         // used to add entity index information to target batch
         // order matters, because we'll use this vector's indices to modify vectors in the map below
         std::vector< entityid > m_pendingIn_vecEntityIDs;
         // used to add component data to target batch
-        std::unordered_map< std::type_index, std::vector< CComponent * > > m_pendingIn_mapCompTypeToVecComp;
+        std::unordered_map< std::type_index, std::vector< IComponentWrapper * > > m_pendingIn_mapCompTypeToVecComp;
 
         // used to remove component data from target batch; we remove whole component row by querying indices with these owner IDs
         // it's a set so we can find IDs quicker; order doesn't matter here
@@ -34,13 +37,13 @@ namespace chestnut::ecs::internal
         SComponentBatch m_targetBatch;
 
     public:
-        CComponentBatchGuard( const CEntitySignature& signature );
+        CComponentBatchGuard( const CEntitySignature& signature, CComponentStorageTypeMap *storageMapPtr );
 
 
         // You have to make sure the entity in question has all required components
         // i.e. components specified by batch signature
         // Doesn't check for duplicates
-        void fetchAndAddEntityWithComponents( entityid entityID, const CComponentStorageTypeMap& storageMap );
+        void fetchAndAddEntityWithComponents( entityid entityID );
 
         void removeEntityWithComponents( entityid entityID );
 

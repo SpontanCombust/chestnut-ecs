@@ -3,7 +3,7 @@
 
 #include "types.hpp"
 #include "entity_signature.hpp"
-#include "component.hpp"
+#include "component_wrapper.hpp"
 
 #include <typeindex>
 #include <unordered_map>
@@ -28,7 +28,7 @@ namespace chestnut::ecs
         CEntitySignature signature;
         
         std::vector< entityid > vecEntityIDs;
-        std::unordered_map< std::type_index, std::vector< CComponent * > > mapCompTypeToCompVec;
+        std::unordered_map< std::type_index, std::vector< internal::IComponentWrapper * > > mapCompTypeToCompVec;
     };
     
 } // namespace chestnut::ecs

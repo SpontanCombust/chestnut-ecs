@@ -15,37 +15,42 @@ namespace chestnut::ecs
         std::vector< const SComponentBatch * > vecBatches;
     };
 
+
     // Can throw std::out_of_range if requested type isn't fully compatible with the query
     template< class C1 >
     void forEachEntityInQuery( const SEntityQuery& query, std::function< void( C1& ) > func );
-
-    // Can throw std::out_of_range if requested types combination isn't fully compatible with the query
-    template< class C1 >
-    void forEachEntityInQuery( const SEntityQuery& query, std::function< void( C1* ) > func );
 
     // Can throw std::out_of_range if requested types combination isn't fully compatible with the query
     template< class C1, class C2 >
     void forEachEntityInQuery( const SEntityQuery& query, std::function< void( C1&, C2& ) > func );
 
     // Can throw std::out_of_range if requested types combination isn't fully compatible with the query
-    template< class C1, class C2 >
-    void forEachEntityInQuery( const SEntityQuery& query, std::function< void( C1*, C2* ) > func );
-
-    // Can throw std::out_of_range if requested types combination isn't fully compatible with the query
     template< class C1, class C2, class C3 >
     void forEachEntityInQuery( const SEntityQuery& query, std::function< void( C1&, C2&, C3& ) > func );
-
-    // Can throw std::out_of_range if requested types combination isn't fully compatible with the query
-    template< class C1, class C2, class C3 >
-    void forEachEntityInQuery( const SEntityQuery& query, std::function< void( C1*, C2*, C3* ) > func );
 
     // Can throw std::out_of_range if requested types combination isn't fully compatible with the query
     template< class C1, class C2, class C3, class C4 >
     void forEachEntityInQuery( const SEntityQuery& query, std::function< void( C1&, C2&, C3&, C4& ) > func );
 
+
+
+    void forEachEntityInQuery( const SEntityQuery& query, std::function< void( entityid ) > func );
+
+    // Can throw std::out_of_range if requested type isn't fully compatible with the query
+    template< class C1 >
+    void forEachEntityInQuery( const SEntityQuery& query, std::function< void( entityid, C1& ) > func );
+
+    // Can throw std::out_of_range if requested types combination isn't fully compatible with the query
+    template< class C1, class C2 >
+    void forEachEntityInQuery( const SEntityQuery& query, std::function< void( entityid, C1&, C2& ) > func ); 
+
+    // Can throw std::out_of_range if requested types combination isn't fully compatible with the query
+    template< class C1, class C2, class C3 >
+    void forEachEntityInQuery( const SEntityQuery& query, std::function< void( entityid, C1&, C2&, C3& ) > func );
+
     // Can throw std::out_of_range if requested types combination isn't fully compatible with the query
     template< class C1, class C2, class C3, class C4 >
-    void forEachEntityInQuery( const SEntityQuery& query, std::function< void( C1*, C2*, C3*, C4* ) > func );
+    void forEachEntityInQuery( const SEntityQuery& query, std::function< void( entityid, C1&, C2&, C3&, C4& ) > func );
 
 } // namespace chestnut::ecs
 

@@ -5,7 +5,7 @@
 using namespace chestnut::ecs;
 using namespace chestnut::ecs::internal;
 
-class Foo : public CComponent
+class Foo
 {
 public:
     int i;
@@ -13,12 +13,6 @@ public:
 
 TEST_CASE( "Component storage test" )
 {
-    SECTION( "Assert template type derived from  CComponent" )
-    {
-        // uncomment when trying to compile
-        // CComponentStorage<int> storage = CComponentStorage<int>( 10, 10 );
-    }
-
     SECTION( "Initial state for initial capacity equal zero" )
     {
         CComponentStorage<Foo> storage = CComponentStorage<Foo>( 10, 0 );
@@ -106,24 +100,24 @@ TEST_CASE( "Component storage test" )
 
     SECTION( "Checking and fetching components" )
     {
-        Foo *foo;
+        SComponentWrapper<Foo> *foo;
         for (size_t i = 1; i < 7; i++)
         {
-            foo = (Foo *)storage.storeComponent(i);
-            foo->i = i;
+            foo = (SComponentWrapper<Foo> *)storage.storeComponent(i);
+            foo->data.i = i;
 
             REQUIRE( storage.hasComponent(i) );
 
-            foo = (Foo *)storage.getComponent(i);
+            foo = (SComponentWrapper<Foo> *)storage.getComponent(i);
             REQUIRE( foo != nullptr );
-            REQUIRE( foo->i == i );
+            REQUIRE( foo->data.i == i );
 
-            foo = (Foo *)storage.storeComponent(i);
-            REQUIRE( foo->i == i );
+            foo = (SComponentWrapper<Foo> *)storage.storeComponent(i);
+            REQUIRE( foo->data.i == i );
         }
 
         REQUIRE_FALSE( storage.hasComponent(0) );
-        REQUIRE_FALSE( storage.hasComponent(7) );
+        REQUIRE_FALSE( storage.hasComponent(7) ); //!FIXME
     }
 
     SECTION( "Erasing components" )

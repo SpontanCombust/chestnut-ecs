@@ -37,11 +37,11 @@ namespace chestnut::ecs
 
         if( amount > 0 )
         {
-            ids.reserve( amount );
+            ids.resize( amount );
 
             for (unsigned int i = 0; i < amount; i++)
             {
-                ids.push_back( createEntity() );
+                ids[i] = createEntity();
             }
         }
 
@@ -143,7 +143,7 @@ namespace chestnut::ecs
 
 
             CComponentBatchGuard& batchGuard = getBatchGuardWithSignature( templateSignature );
-            batchGuard.fetchAndAddEntityWithComponents( entityID, m_mapCompTypeToStorage );
+            batchGuard.fetchAndAddEntityWithComponents( entityID );
 
 
             return entityID; 
@@ -181,7 +181,7 @@ namespace chestnut::ecs
                 }
 
 
-                batchGuard.fetchAndAddEntityWithComponents( entityID, m_mapCompTypeToStorage );
+                batchGuard.fetchAndAddEntityWithComponents( entityID );
 
 
                 ids.push_back( entityID );            
@@ -236,7 +236,7 @@ namespace chestnut::ecs
         return id;
     }
     
-    CComponent* CEntityWorld::createComponentInternal( std::type_index compType, entityid entityID ) 
+    IComponentWrapper* CEntityWorld::createComponentInternal( std::type_index compType, entityid entityID ) 
     {
         // check if entity exists at all
         if( !m_entityRegistry.hasEntity( entityID, true ) )
@@ -264,7 +264,7 @@ namespace chestnut::ecs
         newSignature.add( compType );
         
         // instantiate the actual new component
-        CComponent *comp = storage->storeComponent( entityID );
+        IComponentWrapper *comp = storage->storeComponent( entityID );
 
         // if it's not a template entity we send components from/to batch
         if( !m_entityRegistry.hasTemplateEntity( entityID ) )
@@ -278,7 +278,7 @@ namespace chestnut::ecs
 
             // fetch component pointers to the new batch
             CComponentBatchGuard& newSignBatchGuard = getBatchGuardWithSignature( newSignature );
-            newSignBatchGuard.fetchAndAddEntityWithComponents( entityID, m_mapCompTypeToStorage );
+            newSignBatchGuard.fetchAndAddEntityWithComponents( entityID );
         }
 
 
@@ -300,7 +300,7 @@ namespace chestnut::ecs
         return signature.has( compType );
     }
 
-    CComponent* CEntityWorld::getComponentInternal( std::type_index compType, entityid entityID ) const
+    IComponentWrapper* CEntityWorld::getComponentInternal( std::type_index compType, entityid entityID ) const
     {
         if( hasComponentInternal( compType, entityID ) )
         {
@@ -342,7 +342,7 @@ namespace chestnut::ecs
                 if( !newSignature.isEmpty() )
                 {
                     CComponentBatchGuard& newSignBatchGuard = getBatchGuardWithSignature( newSignature );
-                    newSignBatchGuard.fetchAndAddEntityWithComponents( entityID, m_mapCompTypeToStorage );
+                    newSignBatchGuard.fetchAndAddEntityWithComponents( entityID );
                 }
             }
 
@@ -373,7 +373,7 @@ namespace chestnut::ecs
             }
             else
             {
-                m_vecBatchGuards.emplace_back( signature );
+                m_vecBatchGuards.emplace_back( signature, &m_mapCompTypeToStorage );
                 return m_vecBatchGuards.back();
             }
         }

@@ -4,18 +4,20 @@
 
 namespace chestnut::ecs::internal
 {    
-    CComponentBatchGuard::CComponentBatchGuard( const CEntitySignature& signature ) 
+    CComponentBatchGuard::CComponentBatchGuard( const CEntitySignature& signature, CComponentStorageTypeMap *storageMapPtr ) 
     {
+        m_storageMapPtr = storageMapPtr;
+
         m_targetBatch.signature = signature;
 
         // initialize batch's component map
         for( std::type_index type : signature.m_setComponentTypes )
         {
-            m_targetBatch.mapCompTypeToCompVec[ type ] = std::vector< CComponent * >();
+            m_targetBatch.mapCompTypeToCompVec[ type ] = std::vector< IComponentWrapper * >();
         }
     }
 
-    void CComponentBatchGuard::fetchAndAddEntityWithComponents( entityid entityID, const CComponentStorageTypeMap& storageMap ) 
+    void CComponentBatchGuard::fetchAndAddEntityWithComponents( entityid entityID ) 
     {
         // First of all check if entity has been scheduled for removal
         // In that case only delete removal data
@@ -36,9 +38,9 @@ namespace chestnut::ecs::internal
             for( std::type_index type : m_targetBatch.signature.m_setComponentTypes )
             {
                 // This ~~shouldn't~~ throw an exception if systems using this class are setup correctly
-                IComponentStorage *typedStorage = storageMap.at( type );
+                IComponentStorage *typedStorage = m_storageMapPtr->at( type );
 
-                CComponent *comp = typedStorage->getComponent( entityID );
+                IComponentWrapper *comp = typedStorage->getComponent( entityID );
 
                 m_pendingIn_mapCompTypeToVecComp[ type ].push_back( comp );       
             } 

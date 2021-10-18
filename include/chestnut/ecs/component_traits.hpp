@@ -2,13 +2,10 @@
 #define __CHESTNUT_ECS_COMPONENT_TRAITS_H__
 
 #include "types.hpp"
+#include "macros.hpp"
 
 namespace chestnut::ecs
 {
-#ifndef CHESTNUT_DEFAULT_STORAGE_SEGMENT_SIZE
-    #define CHESTNUT_DEFAULT_STORAGE_SEGMENT_SIZE 64 //arbitrary number
-#endif
-
     template< class C >
     struct ComponentTraits
     {

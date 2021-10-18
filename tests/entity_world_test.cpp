@@ -1,22 +1,23 @@
+#define CATCH_CONFIG_ENABLE_BENCHMARKING
 #include <catch2/catch.hpp>
 
 #include "../include/chestnut/ecs/entity_world.hpp"
 
 using namespace chestnut::ecs;
 
-class Foo : public CComponent
+class Foo
 {
 public:
     int x;
 };
 
-class Bar : public CComponent
+class Bar
 {
 public:
     long y;
 };
 
-class Baz : public CComponent
+class Baz
 {
 public:
     char z;
@@ -106,10 +107,11 @@ TEST_CASE( "Entity world test - general" )
 
 
         entityid ent = world.createEntity();
-        Foo *foo;
+        CComponentHandle<Foo> foo;
 
         foo = world.createComponent<Foo>( ent );
-        REQUIRE( foo->owner == ent );
+        REQUIRE( foo );
+        REQUIRE( foo.owner == ent );
 
         foo->x = 1;
 
@@ -126,9 +128,9 @@ TEST_CASE( "Entity world test - general" )
         entityid ent2 = world.createEntity();
         entityid ent3 = world.createEntity();
 
-        Foo *foo;
-        Bar *bar;
-        Baz *baz;
+        CComponentHandle<Foo> foo;
+        CComponentHandle<Bar> bar;
+        CComponentHandle<Baz> baz;
 
 
         foo = world.createComponent<Foo>( ent1 );
@@ -287,10 +289,10 @@ TEST_CASE( "Entity world test - batching" )
 
         REQUIRE_NOTHROW(
             forEachEntityInQuery<Foo>( query, 
-            []( Foo& foo ) -> void
+            []( entityid id, Foo& foo )
             {
                 foo.x *= foo.x;
-                REQUIRE( foo.x == foo.owner * foo.owner );
+                REQUIRE( foo.x == id * id );
             })
         );
     }
@@ -306,9 +308,9 @@ TEST_CASE( "Entity world test - batching" )
 
         REQUIRE_THROWS( 
             forEachEntityInQuery<Foo, Bar>( query,
-            []( Foo *foo, Bar *bar ) 
+            []( Foo& foo, Bar& bar ) 
             {
-                foo->x = bar->y * bar->y;
+                foo.x = bar.y * bar.y;
             })
         );
     }
@@ -324,9 +326,9 @@ TEST_CASE( "Entity world test - batching" )
 
         REQUIRE_NOTHROW(
             forEachEntityInQuery<Foo, Bar, Baz>( query, 
-            []( Foo *foo, Bar *bar, Baz *baz ) 
+            []( Foo& foo, Bar& bar, Baz& baz ) 
             {
-                baz->w *= foo->x + bar->y;
+                baz.w *= foo.x + bar.y;
             })
         );
     }
@@ -413,10 +415,10 @@ TEST_CASE( "Entity world test - entity templates" )
     {
         entityid templEnt = world.createTemplateEntity();
 
-        Foo *foo = world.createComponent<Foo>( templEnt );
+        auto foo = world.createComponent<Foo>( templEnt );
         REQUIRE( foo );
         foo->x = 2;
-        Bar *bar = world.createComponent<Bar>( templEnt );
+        auto bar = world.createComponent<Bar>( templEnt );
         REQUIRE( bar );
         bar->y = 3;
 
@@ -444,16 +446,14 @@ TEST_CASE( "Entity world test - entity templates" )
         entityid templEnt2 = world.createTemplateEntity();
         entityid regularEnt = world.createEntity();
 
-        Foo *foo; Bar *bar; Baz *baz;
-
-        foo = world.createComponent<Foo>( templEnt1 );
+        auto foo = world.createComponent<Foo>( templEnt1 );
         foo->x = 1;
-        bar = world.createComponent<Bar>( templEnt1 );
+        auto bar = world.createComponent<Bar>( templEnt1 );
         bar->y = 2;
 
         bar = world.createComponent<Bar>( templEnt2 );
         bar->y = 3;
-        baz = world.createComponent<Baz>( templEnt2 );
+        auto baz = world.createComponent<Baz>( templEnt2 );
         baz->z = 4;
 
 
@@ -494,16 +494,14 @@ TEST_CASE( "Entity world test - entity templates" )
         entityid templ1 = world.createTemplateEntity();
         entityid templ2 = world.createTemplateEntity();
 
-        Foo *foo; Bar *bar; Baz *baz;
-
-        foo = world.createComponent<Foo>( templ1 );
+        auto foo = world.createComponent<Foo>( templ1 );
         foo->x = 1;
-        bar = world.createComponent<Bar>( templ1 );
+        auto bar = world.createComponent<Bar>( templ1 );
         bar->y = 2;
 
         foo = world.createComponent<Foo>( templ2 );
         foo->x = 3;
-        baz = world.createComponent<Baz>( templ2 );
+        auto baz = world.createComponent<Baz>( templ2 );
         baz->z = 4;
 
 
@@ -548,4 +546,141 @@ TEST_CASE( "Entity world test - entity templates" )
 
         REQUIRE( entCount == 10 );
     }
+}
+
+
+
+
+
+
+TEST_CASE( "Entity world test - benchmarks" )
+{
+    const entityid ENTITY_COUNT = 100;
+    CEntityWorld world;
+
+    BENCHMARK( "Creating a lot of similair entities - naive approach" )
+    {
+        CComponentHandle<Foo> foo;
+        CComponentHandle<Bar> bar;
+        CComponentHandle<Baz> baz;
+
+        for (entityid i = 0; i < ENTITY_COUNT; i++)
+        {
+            entityid ent = world.createEntity();
+
+            // every foo will be different
+            auto foo = world.createComponent<Foo>( ent );
+            foo->x = i;
+
+            // but every bar and baz will be the same
+            auto bar = world.createComponent<Bar>( ent );
+            bar->y = 2137;
+            auto baz = world.createComponent<Baz>( ent );
+            baz->z = 123;
+        }
+
+        return foo->x; //returning something because catch2 wants it
+    };
+
+    BENCHMARK( "Creating a lot of similair entities - naive approach with usage of getter" )
+    {
+        CComponentHandle<Foo> foo;
+        CComponentHandle<Bar> bar;
+        CComponentHandle<Baz> baz;
+
+        for (entityid i = 0; i < ENTITY_COUNT; i++)
+        {
+            entityid ent = world.createEntity();
+
+            // every foo will be different
+            foo = world.createComponent<Foo>( ent );
+            foo = world.getComponent<Foo>( ent );
+            foo->x = i;
+
+            // but every bar and baz will be the same
+            bar = world.createComponent<Bar>( ent );
+            bar = world.getComponent<Bar>( ent );
+            bar->y = 2137;
+            baz = world.createComponent<Baz>( ent );
+            baz = world.getComponent<Baz>( ent );
+            baz->z = 123;
+        }
+
+        return foo->x; //returning something because catch2 wants it
+    };
+
+    BENCHMARK( "Creating a lot of similair entities - naive approach with first pre-creating entities" )
+    {
+        auto vecEnt = world.createEntities( ENTITY_COUNT );
+        CComponentHandle<Foo> foo;
+        CComponentHandle<Bar> bar;
+        CComponentHandle<Baz> baz;
+
+        for (entityid i = 0; i < ENTITY_COUNT; i++)
+        {
+            // every foo will be different
+            foo = world.createComponent<Foo>( vecEnt[i] );
+            foo->x = i;
+
+            // but every bar and baz will be the same
+            bar = world.createComponent<Bar>( vecEnt[i] );
+            bar->y = 2137;
+            baz = world.createComponent<Baz>( vecEnt[i] );
+            baz->z = 123;
+        }
+
+        return foo->x; //returning something because catch2 wants it
+    };
+
+    BENCHMARK( "Creating a lot of similair entities - template entity approach" )
+    {
+        // we'll create these entities one by one
+
+        entityid templ = world.createTemplateEntity();
+
+        auto foo = world.createComponent<Foo>( templ );
+        // every foo will be different, so no point in setting it here
+
+        // but every bar and baz will be the same
+        auto bar = world.createComponent<Bar>( templ );
+        bar->y = 2137;
+        auto baz = world.createComponent<Baz>( templ );
+        baz->z = 123;
+
+
+        for (entityid i = 0; i < ENTITY_COUNT; i++)
+        {
+            entityid ent = world.createEntityFromTemplate( templ );
+
+            world.getComponent<Foo>( ent )->x = i;
+        }
+
+        return foo->x; //returning something because catch2 wants it
+    }; 
+
+    BENCHMARK( "Creating a lot of similair entities - template entity approach with pre-creating entities" )
+    {
+        // we'll create these entities one by one
+
+        entityid templ = world.createTemplateEntity();
+
+        auto foo = world.createComponent<Foo>( templ );
+        // every foo will be different, so no point in setting it here
+
+        // but every bar and baz will be the same
+        auto bar = world.createComponent<Bar>( templ );
+        bar->y = 2137;
+        auto baz = world.createComponent<Baz>( templ );
+        baz->z = 123;
+
+
+        auto vecEnt = world.createEntitiesFromTemplate( templ, ENTITY_COUNT );
+
+        for (entityid i = 0; i < ENTITY_COUNT; i++)
+        {
+            world.getComponent<Foo>( vecEnt[i] )->x = i;
+        }
+
+        return foo->x; //returning something because catch2 wants it
+    }; 
 }

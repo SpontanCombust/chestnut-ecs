@@ -25,19 +25,15 @@ namespace chestnut::ecs
 
 
     template< class C >
-    C* CEntityWorld::createComponent( entityid entityID ) 
+    CComponentHandle<C> CEntityWorld::createComponent( entityid entityID ) 
     {
-        CHESTNUT_STATIC_ASSERT_VALID_COMPONENT_CLASS(C);
-
         setupComponentTypeIfDidntAlready<C>();
 
-        CComponent *uncastedComp;
-        C *castedComp;
-
+        internal::IComponentWrapper *uncastedComp;
         uncastedComp = createComponentInternal( std::type_index( typeid( C ) ), entityID );
-        castedComp = static_cast<C*>( uncastedComp );
+        auto handle = CComponentHandle<C>( entityID, static_cast< internal::SComponentWrapper<C>* >( uncastedComp ) );
 
-        return castedComp;
+        return handle;
     }
 
     template< class C >
@@ -47,15 +43,13 @@ namespace chestnut::ecs
     }
 
     template< class C >
-    C* CEntityWorld::getComponent( entityid entityID ) const
+    CComponentHandle<C> CEntityWorld::getComponent( entityid entityID ) const
     {
-        CComponent *uncastedComp;
-        C *castedComp;
-
+        internal::IComponentWrapper *uncastedComp;
         uncastedComp = getComponentInternal( std::type_index( typeid( C ) ), entityID );
-        castedComp = static_cast<C*>( uncastedComp );
+        auto handle = CComponentHandle<C>( entityID, static_cast< internal::SComponentWrapper<C>* >( uncastedComp ) );
 
-        return castedComp;
+        return handle;
     }
 
     template< class C >

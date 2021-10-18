@@ -7,19 +7,19 @@
 using namespace chestnut::ecs;
 using namespace chestnut::ecs::internal;
 
-class Foo : public CComponent
+class Foo
 {
 public:
     int x;
 };
 
-class Bar : public CComponent
+class Bar
 {
 public:
     long y;
 };
 
-class Baz : public CComponent
+class Baz
 {
 public:
     char z;
@@ -99,11 +99,11 @@ TEST_CASE( "Component batch test" )
         CEntitySignature sign;
         sign.add<Foo>();
 
-        CComponentBatchGuard batchGuard = CComponentBatchGuard( sign );
+        CComponentBatchGuard batchGuard = CComponentBatchGuard( sign, &storageMap );
 
         for (entityid i = 1; i < 16; i++)
         {
-            batchGuard.fetchAndAddEntityWithComponents( i, storageMap );
+            batchGuard.fetchAndAddEntityWithComponents(i);
         }
         batchGuard.updateBatch();
 
@@ -115,9 +115,8 @@ TEST_CASE( "Component batch test" )
         REQUIRE( vecEnts.size() == 15 );
         for (entityid i = 0; i < vecEnts.size(); i++)
         {
-            Foo *foo = dynamic_cast< Foo * >( vecFoo[i] );
+            SComponentWrapper<Foo> *foo = dynamic_cast< SComponentWrapper<Foo> * >( vecFoo[i] );
             REQUIRE( foo );
-            REQUIRE( foo->owner == vecEnts[i] );
         }
     }
 
@@ -127,11 +126,11 @@ TEST_CASE( "Component batch test" )
         sign.add<Foo>();
         sign.add<Baz>();
 
-        CComponentBatchGuard batchGuard = CComponentBatchGuard( sign );
+        CComponentBatchGuard batchGuard = CComponentBatchGuard( sign, &storageMap );
 
         for (entityid i = 11; i < 16; i++)
         {
-            batchGuard.fetchAndAddEntityWithComponents( i, storageMap );
+            batchGuard.fetchAndAddEntityWithComponents(i);
         }
         batchGuard.updateBatch();
 
@@ -144,12 +143,10 @@ TEST_CASE( "Component batch test" )
         REQUIRE( vecEnts.size() == 5 );
         for (entityid i = 0; i < vecEnts.size(); i++)
         {
-            Foo *foo = dynamic_cast< Foo * >( vecFoo[i] );
-            Baz *baz = dynamic_cast< Baz * >( vecBaz[i] );
+            SComponentWrapper<Foo> *foo = dynamic_cast< SComponentWrapper<Foo> * >( vecFoo[i] );
+            SComponentWrapper<Baz> *baz = dynamic_cast< SComponentWrapper<Baz> * >( vecBaz[i] );
             REQUIRE( foo );
             REQUIRE( baz );
-            REQUIRE( foo->owner == vecEnts[i] );
-            REQUIRE( baz->owner == vecEnts[i] );
         }
     }
 
@@ -159,11 +156,11 @@ TEST_CASE( "Component batch test" )
         sign.add<Bar>();
         sign.add<Baz>();
 
-        CComponentBatchGuard batchGuard = CComponentBatchGuard( sign );
+        CComponentBatchGuard batchGuard = CComponentBatchGuard( sign, &storageMap );
 
         for (entityid i = 11; i < 21; i++)
         {
-            batchGuard.fetchAndAddEntityWithComponents( i, storageMap );
+            batchGuard.fetchAndAddEntityWithComponents(i);
         }
         batchGuard.updateBatch();
 
@@ -182,12 +179,10 @@ TEST_CASE( "Component batch test" )
         REQUIRE( vecEnts.size() == 5 );
         for (entityid i = 0; i < vecEnts.size(); i++)
         {
-            Bar *bar = dynamic_cast< Bar * >( vecBar[i] );
-            Baz *baz = dynamic_cast< Baz * >( vecBaz[i] );
+            SComponentWrapper<Bar> *bar = dynamic_cast< SComponentWrapper<Bar> * >( vecBar[i] );
+            SComponentWrapper<Baz> *baz = dynamic_cast< SComponentWrapper<Baz> * >( vecBaz[i] );
             REQUIRE( bar );
             REQUIRE( baz );
-            REQUIRE( bar->owner == vecEnts[i] );
-            REQUIRE( baz->owner == vecEnts[i] );
         }
     }
 
@@ -197,11 +192,11 @@ TEST_CASE( "Component batch test" )
         sign.add<Foo>();
         sign.add<Bar>();
 
-        CComponentBatchGuard batchGuard = CComponentBatchGuard( sign );
+        CComponentBatchGuard batchGuard = CComponentBatchGuard( sign, &storageMap );
 
         for (entityid i = 6; i < 16; i++)
         {
-            batchGuard.fetchAndAddEntityWithComponents( i, storageMap );
+            batchGuard.fetchAndAddEntityWithComponents(i);
         }
         for (entityid i = 11; i < 16; i++)
         {
@@ -219,12 +214,10 @@ TEST_CASE( "Component batch test" )
         REQUIRE( vecEnts.size() == 5 );
         for (entityid i = 0; i < vecEnts.size(); i++)
         {
-            Foo *foo = dynamic_cast< Foo * >( vecFoo[i] );
-            Bar *bar = dynamic_cast< Bar * >( vecBar[i] );
+            SComponentWrapper<Foo> *foo = dynamic_cast< SComponentWrapper<Foo> * >( vecFoo[i] );
+            SComponentWrapper<Bar> *bar = dynamic_cast< SComponentWrapper<Bar> * >( vecBar[i] );
             REQUIRE( foo );
             REQUIRE( bar );
-            REQUIRE( foo->owner == vecEnts[i] );
-            REQUIRE( bar->owner == vecEnts[i] );
         }
     }
 
@@ -233,11 +226,11 @@ TEST_CASE( "Component batch test" )
         CEntitySignature sign;
         sign.add<Foo>();
 
-        CComponentBatchGuard batchGuard = CComponentBatchGuard( sign );
+        CComponentBatchGuard batchGuard = CComponentBatchGuard( sign, &storageMap );
 
         for (entityid i = 1; i < 16; i++)
         {
-            batchGuard.fetchAndAddEntityWithComponents( i, storageMap );
+            batchGuard.fetchAndAddEntityWithComponents(i);
         }
         batchGuard.updateBatch();
 
@@ -251,7 +244,7 @@ TEST_CASE( "Component batch test" )
         }
         for (entityid i = 1; i < 6; i++)
         {
-            batchGuard.fetchAndAddEntityWithComponents( i, storageMap );
+            batchGuard.fetchAndAddEntityWithComponents(i);
         }
         batchGuard.updateBatch();
 
@@ -263,9 +256,8 @@ TEST_CASE( "Component batch test" )
         REQUIRE( vecEnts.size() == 10 );
         for (entityid i = 0; i < vecEnts.size(); i++)
         {
-            Foo *foo = dynamic_cast< Foo * >( vecFoo[i] );
+            SComponentWrapper<Foo> *foo = dynamic_cast< SComponentWrapper<Foo> * >( vecFoo[i] );
             REQUIRE( foo );
-            REQUIRE( foo->owner == vecEnts[i] );
         }
     }
 }
