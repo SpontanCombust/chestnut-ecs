@@ -553,7 +553,7 @@ TEST_CASE( "Entity world test - entity templates" )
 
 
 
-TEST_CASE( "Entity world test - benchmarks" )
+TEST_CASE( "Entity world test - benchmarks", "[benchmark]" )
 {
     const entityid ENTITY_COUNT = 100;
     CEntityWorld world;

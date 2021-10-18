@@ -1,5 +1,7 @@
 #include "chestnut/ecs/entity_world.hpp"
 
+#include "chestnut/ecs/constants.hpp"
+
 #include <algorithm> // find_if
 #include <exception> // invalid_argument
 
@@ -11,7 +13,7 @@ namespace chestnut::ecs
 
     CEntityWorld::CEntityWorld() 
     {
-        m_idCounter = ENTITY_ID_INVALID;
+        m_idCounter = ENTITY_ID_MINIMAL;
     }
 
     CEntityWorld::~CEntityWorld() 
@@ -230,7 +232,7 @@ namespace chestnut::ecs
         }
         else
         {
-            id = ++m_idCounter;
+            id = m_idCounter++;
         }
 
         return id;
