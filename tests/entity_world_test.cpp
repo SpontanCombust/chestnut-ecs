@@ -569,13 +569,13 @@ TEST_CASE( "Entity world test - benchmarks" )
             entityid ent = world.createEntity();
 
             // every foo will be different
-            auto foo = world.createComponent<Foo>( ent );
+            foo = world.createComponent<Foo>( ent );
             foo->x = i;
 
             // but every bar and baz will be the same
-            auto bar = world.createComponent<Bar>( ent );
+            bar = world.createComponent<Bar>( ent );
             bar->y = 2137;
-            auto baz = world.createComponent<Baz>( ent );
+            baz = world.createComponent<Baz>( ent );
             baz->z = 123;
         }
 
