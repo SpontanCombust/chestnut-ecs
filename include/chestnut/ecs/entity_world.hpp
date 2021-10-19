@@ -9,6 +9,7 @@
 #include "component_handle.hpp"
 #include "entity_query.hpp"
 #include "component_wrapper.hpp"
+#include "component_traits.hpp"
 
 #include <vector>
 
@@ -35,74 +36,114 @@ namespace chestnut::ecs
     public:
         CEntityWorld();
 
-        CEntityWorld(const CEntityWorld &) = delete; // we don't allow copying components
+        CEntityWorld( const CEntityWorld& ) = delete; // we don't allow copying components
 
         ~CEntityWorld();
 
+
+        // Traits describe how memory for this component type is managed
+        // You can setup component type only once
+        // Make sure to use this function before ever using this component type with other functions,
+        // because they may do it automatically, but with default traits
+        // To know how to write traits and for more information, see component_traits.hpp
+        template< typename C, typename Traits = chestnut::ecs::ComponentTraits<C> >
+        void setupComponentType();
+
+
         entityid createEntity();
 
-        std::vector<entityid> createEntities(unsigned int amount);
+        std::vector<entityid> createEntities( entitysize amount );
 
-        bool hasEntity(entityid entityID) const;
+        bool hasEntity( entityid entityID ) const;
 
-        void destroyEntity(entityid entityID);
+        void destroyEntity( entityid entityID );
 
-        void destroyEntities(const std::vector<entityid> &entityIDs);
+        void destroyEntities( const std::vector<entityid>& entityIDs );
+
+
 
         // Returns null if entity doesn't exist
         // Returns existing component if it was already created before
         // Otherwise returns newly created component
-        template <class C>
-        CComponentHandle<C> createComponent(entityid entityID);
+        // If you haven't setup this component type before, its traits will be made default
+        // You can't setup custom traits after that
+        template< typename C >
+        CComponentHandle<C> createComponent( entityid entityID );
 
-        template <class C>
-        bool hasComponent(entityid entityID) const;
+        template< typename C >
+        bool hasComponent( entityid entityID ) const;
 
         // Returns null if entity doesn't exist or if it doesn't own that component
         // Otherwise returns component owned by the entity
-        template <class C>
-        CComponentHandle<C> getComponent(entityid entityID) const;
+        template< typename C >
+        CComponentHandle<C> getComponent( entityid entityID ) const;
 
-        template <class C>
-        void destroyComponent(entityid entityID);
+        template< typename C >
+        void destroyComponent( entityid entityID );
+
+
 
         entityid createTemplateEntity();
 
-        bool hasTemplateEntity(entityid templateEntityID) const;
+        bool hasTemplateEntity( entityid templateEntityID ) const;
 
-        void destroyTemplateEntity(entityid templateEntityID);
+        void destroyTemplateEntity( entityid templateEntityID );
 
         // Creates entity based on component data owned by entity template with given ID
         // If no such template entity exists doesn't create any new entity or components and returns ENTITY_ID_INVALID
-        entityid createEntityFromTemplate(entityid templateEntityID);
+        entityid createEntityFromTemplate( entityid templateEntityID );
 
         // Creates entity based on component data owned by entity template with given ID
         // If no such template entity exists doesn't create any new entity or components and returns empty vector
-        std::vector<entityid> createEntitiesFromTemplate(entityid templateEntityID, unsigned int amount);
+        std::vector<entityid> createEntitiesFromTemplate( entityid templateEntityID, entitysize amount );
 
-        //TODO eighter make getter for storages or allow to reserve component space somehow
+        
+
+        // Do so that the total of at least `amount` components of type C are allocated and available
+        // Result of calling this function is dependant on the memory setup for component type
+        // See component_traits.hpp
+        // If you haven't setup this component type before, its traits will be made default
+        // You can't setup custom traits after that
+        template< typename C > 
+        void reserveComponentMemoryTotal( entitysize amount );
+
+        // Allocate `amount` components of type C
+        // Result of calling this function is dependant on the memory setup for component type
+        // See component_traits.hpp
+        // If you haven't setup this component type before, its traits will be made default
+        // You can't setup custom traits after that
+        template< typename C > 
+        void reserveComponentMemoryAdditional( entitysize amount );
+
+        // Try to deallocate memory from the maximum of `amount` of components of type C
+        // Result of calling this function is dependant on the memory setup for component type
+        // See component_traits.hpp
+        template< typename C >
+        void freeComponentMemory( entitysize amount );
+
+
 
         // Returns the number of entity variations (and thus batches) queried
         int queryEntities(SEntityQuery &query) const;
 
     private:
-        template <class C>
+        template< typename C >
         void setupComponentTypeIfDidntAlready();
 
         entityid getNewEntityID();
 
-        internal::IComponentWrapper *createComponentInternal(std::type_index compType, entityid entityID);
+        internal::IComponentWrapper* createComponentInternal( std::type_index compType, entityid entityID );
 
-        bool hasComponentInternal(std::type_index compType, entityid entityID) const;
+        bool hasComponentInternal( std::type_index compType, entityid entityID ) const;
 
-        internal::IComponentWrapper *getComponentInternal(std::type_index compType, entityid entityID) const;
+        internal::IComponentWrapper* getComponentInternal( std::type_index compType, entityid entityID ) const;
 
-        void destroyComponentInternal(std::type_index compType, entityid entityID);
+        void destroyComponentInternal( std::type_index compType, entityid entityID );
 
         // Throws std::invalid_argument if signature is empty
         // We don't make batches for empty signatures, so always check it before you call this function
         // In any other case, assures batch guard exists (creates one if there isn't one already)
-        internal::CComponentBatchGuard &getBatchGuardWithSignature(const CEntitySignature &signature);
+        internal::CComponentBatchGuard& getBatchGuardWithSignature( const CEntitySignature& signature );
     };
 
 } // namespace chestnut::ecs

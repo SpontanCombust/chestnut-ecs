@@ -1,11 +1,9 @@
-#include "component_traits.hpp"
-
 namespace chestnut::ecs
 {
     // ========================= PUBLIC ========================= //
 
-    template<class C>
-    void CEntityWorld::setupComponentTypeIfDidntAlready() 
+    template< typename C, typename Traits >
+    void CEntityWorld::setupComponentType()
     {
         std::type_index type = typeid(C);
 
@@ -14,17 +12,23 @@ namespace chestnut::ecs
         if( it == m_mapCompTypeToStorage.end() )
         {
             m_mapCompTypeToStorage[ type ] = new internal::CComponentStorage<C>( 
-                ComponentTraits<C>::storageSegmentSize, 
-                ComponentTraits<C>::storageInitCapacity 
+                Traits::storageSegmentSize, 
+                Traits::storageInitCapacity 
             );
         }
+    }
+
+    template< typename C >
+    inline void CEntityWorld::setupComponentTypeIfDidntAlready() 
+    {
+        setupComponentType< C, chestnut::ecs::ComponentTraits<C> >();
     }
 
 
 
 
 
-    template< class C >
+    template< typename C >
     CComponentHandle<C> CEntityWorld::createComponent( entityid entityID ) 
     {
         setupComponentTypeIfDidntAlready<C>();
@@ -36,13 +40,13 @@ namespace chestnut::ecs
         return handle;
     }
 
-    template< class C >
+    template< typename C >
     bool CEntityWorld::hasComponent( entityid entityID ) const
     {
         return hasComponentInternal( std::type_index( typeid( C ) ), entityID );
     }
 
-    template< class C >
+    template< typename C >
     CComponentHandle<C> CEntityWorld::getComponent( entityid entityID ) const
     {
         internal::IComponentWrapper *uncastedComp;
@@ -52,10 +56,48 @@ namespace chestnut::ecs
         return handle;
     }
 
-    template< class C >
+    template< typename C >
     void CEntityWorld::destroyComponent( entityid entityID ) 
     {
         destroyComponentInternal( std::type_index( typeid( C ) ), entityID );
+    }
+
+
+
+
+
+    template< typename C > 
+    void CEntityWorld::reserveComponentMemoryTotal( entitysize amount )
+    {
+        setupComponentTypeIfDidntAlready<C>();
+
+        // setupComponentTypeIfDidntAlready assures this won't throw
+        internal::IComponentStorage *storage = m_mapCompTypeToStorage[ typeid(C) ];
+
+        storage->reserve( amount );
+    }
+
+    template< typename C > 
+    void CEntityWorld::reserveComponentMemoryAdditional( entitysize amount )
+    {
+        setupComponentTypeIfDidntAlready<C>();
+
+        // setupComponentTypeIfDidntAlready assures this won't throw
+        internal::IComponentStorage *storage = m_mapCompTypeToStorage[ typeid(C) ];
+
+        storage->reserveAdditional( amount );
+    }
+
+    template< typename C >
+    void CEntityWorld::freeComponentMemory( entitysize amount )
+    {
+        auto it = m_mapCompTypeToStorage.find( typeid(C) );
+        if( it != m_mapCompTypeToStorage.end() )
+        {
+            internal::IComponentStorage *storage = it->second;
+
+            storage->resize( storage->getCapacity() - amount );
+        }
     }
 
 } // namespace chestnut::ecs
