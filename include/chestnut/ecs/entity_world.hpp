@@ -18,10 +18,6 @@ namespace chestnut::ecs
     class CEntityWorld
     {
     private:
-        // A counter used to distribute IDs to entities
-        entityid m_idCounter;
-        std::vector<entityid> m_vecRecycledIDs;
-
         // A bookkeeping object used to keep track of created entities and their signatures
         internal::CEntityRegistry m_entityRegistry;
 
@@ -126,11 +122,10 @@ namespace chestnut::ecs
         // Returns the number of entity variations (and thus batches) queried
         int queryEntities(SEntityQuery &query) const;
 
+
     private:
         template< typename C >
         void setupComponentTypeIfDidntAlready();
-
-        entityid getNewEntityID();
 
         internal::IComponentWrapper* createComponentInternal( std::type_index compType, entityid entityID );
 

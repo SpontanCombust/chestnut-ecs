@@ -1,8 +1,5 @@
 #include "chestnut/ecs/entity_world.hpp"
 
-#include "chestnut/ecs/constants.hpp"
-
-#include <algorithm> // find_if
 #include <exception> // invalid_argument
 
 namespace chestnut::ecs
@@ -13,7 +10,7 @@ namespace chestnut::ecs
 
     CEntityWorld::CEntityWorld() 
     {
-        m_idCounter = ENTITY_ID_MINIMAL;
+        
     }
 
     CEntityWorld::~CEntityWorld() 
@@ -28,25 +25,20 @@ namespace chestnut::ecs
 
     entityid CEntityWorld::createEntity() 
     {
-        entityid id = getNewEntityID();
-        m_entityRegistry.registerEntity( id, false );
-        return id;
+        return m_entityRegistry.registerNewEntity( false );
     }
 
-    std::vector< entityid > CEntityWorld::createEntities( unsigned int amount ) 
+    std::vector< entityid > CEntityWorld::createEntities( entitysize amount ) 
     {
         std::vector< entityid > ids;
 
-        if( amount > 0 )
+        ids.resize( amount );
+
+        for (entitysize i = 0; i < amount; i++)
         {
-            ids.resize( amount );
-
-            for (unsigned int i = 0; i < amount; i++)
-            {
-                ids[i] = createEntity();
-            }
+            ids[i] = m_entityRegistry.registerNewEntity( false );
         }
-
+        
         return ids;
     }
 
@@ -73,9 +65,7 @@ namespace chestnut::ecs
                 }
             }
 
-            m_entityRegistry.removeEntity( entityID );
-
-            m_vecRecycledIDs.push_back( entityID );
+            m_entityRegistry.unregisterEntity( entityID );
         }
     }
 
@@ -92,9 +82,7 @@ namespace chestnut::ecs
 
     entityid CEntityWorld::createTemplateEntity() 
     {
-        entityid id = getNewEntityID();
-        m_entityRegistry.registerEntity( id, true );
-        return id;
+        return m_entityRegistry.registerNewEntity( true );
     }
 
     bool CEntityWorld::hasTemplateEntity( entityid templateEntityID ) const
@@ -117,9 +105,7 @@ namespace chestnut::ecs
                 }
             }
 
-            m_entityRegistry.removeEntity( templateEntityID );
-
-            m_vecRecycledIDs.push_back( templateEntityID );
+            m_entityRegistry.unregisterEntity( templateEntityID );
         }
     }
 
@@ -132,21 +118,20 @@ namespace chestnut::ecs
         {
             const CEntitySignature& templateSignature = m_entityRegistry.getEntitySignature( templateEntityID );
 
+            entityid entityID = m_entityRegistry.registerNewEntity( false, templateSignature );
 
-            entityid entityID = getNewEntityID();
-            m_entityRegistry.registerEntity( entityID, false, templateSignature );
-
-
-            for( std::type_index type : templateSignature.m_setComponentTypes )
+            if( !templateSignature.isEmpty() )
             {
-                IComponentStorage *storage = m_mapCompTypeToStorage[ type ];
-                storage->storeComponentCopy( entityID, templateEntityID );
+                for( std::type_index type : templateSignature.m_setComponentTypes )
+                {
+                    IComponentStorage *storage = m_mapCompTypeToStorage[ type ];
+                    storage->storeComponentCopy( entityID, templateEntityID );
+                }
+
+
+                CComponentBatchGuard& batchGuard = getBatchGuardWithSignature( templateSignature );
+                batchGuard.fetchAndAddEntityWithComponents( entityID );
             }
-
-
-            CComponentBatchGuard& batchGuard = getBatchGuardWithSignature( templateSignature );
-            batchGuard.fetchAndAddEntityWithComponents( entityID );
-
 
             return entityID; 
         }
@@ -156,7 +141,7 @@ namespace chestnut::ecs
         }
     }
 
-    std::vector< entityid > CEntityWorld::createEntitiesFromTemplate( entityid templateEntityID, unsigned int amount ) 
+    std::vector< entityid > CEntityWorld::createEntitiesFromTemplate( entityid templateEntityID, entitysize amount ) 
     {
         std::vector< entityid > ids;
 
@@ -167,26 +152,33 @@ namespace chestnut::ecs
 
             const CEntitySignature& templateSignature = m_entityRegistry.getEntitySignature( templateEntityID );
 
-            CComponentBatchGuard& batchGuard = getBatchGuardWithSignature( templateSignature );
-
-
-            for (unsigned int i = 0; i < amount; i++)
+            if( !templateSignature.isEmpty() )
             {
-                entityid entityID = getNewEntityID();
-                m_entityRegistry.registerEntity( entityID, false, templateSignature );
-                
+                CComponentBatchGuard& batchGuard = getBatchGuardWithSignature( templateSignature );
 
-                for( std::type_index type : templateSignature.m_setComponentTypes )
+                for (entitysize i = 0; i < amount; i++)
                 {
-                    IComponentStorage *storage = m_mapCompTypeToStorage[ type ];
-                    storage->storeComponentCopy( entityID, templateEntityID );
+                    entityid entityID = m_entityRegistry.registerNewEntity( false, templateSignature );
+
+                    for( std::type_index type : templateSignature.m_setComponentTypes )
+                    {
+                        IComponentStorage *storage = m_mapCompTypeToStorage[ type ];
+                        storage->storeComponentCopy( entityID, templateEntityID );
+                    }
+
+
+                    batchGuard.fetchAndAddEntityWithComponents( entityID );
+
+
+                    ids.push_back( entityID );            
                 }
-
-
-                batchGuard.fetchAndAddEntityWithComponents( entityID );
-
-
-                ids.push_back( entityID );            
+            }
+            else
+            {
+                for (entitysize i = 0; i < amount; i++)
+                {
+                    ids.push_back( m_entityRegistry.registerNewEntity( false ) );
+                }
             }
         }
         
@@ -222,22 +214,6 @@ namespace chestnut::ecs
 
     // ========================= PRIVATE ========================= //
 
-    entityid CEntityWorld::getNewEntityID() 
-    {
-        entityid id;
-        if( !m_vecRecycledIDs.empty() )
-        {
-            id = m_vecRecycledIDs.back();
-            m_vecRecycledIDs.pop_back();
-        }
-        else
-        {
-            id = m_idCounter++;
-        }
-
-        return id;
-    }
-    
     IComponentWrapper* CEntityWorld::createComponentInternal( std::type_index compType, entityid entityID ) 
     {
         // check if entity exists at all
@@ -363,11 +339,16 @@ namespace chestnut::ecs
         }
         else
         {
-            auto it = std::find_if( m_vecBatchGuards.begin(), m_vecBatchGuards.end(),
-                                    [&signature]( const CComponentBatchGuard& guard )
-                                    {
-                                        return guard.getBatchSignature() == signature;
-                                    });
+            auto it = m_vecBatchGuards.begin();
+            while( it != m_vecBatchGuards.end() )
+            {
+                if( it->getBatchSignature() == signature )
+                {
+                    break;
+                }
+
+                ++it;
+            }
 
             if( it != m_vecBatchGuards.end() )
             {
