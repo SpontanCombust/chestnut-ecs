@@ -10,25 +10,29 @@ struct Baz {};
 
 TEST_CASE( "Entity signature test" )
 {
-
     SECTION( "Adding types to the signature" )
     {
-        CEntitySignature singature;
-        singature.add<Foo>(); // template method
-        singature.add( typeid(Bar) ); // type index method
+        CEntitySignature sign1, sign2;
 
-        REQUIRE( singature.has<Foo>() );
-        REQUIRE( singature.has<Bar>() );
-        REQUIRE( !singature.has<Baz>() );
+        sign1.add<Foo,Bar>();
+        REQUIRE( sign1.has<Foo, Bar>() );
+
+        sign2.add( typeid(Foo) );
+        sign2.add( typeid(Bar) );
+        REQUIRE( sign2.has( typeid(Foo) ) );
+        REQUIRE( sign2.has( typeid(Bar) ) );
+
+        REQUIRE_FALSE( sign1.has<Baz>() );
+        REQUIRE_FALSE( sign2.has<Baz>() );
+
+        REQUIRE( sign1 == sign2 );
     }
 
     SECTION( "Removing types from the signature" )
     {
         CEntitySignature signature;
 
-        signature.add<Foo>();
-        signature.add<Baz>();
-
+        signature.add<Foo,Baz>();
         signature.remove<Foo>();
 
         REQUIRE_FALSE( signature.has<Foo>() );
@@ -46,15 +50,14 @@ TEST_CASE( "Entity signature test" )
         REQUIRE( signature.isEmpty() );
         
         signature.add<Foo>();
-        REQUIRE( !signature.isEmpty() );
+        REQUIRE_FALSE( signature.isEmpty() );
     }
 
     SECTION( "Clear signature" )
     {
         CEntitySignature signature;
 
-        signature.add<Foo>();
-        signature.add<Bar>();
+        signature.add<Foo,Bar>();
 
         signature.clear();
 
@@ -65,10 +68,7 @@ TEST_CASE( "Entity signature test" )
     {
         CEntitySignature signature;
 
-        signature.add<Foo>();
-        signature.add<Bar>();
-        signature.add<Bar>(); // repeat
-        signature.add<Baz>();
+        signature.add<Foo, Bar, Bar, Baz>(); // Bar repeat
         REQUIRE( signature.getSize() == 3 );
 
         signature.remove<Bar>();
@@ -85,17 +85,15 @@ TEST_CASE( "Entity signature test" )
 
         sign1.add<Foo>();
 
-        sign2.add<Foo>();
-        sign2.add<Bar>();
+        sign2.add<Foo, Bar>();
 
-        sign3.add<Bar>();
-        sign3.add<Baz>();
+        sign3.add<Bar, Baz>();
 
         signSum = sign1 + sign2;
-        REQUIRE( ( signSum.has<Foo>() && signSum.has<Bar>() ) );
+        REQUIRE( signSum.has<Foo, Bar>() );
 
         signSum += sign3;
-        REQUIRE( ( signSum.has<Foo>() && signSum.has<Bar>() && signSum.has<Baz>() ) );
+        REQUIRE( signSum.has<Foo, Bar, Baz>() );
     }
 
     SECTION( "Signature difference" )
@@ -103,11 +101,9 @@ TEST_CASE( "Entity signature test" )
         CEntitySignature sign1, sign2, sign3;
         CEntitySignature signDiff;
 
-        sign1.add<Foo>();
-        sign1.add<Bar>();
+        sign1.add<Foo, Bar>();
 
-        sign2.add<Bar>();
-        sign2.add<Baz>();
+        sign2.add<Bar, Baz>();
 
         sign3.add<Foo>();
 

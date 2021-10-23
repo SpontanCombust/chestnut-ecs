@@ -13,13 +13,13 @@ namespace chestnut::ecs
         std::unordered_set< std::type_index > m_setComponentTypes;
 
     public:
-        template< typename T >
+        template< typename ...Types >
         void add();
 
-        template< typename T >
+        template< typename ...Types >
         void remove();
 
-        template< typename T >
+        template< typename ...Types >
         bool has() const;
 
 
@@ -49,6 +49,25 @@ namespace chestnut::ecs
 
         CEntitySignature& operator-=( const CEntitySignature& other );
 
+
+    private:
+        template< typename ... >
+        struct TypeList {};
+
+        template< typename T, typename ...Rest >
+        void addList( TypeList<T, Rest...> );
+
+        inline void addList( TypeList<> ) {}
+
+        template< typename T, typename ...Rest >
+        void removeList( TypeList<T, Rest...> );
+
+        inline void removeList( TypeList<> ) {} 
+
+        template< typename T, typename ...Rest >
+        bool hasList( TypeList<T, Rest...> ) const;
+
+        inline bool hasList( TypeList<> ) const { return true; }
     };
 
     CEntitySignature operator+( const CEntitySignature& lhs, const CEntitySignature& rhs );
@@ -56,6 +75,10 @@ namespace chestnut::ecs
     CEntitySignature operator-( const CEntitySignature& lhs, const CEntitySignature& rhs );
 
     bool operator==( const CEntitySignature& lhs, const CEntitySignature& rhs );
+
+
+    template< typename ...Types >
+    CEntitySignature makeEntitySignature();
 
 } // namespace chestnut::ecs
 
