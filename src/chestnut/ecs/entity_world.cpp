@@ -10,7 +10,7 @@ namespace chestnut::ecs
 
     CEntityWorld::CEntityWorld() 
     {
-        m_queryIDCounter = 0;
+        
     }
 
     CEntityWorld::~CEntityWorld() 
@@ -188,9 +188,11 @@ namespace chestnut::ecs
 
     queryid CEntityWorld::createQuery( const CEntitySignature& requireSignature, const CEntitySignature& rejectSignature )
     {
-        m_queryIDCounter++;
+        static queryid queryIDCounter = 0;
 
-        internal::CEntityQueryGuard *guard = new internal::CEntityQueryGuard( m_queryIDCounter, requireSignature, rejectSignature, &m_mapCompTypeToStorage );
+        queryIDCounter++;
+
+        internal::CEntityQueryGuard *guard = new internal::CEntityQueryGuard( queryIDCounter, requireSignature, rejectSignature, &m_mapCompTypeToStorage );
 
 
         std::vector< entityid > vecEntitiesToFetchFrom = m_entityRegistry.findEntities( 
@@ -205,9 +207,9 @@ namespace chestnut::ecs
         }
     
 
-        m_mapQueryIDToQueryGuard[m_queryIDCounter] = guard;
+        m_mapQueryIDToQueryGuard[queryIDCounter] = guard;
 
-        return m_queryIDCounter;
+        return queryIDCounter;
     }
 
     const CEntityQuery* CEntityWorld::queryEntities( queryid id ) const

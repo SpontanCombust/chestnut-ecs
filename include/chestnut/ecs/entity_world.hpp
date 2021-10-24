@@ -27,7 +27,6 @@ namespace chestnut::ecs
         // They're mutable, because we cache pending components inside them and want to update them when calling update on query
         // This doesn't affect World's state
         mutable std::unordered_map< queryid, internal::CEntityQueryGuard* > m_mapQueryIDToQueryGuard;
-        queryid m_queryIDCounter;
 
     public:
         CEntityWorld();
