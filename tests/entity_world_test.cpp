@@ -1,22 +1,23 @@
+#define CATCH_CONFIG_ENABLE_BENCHMARKING
 #include <catch2/catch.hpp>
 
 #include "../include/chestnut/ecs/entity_world.hpp"
 
 using namespace chestnut::ecs;
 
-class Foo : public CComponent
+class Foo
 {
 public:
     int x;
 };
 
-class Bar : public CComponent
+class Bar
 {
 public:
     long y;
 };
 
-class Baz : public CComponent
+class Baz
 {
 public:
     char z;
@@ -106,10 +107,11 @@ TEST_CASE( "Entity world test - general" )
 
 
         entityid ent = world.createEntity();
-        Foo *foo;
+        CComponentHandle<Foo> foo;
 
         foo = world.createComponent<Foo>( ent );
-        REQUIRE( foo->owner == ent );
+        REQUIRE( foo );
+        REQUIRE( foo.owner == ent );
 
         foo->x = 1;
 
@@ -126,9 +128,9 @@ TEST_CASE( "Entity world test - general" )
         entityid ent2 = world.createEntity();
         entityid ent3 = world.createEntity();
 
-        Foo *foo;
-        Bar *bar;
-        Baz *baz;
+        CComponentHandle<Foo> foo;
+        CComponentHandle<Bar> bar;
+        CComponentHandle<Baz> baz;
 
 
         foo = world.createComponent<Foo>( ent1 );
@@ -233,7 +235,7 @@ TEST_CASE( "Entity world test - general" )
 
 
 
-TEST_CASE( "Entity world test - batching" )
+TEST_CASE( "Entity world test - querying" )
 {
     CEntityWorld world;
 
@@ -274,89 +276,107 @@ TEST_CASE( "Entity world test - batching" )
     }
     
 
-    SEntityQuery query;
+    SECTION( "Create-get-destroy" )
+    {
+        // check for null
+        REQUIRE_FALSE( world.queryEntities(1) );
+
+        queryid q = world.createQuery( CEntitySignature(), CEntitySignature() );
+
+        REQUIRE( world.queryEntities(q) );
+
+        world.destroyQuery(q);
+
+        REQUIRE_FALSE( world.queryEntities(q) );        
+    }
 
     SECTION( "Query entities with Foo" )
     {
-        query.entitySignCond = []( const CEntitySignature& sign ) -> bool
-        {
-            return sign.has<Foo>();
-        };
+        queryid q = world.createQuery( makeEntitySignature<Foo>(), makeEntitySignature<>() );
 
-        REQUIRE( world.queryEntities( query ) == 4 );
+        const CEntityQuery* query = world.queryEntities(q);
+
+        REQUIRE( query );
+        REQUIRE( query->getEntityCount() == 40 );
 
         REQUIRE_NOTHROW(
-            forEachEntityInQuery<Foo>( query, 
-            []( Foo& foo ) -> void
+            query->forEachEntityWith<Foo>(
+            []( entityid id, Foo& foo )
             {
                 foo.x *= foo.x;
-                REQUIRE( foo.x == foo.owner * foo.owner );
+                REQUIRE( foo.x == id * id );
             })
         );
+
+        world.destroyQuery(q);
     }
 
     SECTION( "Doing incorrect forEach on query" )
     {
-        query.entitySignCond = []( const CEntitySignature& sign ) -> bool
-        {
-            return sign.has<Baz>() && ( sign.has<Foo>() || sign.has<Bar>() );
-        };
+        queryid q = world.createQuery( makeEntitySignature<Baz>(), makeEntitySignature<Foo>() );
 
-        REQUIRE( world.queryEntities( query ) == 3 );
+        const CEntityQuery* query = world.queryEntities(q);
+
+        REQUIRE( query->getEntityCount() == 10 );
 
         REQUIRE_THROWS( 
-            forEachEntityInQuery<Foo, Bar>( query,
-            []( Foo *foo, Bar *bar ) 
+            query->forEachEntityWith<Foo, Baz>(
+            []( Foo& foo, Baz& baz )
             {
-                foo->x = bar->y * bar->y;
+                foo.x = baz.z * baz.z;
             })
         );
+
+        world.destroyQuery(q);
     }
 
     SECTION( "Query entities with Foo, Bar and Baz" )
     {
-        query.entitySignCond = []( const CEntitySignature& sign ) -> bool
-        {
-            return sign.has<Foo>() && sign.has<Bar>() && sign.has<Baz>();
-        };
+        queryid q = world.createQuery( makeEntitySignature<Foo, Bar, Baz>(), makeEntitySignature<>() );
 
-        REQUIRE( world.queryEntities( query ) == 1 );
+        const CEntityQuery* query = world.queryEntities(q);
 
-        REQUIRE_NOTHROW(
-            forEachEntityInQuery<Foo, Bar, Baz>( query, 
-            []( Foo *foo, Bar *bar, Baz *baz ) 
+        REQUIRE( query->getEntityCount() == 10 );
+
+        REQUIRE_NOTHROW( 
+            query->forEachEntityWith<Foo, Bar, Baz>(
+            []( Foo& foo, Bar& bar, Baz& baz )
             {
-                baz->w *= foo->x + bar->y;
+                baz.w *= foo.x + bar.y;
             })
         );
+
+        world.destroyQuery(q);
     }
 
     SECTION( "Query entities with Baz but no Foo" )
     {
-        query.entitySignCond = []( const CEntitySignature& sign ) -> bool
-        {
-            return sign.has<Baz>() && !sign.has<Foo>();
-        };
+        queryid q = world.createQuery( makeEntitySignature<Baz>(), makeEntitySignature<Foo>() );
 
-        REQUIRE( world.queryEntities( query ) == 1 );
+        const CEntityQuery* query = world.queryEntities(q);
+
+        REQUIRE( query->getEntityCount() == 10 );
 
         REQUIRE_NOTHROW( 
-            forEachEntityInQuery<Baz>( query,
+            query->forEachEntityWith<Baz>(
             []( Baz& baz )
             {
                 baz.w *= baz.z;
             })
         );
+
+        world.destroyQuery(q);
     }
 
     SECTION( "Query non-existing entities" )
     {
-        query.entitySignCond = []( const CEntitySignature& sign ) -> bool
-        {
-            return sign.has<Bar>() && !sign.has<Foo>() && !sign.has<Baz>();
-        };
+        queryid q = world.createQuery( makeEntitySignature<Bar>(), makeEntitySignature<Foo, Baz>() );
 
-        REQUIRE( world.queryEntities( query ) == 0 );
+        const CEntityQuery* query = world.queryEntities(q);
+
+        REQUIRE( query->getEntityCount() == 0 );
+
+        world.destroyQuery(q);
     }
 }
 
@@ -413,10 +433,10 @@ TEST_CASE( "Entity world test - entity templates" )
     {
         entityid templEnt = world.createTemplateEntity();
 
-        Foo *foo = world.createComponent<Foo>( templEnt );
+        auto foo = world.createComponent<Foo>( templEnt );
         REQUIRE( foo );
         foo->x = 2;
-        Bar *bar = world.createComponent<Bar>( templEnt );
+        auto bar = world.createComponent<Bar>( templEnt );
         REQUIRE( bar );
         bar->y = 3;
 
@@ -444,16 +464,14 @@ TEST_CASE( "Entity world test - entity templates" )
         entityid templEnt2 = world.createTemplateEntity();
         entityid regularEnt = world.createEntity();
 
-        Foo *foo; Bar *bar; Baz *baz;
-
-        foo = world.createComponent<Foo>( templEnt1 );
+        auto foo = world.createComponent<Foo>( templEnt1 );
         foo->x = 1;
-        bar = world.createComponent<Bar>( templEnt1 );
+        auto bar = world.createComponent<Bar>( templEnt1 );
         bar->y = 2;
 
         bar = world.createComponent<Bar>( templEnt2 );
         bar->y = 3;
-        baz = world.createComponent<Baz>( templEnt2 );
+        auto baz = world.createComponent<Baz>( templEnt2 );
         baz->z = 4;
 
 
@@ -494,16 +512,14 @@ TEST_CASE( "Entity world test - entity templates" )
         entityid templ1 = world.createTemplateEntity();
         entityid templ2 = world.createTemplateEntity();
 
-        Foo *foo; Bar *bar; Baz *baz;
-
-        foo = world.createComponent<Foo>( templ1 );
+        auto foo = world.createComponent<Foo>( templ1 );
         foo->x = 1;
-        bar = world.createComponent<Bar>( templ1 );
+        auto bar = world.createComponent<Bar>( templ1 );
         bar->y = 2;
 
         foo = world.createComponent<Foo>( templ2 );
         foo->x = 3;
-        baz = world.createComponent<Baz>( templ2 );
+        auto baz = world.createComponent<Baz>( templ2 );
         baz->z = 4;
 
 
@@ -513,39 +529,154 @@ TEST_CASE( "Entity world test - entity templates" )
         REQUIRE( vecEnt2.size() == 20 );
 
 
+        const CEntityQuery* query;
 
-        SEntityQuery query1;
-        query1.entitySignCond = []( const CEntitySignature& signature ) -> bool
-        {
-            return signature.has<Foo>();
-        };
+        queryid q1 = world.createQuery( makeEntitySignature<Foo>(), makeEntitySignature() );
+        query = world.queryEntities(q1);
+        REQUIRE( query->getEntityCount() == 30 );
 
-        REQUIRE( world.queryEntities( query1 ) == 2 );
-        
-        entityid entCount = 0;
-        for( const SComponentBatch *batch : query1.vecBatches )
-        {
-            entCount += batch->vecEntityIDs.size();
-        }
+        queryid q2 = world.createQuery( makeEntitySignature<Foo, Bar>(), CEntitySignature() );
+        query = world.queryEntities(q2);
+        REQUIRE( query->getEntityCount() == 10 );
 
-        REQUIRE( entCount == 30 );
-
-
-
-        SEntityQuery query2;
-        query2.entitySignCond = []( const CEntitySignature& signature ) -> bool
-        {
-            return signature.has<Foo>() && signature.has<Bar>(); 
-        };
-
-        REQUIRE( world.queryEntities( query2 ) == 1 );
-        
-        entCount = 0;
-        for( const SComponentBatch *batch : query2.vecBatches )
-        {
-            entCount += batch->vecEntityIDs.size();
-        }
-
-        REQUIRE( entCount == 10 );
+        world.destroyQuery(q1);
+        world.destroyQuery(q2);
     }
+}
+
+
+
+
+
+
+TEST_CASE( "Entity world test - benchmarks", "[benchmark]" )
+{
+    const entityid ENTITY_COUNT = 100;
+    CEntityWorld world;
+
+    BENCHMARK( "Creating a lot of similair entities - naive approach" )
+    {
+        CComponentHandle<Foo> foo;
+        CComponentHandle<Bar> bar;
+        CComponentHandle<Baz> baz;
+
+        for (entityid i = 0; i < ENTITY_COUNT; i++)
+        {
+            entityid ent = world.createEntity();
+
+            // every foo will be different
+            foo = world.createComponent<Foo>( ent );
+            foo->x = i;
+
+            // but every bar and baz will be the same
+            bar = world.createComponent<Bar>( ent );
+            bar->y = 2137;
+            baz = world.createComponent<Baz>( ent );
+            baz->z = 123;
+        }
+
+        return foo->x; //returning something because catch2 wants it
+    };
+
+    BENCHMARK( "Creating a lot of similair entities - naive approach with usage of getter" )
+    {
+        CComponentHandle<Foo> foo;
+        CComponentHandle<Bar> bar;
+        CComponentHandle<Baz> baz;
+
+        for (entityid i = 0; i < ENTITY_COUNT; i++)
+        {
+            entityid ent = world.createEntity();
+
+            // every foo will be different
+            foo = world.createComponent<Foo>( ent );
+            foo = world.getComponent<Foo>( ent );
+            foo->x = i;
+
+            // but every bar and baz will be the same
+            bar = world.createComponent<Bar>( ent );
+            bar = world.getComponent<Bar>( ent );
+            bar->y = 2137;
+            baz = world.createComponent<Baz>( ent );
+            baz = world.getComponent<Baz>( ent );
+            baz->z = 123;
+        }
+
+        return foo->x; //returning something because catch2 wants it
+    };
+
+    BENCHMARK( "Creating a lot of similair entities - naive approach with first pre-creating entities" )
+    {
+        auto vecEnt = world.createEntities( ENTITY_COUNT );
+        CComponentHandle<Foo> foo;
+        CComponentHandle<Bar> bar;
+        CComponentHandle<Baz> baz;
+
+        for (entityid i = 0; i < ENTITY_COUNT; i++)
+        {
+            // every foo will be different
+            foo = world.createComponent<Foo>( vecEnt[i] );
+            foo->x = i;
+
+            // but every bar and baz will be the same
+            bar = world.createComponent<Bar>( vecEnt[i] );
+            bar->y = 2137;
+            baz = world.createComponent<Baz>( vecEnt[i] );
+            baz->z = 123;
+        }
+
+        return foo->x; //returning something because catch2 wants it
+    };
+
+    BENCHMARK( "Creating a lot of similair entities - template entity approach" )
+    {
+        // we'll create these entities one by one
+
+        entityid templ = world.createTemplateEntity();
+
+        auto foo = world.createComponent<Foo>( templ );
+        // every foo will be different, so no point in setting it here
+
+        // but every bar and baz will be the same
+        auto bar = world.createComponent<Bar>( templ );
+        bar->y = 2137;
+        auto baz = world.createComponent<Baz>( templ );
+        baz->z = 123;
+
+
+        for (entityid i = 0; i < ENTITY_COUNT; i++)
+        {
+            entityid ent = world.createEntityFromTemplate( templ );
+
+            world.getComponent<Foo>( ent )->x = i;
+        }
+
+        return foo->x; //returning something because catch2 wants it
+    }; 
+
+    BENCHMARK( "Creating a lot of similair entities - template entity approach with pre-creating entities" )
+    {
+        // we'll create these entities one by one
+
+        entityid templ = world.createTemplateEntity();
+
+        auto foo = world.createComponent<Foo>( templ );
+        // every foo will be different, so no point in setting it here
+
+        // but every bar and baz will be the same
+        auto bar = world.createComponent<Bar>( templ );
+        bar->y = 2137;
+        auto baz = world.createComponent<Baz>( templ );
+        baz->z = 123;
+
+
+        auto vecEnt = world.createEntitiesFromTemplate( templ, ENTITY_COUNT );
+
+        for (entityid i = 0; i < ENTITY_COUNT; i++)
+        {
+            world.getComponent<Foo>( vecEnt[i] )->x = i;
+        }
+
+        return foo->x; //returning something because catch2 wants it
+    }; 
 }

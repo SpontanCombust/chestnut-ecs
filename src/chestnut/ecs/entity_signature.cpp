@@ -25,7 +25,7 @@ namespace chestnut::ecs
         }
     }
 
-    void CEntitySignature::add( const CEntitySignature& otherSign ) 
+    void CEntitySignature::addFrom( const CEntitySignature& otherSign ) 
     {
         for( std::type_index type : otherSign.m_setComponentTypes )
         {
@@ -33,7 +33,7 @@ namespace chestnut::ecs
         }
     }
 
-    void CEntitySignature::remove( const CEntitySignature& otherSign ) 
+    void CEntitySignature::removeFrom( const CEntitySignature& otherSign ) 
     {
         for( std::type_index type : otherSign.m_setComponentTypes )
         {
@@ -41,7 +41,7 @@ namespace chestnut::ecs
         }
     }
 
-    bool CEntitySignature::has( const CEntitySignature& otherSign ) const
+    bool CEntitySignature::hasAllFrom( const CEntitySignature& otherSign ) const
     {
         bool areAllPresent = true;
 
@@ -55,6 +55,19 @@ namespace chestnut::ecs
         }
 
         return areAllPresent;
+    }
+
+    bool CEntitySignature::hasAnyFrom( const CEntitySignature& otherSign ) const
+    {
+        for( std::type_index type : otherSign.m_setComponentTypes )
+        {
+            if( has( type ) )
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     void CEntitySignature::clear() 
@@ -74,27 +87,27 @@ namespace chestnut::ecs
 
     CEntitySignature& CEntitySignature::operator+=( const CEntitySignature& other ) 
     {
-        add( other );
+        addFrom( other );
         return *this;
     }
 
     CEntitySignature& CEntitySignature::operator-=(const CEntitySignature& other) 
     {
-        remove( other );
+        removeFrom( other );
         return *this;
     }
 
     CEntitySignature operator+( const CEntitySignature& lhs, const CEntitySignature& rhs )
     {
         CEntitySignature newSign = lhs;
-        newSign.add( rhs );
+        newSign.addFrom( rhs );
         return newSign;
     }
 
     CEntitySignature operator-( const CEntitySignature& lhs, const CEntitySignature& rhs )
     {
         CEntitySignature newSign = lhs;
-        newSign.remove( rhs );
+        newSign.removeFrom( rhs );
         return newSign;
     }
 

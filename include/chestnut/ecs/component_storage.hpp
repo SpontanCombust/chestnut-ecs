@@ -2,7 +2,7 @@
 #define __CHESTNUT_ECS_COMPONENT_STORAGE_H__
 
 #include "types.hpp"
-#include "component.hpp"
+#include "component_wrapper.hpp"
 #include "component_storage_segment.hpp"
 
 #include <deque>
@@ -25,13 +25,13 @@ namespace chestnut::ecs::internal
         virtual segsize getSegmentSize() const = 0;
 
         // Returns created component or component that has already existed with that entityID
-        virtual CComponent *storeComponent( entityid entityID ) = 0;
+        virtual IComponentWrapper *storeComponent( entityid entityID ) = 0;
         // Returns created component or component that has already existed with that entityID
         // Attempts to copy contents from entity srcEntityID to entityID if entity with srcEntityID exists
-        virtual CComponent *storeComponentCopy( entityid entityID, entityid srcEntityID ) = 0;
+        virtual IComponentWrapper *storeComponentCopy( entityid entityID, entityid srcEntityID ) = 0;
         virtual bool hasComponent( entityid entityID ) const = 0;
-        // Returns null if component doesn't exists
-        virtual CComponent *getComponent( entityid entityID ) const = 0;
+        // Returns null if component doesn't exist
+        virtual IComponentWrapper *getComponent( entityid entityID ) const = 0;
         virtual void eraseComponent( entityid entityID ) = 0;
         // Erases all stored components; doesn't modify capacity
         virtual void clearComponents() = 0;
@@ -93,8 +93,6 @@ namespace chestnut::ecs::internal
     template< class C >
     class CComponentStorage : public IComponentStorage
     {
-        CHESTNUT_STATIC_ASSERT_VALID_COMPONENT_CLASS(C);
-
     private:
         using SegType = internal::CComponentStorageSegment<C>;
 
@@ -112,13 +110,13 @@ namespace chestnut::ecs::internal
         segsize getSegmentSize() const override;
 
         // Returns created component or component that has already existed with that entityID,
-        CComponent *storeComponent( entityid entityID ) override;
+        IComponentWrapper *storeComponent( entityid entityID ) override;
         // Returns created component or component that has already existed with that entityID
         // Attempts to copy contents from entity srcEntityID to entityID if entity with srcEntityID exists
-        CComponent *storeComponentCopy( entityid entityID, entityid srcEntityID ) override;
+        IComponentWrapper *storeComponentCopy( entityid entityID, entityid srcEntityID ) override;
         bool hasComponent( entityid entityID ) const override;
         // Returns null if component doesn't exists
-        CComponent *getComponent( entityid entityID ) const override;
+        IComponentWrapper *getComponent( entityid entityID ) const override;
         void eraseComponent( entityid entityID ) override;
         // Erases all stored components; doesn't modify capacity
         void clearComponents() override;

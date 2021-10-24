@@ -1,5 +1,8 @@
 #include "chestnut/ecs/component_storage_segment.hpp"
 
+#include "chestnut/ecs/constants.hpp"
+
+#include <cstring> // memset
 #include <numeric> // iota
 
 namespace chestnut::ecs::internal
@@ -12,7 +15,13 @@ namespace chestnut::ecs::internal
         // fill vector with all possible slot numbers
         std::iota( m_vecAvailableIndices.rbegin(), m_vecAvailableIndices.rend(), 0 );
 
-        m_mapEntityIDToIndex.reserve( size );
+        m_arrEntityIDs = new entityid[ size ];
+        std::memset( m_arrEntityIDs, ENTITY_ID_INVALID, size * sizeof( entityid ) );
+    }
+
+    CComponentStorageSegment_Base::~CComponentStorageSegment_Base()
+    {
+        delete[] m_arrEntityIDs;
     }
 
     segsize CComponentStorageSegment_Base::getSize() const
@@ -22,26 +31,14 @@ namespace chestnut::ecs::internal
 
     bool CComponentStorageSegment_Base::isEmpty() const
     {
-        if( m_mapEntityIDToIndex.empty() )
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        // if all indices are available, segment is empty
+        return m_vecAvailableIndices.size() == m_size;
     }
 
     bool CComponentStorageSegment_Base::isFull() const
     {
-        if( m_vecAvailableIndices.empty() )
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        // if there are no available indices, segment is full
+        return m_vecAvailableIndices.empty();
     }
 
     segsize CComponentStorageSegment_Base::getTakenSlotCount() const
@@ -51,14 +48,20 @@ namespace chestnut::ecs::internal
 
     bool CComponentStorageSegment_Base::hasSlottedComponent( entityid entityID ) const
     {
-        if( m_mapEntityIDToIndex.find( entityID ) != m_mapEntityIDToIndex.end() )
-        {
-            return true;
-        }
-        else
+        if( entityID == ENTITY_ID_INVALID )
         {
             return false;
         }
+
+        for (entityid i = 0; i < m_size; i++)
+        {
+            if( m_arrEntityIDs[i] == entityID )
+            {
+                return true;
+            }   
+        }
+
+        return false;
     }
 
 } // namespace chestnut::ecs::internal

@@ -1,5 +1,7 @@
-#include <cassert> // assert()
-#include <numeric> // iota()
+#include "constants.hpp"
+
+#include <cstring> // memset
+#include <numeric> // iota
 
 namespace chestnut::ecs::internal
 {    
@@ -7,7 +9,7 @@ namespace chestnut::ecs::internal
     CComponentStorageSegment<C>::CComponentStorageSegment( segsize size ) 
     : CComponentStorageSegment_Base( size )
     {
-        m_arrComponentSlots = new C[ size ];
+        m_arrComponentSlots = new SComponentWrapper<C>[ size ];
     }
 
     template<class C>
@@ -17,13 +19,15 @@ namespace chestnut::ecs::internal
     }
 
     template<class C>
-    C* CComponentStorageSegment<C>::tryTakeUpSlot( entityid entityID ) 
+    SComponentWrapper<C>* CComponentStorageSegment<C>::tryTakeUpSlot( entityid entityID ) 
     {
-        assert( entityID != ENTITY_ID_INVALID );
-        
-        if( hasSlottedComponent( entityID ) )
+        if( entityID == ENTITY_ID_INVALID )
         {
-            return getSlottedComponent( entityID );
+            return nullptr;
+        }
+        else if( SComponentWrapper<C> *comp = getSlottedComponent( entityID ) )
+        {
+            return comp;
         }
         else if( isFull() )
         {
@@ -33,21 +37,21 @@ namespace chestnut::ecs::internal
         size_t slot = m_vecAvailableIndices.back();
         m_vecAvailableIndices.pop_back();
 
-        m_arrComponentSlots[ slot ].owner = entityID;
-
-        m_mapEntityIDToIndex[ entityID ] = slot;
+        m_arrEntityIDs[ slot ] = entityID;
 
         return &m_arrComponentSlots[ slot ];
     }
 
     template<class C>
-    C* CComponentStorageSegment<C>::tryTakeUpSlot( entityid entityID, const C& copySrc ) 
+    SComponentWrapper<C>* CComponentStorageSegment<C>::tryTakeUpSlot( entityid entityID, const SComponentWrapper<C>* copySrc ) 
     {
-        assert( entityID != ENTITY_ID_INVALID );
-        
-        if( hasSlottedComponent( entityID ) )
+        if( entityID == ENTITY_ID_INVALID )
         {
-            return getSlottedComponent( entityID );
+            return nullptr;
+        }
+        if( SComponentWrapper<C> *comp = getSlottedComponent( entityID ) )
+        {
+            return comp;
         }
         else if( isFull() )
         {
@@ -57,39 +61,44 @@ namespace chestnut::ecs::internal
         size_t slot = m_vecAvailableIndices.back();
         m_vecAvailableIndices.pop_back();
 
-        m_arrComponentSlots[ slot ] = copySrc;
-        m_arrComponentSlots[ slot ].owner = entityID;
-
-        m_mapEntityIDToIndex[ entityID ] = slot;
+        m_arrEntityIDs[ slot ] = entityID;
+        m_arrComponentSlots[ slot ] = *copySrc;
 
         return &m_arrComponentSlots[ slot ];
     }
 
     template<class C>
-    C* CComponentStorageSegment<C>::getSlottedComponent( entityid entityID ) const
+    SComponentWrapper<C>* CComponentStorageSegment<C>::getSlottedComponent( entityid entityID ) const
     {
-        auto it = m_mapEntityIDToIndex.find( entityID );
-
-        if( it != m_mapEntityIDToIndex.end() )
-        {
-            return &m_arrComponentSlots[ it->second ];
-        }
-        else
+        if( entityID == ENTITY_ID_INVALID )
         {
             return nullptr;
         }
+
+        for (entityid i = 0; i < m_size; i++)
+        {
+            if( m_arrEntityIDs[i] == entityID )
+            {
+                return &m_arrComponentSlots[i];
+            }   
+        }
+
+        return nullptr;
     }
     
     template<class C>
     void CComponentStorageSegment<C>::freeSlot( entityid entityID ) 
     {
-        auto it = m_mapEntityIDToIndex.find( entityID );
-        if( it != m_mapEntityIDToIndex.end() )
+        for (entityid i = 0; i < m_size; i++)
         {
-            // reset the component to default state
-            m_arrComponentSlots[ it->second ] = C();
-            m_mapEntityIDToIndex.erase( it );
-            m_vecAvailableIndices.push_back( it->second );
+            if( m_arrEntityIDs[i] == entityID )
+            {
+                // reset the component to default state
+                m_arrComponentSlots[i].data = C();
+                m_arrEntityIDs[i] = ENTITY_ID_INVALID;
+                m_vecAvailableIndices.push_back(i);
+                break;
+            }   
         }
     }
 
@@ -100,13 +109,13 @@ namespace chestnut::ecs::internal
         m_vecAvailableIndices.resize( m_size );
         std::iota( m_vecAvailableIndices.rbegin(), m_vecAvailableIndices.rend(), 0 );
 
-        m_mapEntityIDToIndex.clear();
-
         // reset all components to default state
-        for (segsize i = 0; i < m_size; i++)
+        for (entityid i = 0; i < m_size; i++)
         {
-            m_arrComponentSlots[i] = C();   
+            m_arrComponentSlots[i].data = C();
         }
+
+        std::memset( m_arrEntityIDs, ENTITY_ID_INVALID, m_size * sizeof( entityid ) );
     }
 
 } // namespace chestnut::ecs::internal

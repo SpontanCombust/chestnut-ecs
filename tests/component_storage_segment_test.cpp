@@ -5,40 +5,13 @@
 using namespace chestnut::ecs;
 using namespace chestnut::ecs::internal;
 
-class Foo : public CComponent {
+class Foo {
 public:
     int i;
 };
 
 TEST_CASE( "Component storage segment test" )
 {
-    // v Uncomment before testing
-    /*
-    SECTION( "Compile time assert if segment accepts only valid classes" )
-    {
-        class Bar
-        {
-        public:
-            long j;
-        };
-
-        class Baz : public CComponent
-        {
-        public:
-            short k;
-
-            Baz( short _k ) { _k = k; }
-        };
-
-        // test if doesn't compile non CComponent inherited class
-        CComponentStorageSegment<Bar> seg1(10);
-
-        // test if doesn't compile non default constructible class
-        CComponentStorageSegment<Baz> seg2(20);
-    }
-    */
-
-
     CComponentStorageSegment<Foo> seg(10);
 
     SECTION( "Initial segment state" )
@@ -48,91 +21,79 @@ TEST_CASE( "Component storage segment test" )
         REQUIRE_FALSE( seg.isFull() );
     }
 
-    //!WARNING remember about 0 being used for ENTITY_ID_INVALID
-
     SECTION( "Taking up slots and checking if they're there" )
     { 
         REQUIRE( seg.getTakenSlotCount() == 0 );
 
-        REQUIRE( seg.tryTakeUpSlot(1) != nullptr );
-        REQUIRE( seg.tryTakeUpSlot(2) != nullptr );
-        REQUIRE( seg.tryTakeUpSlot(3) != nullptr );
-        REQUIRE( seg.tryTakeUpSlot(5) != nullptr );
+        REQUIRE( seg.tryTakeUpSlot( ENTITY_ID_MINIMAL + 0 ) != nullptr );
+        REQUIRE( seg.tryTakeUpSlot( ENTITY_ID_MINIMAL + 1 ) != nullptr );
+        REQUIRE( seg.tryTakeUpSlot( ENTITY_ID_MINIMAL + 2 ) != nullptr );
+        REQUIRE( seg.tryTakeUpSlot( ENTITY_ID_MINIMAL + 4 ) != nullptr );
 
         REQUIRE( seg.getTakenSlotCount() == 4 );
     
         // Check for component presence
-        REQUIRE_FALSE( seg.hasSlottedComponent(0) );
-        REQUIRE( seg.hasSlottedComponent(1) );
-        REQUIRE( seg.hasSlottedComponent(3) );
-        REQUIRE_FALSE( seg.hasSlottedComponent(4) );
+        REQUIRE_FALSE( seg.hasSlottedComponent( ENTITY_ID_INVALID ) );
+        REQUIRE( seg.hasSlottedComponent( ENTITY_ID_MINIMAL + 0 ) );
+        REQUIRE( seg.hasSlottedComponent( ENTITY_ID_MINIMAL + 2 ) );
+        REQUIRE_FALSE( seg.hasSlottedComponent( ENTITY_ID_MINIMAL + 3 ) );
     }
-
-    // uncomment when wanting to test
-    // SECTION( "Test assert on invalid entity" )
-    // {
-    //     seg.tryTakeUpSlot( ENTITY_ID_INVALID );
-    // }
 
     SECTION( "Test special or illegal cases for taking up slots" )
     {
         // Fill up the segment to the full
-        for (entityid i = 1; i < 11; i++)
+        for (entityid i = ENTITY_ID_MINIMAL; i < ENTITY_ID_MINIMAL + 10; i++)
         {
             seg.tryTakeUpSlot(i);
         }
         REQUIRE( seg.getTakenSlotCount() == seg.getSize() );
 
         // Check if segment doesn't change its state if entity component is already slotted
-        REQUIRE( seg.tryTakeUpSlot(10) != nullptr );
+        REQUIRE( seg.tryTakeUpSlot( ENTITY_ID_MINIMAL + 9 ) != nullptr );
         REQUIRE( seg.getTakenSlotCount() == seg.getSize() );
 
         // Check for situation when you try to take up in a full segment
         REQUIRE( seg.isFull() );
-        REQUIRE( seg.tryTakeUpSlot(12) == nullptr );   
+        REQUIRE( seg.tryTakeUpSlot( ENTITY_ID_MINIMAL + 10 ) == nullptr );   
     }
 
     SECTION( "Getting component" )
     {
         segsize idx;
-        Foo *foo;
+        SComponentWrapper<Foo> *foo;
 
-        foo = seg.tryTakeUpSlot(1);
+        foo = seg.tryTakeUpSlot( ENTITY_ID_MINIMAL );
         REQUIRE( foo != nullptr );
-        REQUIRE( foo->owner == 1 );
-        foo->i = 2137;
+        foo->data.i = 2137;
 
-        foo = seg.getSlottedComponent(1);
+        foo = seg.getSlottedComponent( ENTITY_ID_MINIMAL );
         REQUIRE( foo != nullptr );
-        REQUIRE( foo->owner == 1 );
-        REQUIRE( foo->i == 2137 );        
+        REQUIRE( foo->data.i == 2137 );        
     }
 
     SECTION( "Freeing slots" )
     {
-        seg.tryTakeUpSlot(1);
-        seg.tryTakeUpSlot(2);
-        seg.tryTakeUpSlot(3);
-        seg.tryTakeUpSlot(4);
-        seg.tryTakeUpSlot(5);
+        seg.tryTakeUpSlot( ENTITY_ID_MINIMAL + 0 );
+        seg.tryTakeUpSlot( ENTITY_ID_MINIMAL + 1 );
+        seg.tryTakeUpSlot( ENTITY_ID_MINIMAL + 2 );
+        seg.tryTakeUpSlot( ENTITY_ID_MINIMAL + 3 );
+        seg.tryTakeUpSlot( ENTITY_ID_MINIMAL + 4 );
 
         REQUIRE( seg.getTakenSlotCount() == 5 );
 
 
-        seg.freeSlot(1);
-        seg.freeSlot(2);
+        seg.freeSlot( ENTITY_ID_MINIMAL + 0 );
+        seg.freeSlot( ENTITY_ID_MINIMAL + 1 );
 
         REQUIRE( seg.getTakenSlotCount() == 3 );
-        REQUIRE_FALSE( seg.hasSlottedComponent(1) );
-        REQUIRE_FALSE( seg.hasSlottedComponent(2) );
+        REQUIRE_FALSE( seg.hasSlottedComponent( ENTITY_ID_MINIMAL + 0 ) );
+        REQUIRE_FALSE( seg.hasSlottedComponent( ENTITY_ID_MINIMAL + 1 ) );
 
 
         // Clearing all slots
         seg.clearSlots();
 
-        REQUIRE_FALSE( seg.hasSlottedComponent(3) );
+        REQUIRE_FALSE( seg.hasSlottedComponent( ENTITY_ID_MINIMAL + 2 ) );
         REQUIRE( seg.isEmpty() );
     }
-
-    // SECTION()
 }

@@ -3,109 +3,189 @@
 #include <exception> // invalid_argument
 
 namespace chestnut::ecs::internal
-{    
-    void CEntityRegistry::registerEntity( entityid id, bool isTemplateEntity ) 
+{
+    CEntityRegistry::CEntityRegistry() 
     {
-        if( !hasEntity( id ) )
-        {
-            SEntityRegistryRecord record;
-            record.id = id;
-            record.isTemplate = isTemplateEntity;
-            // we leave signature empty
-
-            m_mapEntityIDToEntityRecord[ id ] = record;
-        }
+        m_entityIdCounter = ENTITY_ID_MINIMAL;
     }
 
-    void CEntityRegistry::registerEntity( entityid id, bool isTemplateEntity, const CEntitySignature& signature ) 
+    entityid CEntityRegistry::registerNewEntity( bool isTemplateEntity ) 
     {
-        if( !hasEntity( id ) )
+        entityid id;
+
+        if( !m_vecRecycledEntityIDs.empty() )
+        {
+            id = m_vecRecycledEntityIDs.back();
+            m_vecRecycledEntityIDs.pop_back();
+
+            entityid idx = indexFromEntityId(id);
+            m_dequeEntityRecords[idx].isIdUsed = true;
+            m_dequeEntityRecords[idx].isTemplate = isTemplateEntity;
+            // signature remains default
+        }
+        else
         {
             SEntityRegistryRecord record;
-            record.id = id;
+            record.isIdUsed = true;
+            record.isTemplate = isTemplateEntity;
+            // signature remains default
+
+            m_dequeEntityRecords.push_back( record );
+
+            id = entityIdFromIndex( m_dequeEntityRecords.size() - 1 );
+        }
+
+        return id;
+    }
+
+    entityid CEntityRegistry::registerNewEntity( bool isTemplateEntity, const CEntitySignature& signature ) 
+    {
+        entityid id;
+        
+        if( !m_vecRecycledEntityIDs.empty() )
+        {
+            id = m_vecRecycledEntityIDs.back();
+            m_vecRecycledEntityIDs.pop_back();
+
+            entityid idx = indexFromEntityId(id);
+            m_dequeEntityRecords[idx].isIdUsed = true;
+            m_dequeEntityRecords[idx].isTemplate = isTemplateEntity;
+            m_dequeEntityRecords[idx].signature = signature;
+        }
+        else
+        {
+            SEntityRegistryRecord record;
+            record.isIdUsed = true;
             record.isTemplate = isTemplateEntity;
             record.signature = signature;
 
-            m_mapEntityIDToEntityRecord[ id ] = record;
+            m_dequeEntityRecords.push_back( record );
+
+            id = entityIdFromIndex( m_dequeEntityRecords.size() - 1 );
         }
+
+        return id;
     }
 
     void CEntityRegistry::updateEntity( entityid id, const CEntitySignature& newSignature ) 
     {
-        auto it = m_mapEntityIDToEntityRecord.find( id );
-        if( it != m_mapEntityIDToEntityRecord.end() )
+        if( hasEntity( id, true ) )
         {
-            it->second.signature = newSignature;
+            m_dequeEntityRecords[ indexFromEntityId(id) ].signature = newSignature;
         }
-    }
-
-    void CEntityRegistry::removeEntity( entityid id ) 
-    {
-        m_mapEntityIDToEntityRecord.erase( id );
-    }
-
-    void CEntityRegistry::removeAllEntities() 
-    {
-        m_mapEntityIDToEntityRecord.clear();
     }
 
     bool CEntityRegistry::hasEntity( entityid id, bool canBeTemplateEntity ) const
     {
-        auto it = m_mapEntityIDToEntityRecord.find( id );
-
-        // first find if the ID is even in the registry
-        if( it != m_mapEntityIDToEntityRecord.end() )
+        if( id == ENTITY_ID_INVALID )
         {
-            // entity is registered
-
-            // should accept it if it's a template entity?
-            if( !canBeTemplateEntity )
-            {
-                // if it exists and can't be a template entity then just check if it isn't registered as template
-                return !it->second.isTemplate;
-            }
-            // if we can ignore the type then it's valid in any case
-            else
-            {
-                return true;
-            }   
-        }
-        else
-        {
-            // no ID found, entity not registered at all
             return false;
         }
+        
+        id = indexFromEntityId(id);
+
+        if( id < m_dequeEntityRecords.size() && m_dequeEntityRecords[id].isIdUsed )
+        {
+            if( !canBeTemplateEntity )
+            {
+                return !m_dequeEntityRecords[id].isTemplate;
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     bool CEntityRegistry::hasTemplateEntity( entityid id ) const
     {
-        auto it = m_mapEntityIDToEntityRecord.find( id );
-
-        if( it != m_mapEntityIDToEntityRecord.end() )
-        {
-            return it->second.isTemplate;
-        }
-        else
+        if( id == ENTITY_ID_INVALID )
         {
             return false;
         }
+
+        id = indexFromEntityId(id);
+
+        if( id < m_dequeEntityRecords.size() && m_dequeEntityRecords[id].isIdUsed )
+        {
+            return m_dequeEntityRecords[id].isTemplate;
+        }
+
+        return false;
     }
 
-    entityid CEntityRegistry::getEntityCount() const
+    void CEntityRegistry::unregisterEntity( entityid id ) 
     {
-        return m_mapEntityIDToEntityRecord.size();
+        if( id == ENTITY_ID_INVALID )
+        {
+            return;
+        }
+
+        entityid idx = indexFromEntityId(id);
+
+        if( idx < m_dequeEntityRecords.size() )
+        {
+            m_dequeEntityRecords[idx].isIdUsed = false;
+            m_dequeEntityRecords[idx].isTemplate = false; 
+            m_dequeEntityRecords[idx].signature.clear();
+
+            m_vecRecycledEntityIDs.push_back(id);
+        }
+    }
+
+    entitysize CEntityRegistry::getEntityCount() const
+    {
+        return m_dequeEntityRecords.size() - m_vecRecycledEntityIDs.size();
+    }
+
+    entitysize CEntityRegistry::getEntityCountOfExactSignature( const CEntitySignature& requiredSignature ) const
+    {
+        const entitysize size = m_dequeEntityRecords.size();
+        
+        entitysize count = 0;
+        for (entityid i = 0; i < size; i++)
+        {
+            if( m_dequeEntityRecords[i].isIdUsed && m_dequeEntityRecords[i].signature == requiredSignature )
+            {
+                count++;
+            }
+        }
+        
+        return count;
+    }
+
+    entitysize CEntityRegistry::getEntityCountOfPartialSignature( const CEntitySignature& requiredSignaturePart ) const
+    {
+        const entitysize size = m_dequeEntityRecords.size();
+        
+        entitysize count = 0;
+        for (entityid i = 0; i < size; i++)
+        {
+            if( m_dequeEntityRecords[i].isIdUsed && m_dequeEntityRecords[i].signature.hasAllFrom( requiredSignaturePart ) )
+            {
+                count++;
+            }
+        }
+        
+        return count;
     }
 
     const CEntitySignature& CEntityRegistry::getEntitySignature( entityid id ) const
     {
-        auto it = m_mapEntityIDToEntityRecord.find( id );
-        if( it != m_mapEntityIDToEntityRecord.end() )
+        if( id == ENTITY_ID_INVALID )
         {
-            return it->second.signature;
+            throw std::invalid_argument( "Entity has invalid ID!" );
+        }
+
+        id = indexFromEntityId(id);
+
+        if( id < m_dequeEntityRecords.size() && m_dequeEntityRecords[id].isIdUsed )
+        {
+            return m_dequeEntityRecords[id].signature;
         }
         else
         {
-            throw std::invalid_argument( "Entity " + std::to_string(id) + " is not registered!" );
+            throw std::invalid_argument( "Entity " + std::to_string( entityIdFromIndex(id) ) + " is not registered!" );
         }
     }
 

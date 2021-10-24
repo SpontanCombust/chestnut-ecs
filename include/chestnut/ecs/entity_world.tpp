@@ -1,11 +1,9 @@
-#include "component_traits.hpp"
-
 namespace chestnut::ecs
 {
     // ========================= PUBLIC ========================= //
 
-    template<class C>
-    void CEntityWorld::setupComponentTypeIfDidntAlready() 
+    template< typename C, typename Traits >
+    void CEntityWorld::setupComponentType()
     {
         std::type_index type = typeid(C);
 
@@ -14,54 +12,92 @@ namespace chestnut::ecs
         if( it == m_mapCompTypeToStorage.end() )
         {
             m_mapCompTypeToStorage[ type ] = new internal::CComponentStorage<C>( 
-                ComponentTraits<C>::storageSegmentSize, 
-                ComponentTraits<C>::storageInitCapacity 
+                Traits::storageSegmentSize, 
+                Traits::storageInitCapacity 
             );
         }
     }
 
-
-
-
-
-    template< class C >
-    C* CEntityWorld::createComponent( entityid entityID ) 
+    template< typename C >
+    inline void CEntityWorld::setupComponentTypeIfDidntAlready() 
     {
-        CHESTNUT_STATIC_ASSERT_VALID_COMPONENT_CLASS(C);
-
-        setupComponentTypeIfDidntAlready<C>();
-
-        CComponent *uncastedComp;
-        C *castedComp;
-
-        uncastedComp = createComponentInternal( std::type_index( typeid( C ) ), entityID );
-        castedComp = static_cast<C*>( uncastedComp );
-
-        return castedComp;
+        setupComponentType< C, chestnut::ecs::ComponentTraits<C> >();
     }
 
-    template< class C >
+
+
+
+
+    template< typename C >
+    CComponentHandle<C> CEntityWorld::createComponent( entityid entityID ) 
+    {
+        setupComponentTypeIfDidntAlready<C>();
+
+        internal::IComponentWrapper *uncastedComp;
+        uncastedComp = createComponentInternal( std::type_index( typeid( C ) ), entityID );
+        auto handle = CComponentHandle<C>( entityID, static_cast< internal::SComponentWrapper<C>* >( uncastedComp ) );
+
+        return handle;
+    }
+
+    template< typename C >
     bool CEntityWorld::hasComponent( entityid entityID ) const
     {
         return hasComponentInternal( std::type_index( typeid( C ) ), entityID );
     }
 
-    template< class C >
-    C* CEntityWorld::getComponent( entityid entityID ) const
+    template< typename C >
+    CComponentHandle<C> CEntityWorld::getComponent( entityid entityID ) const
     {
-        CComponent *uncastedComp;
-        C *castedComp;
-
+        internal::IComponentWrapper *uncastedComp;
         uncastedComp = getComponentInternal( std::type_index( typeid( C ) ), entityID );
-        castedComp = static_cast<C*>( uncastedComp );
+        auto handle = CComponentHandle<C>( entityID, static_cast< internal::SComponentWrapper<C>* >( uncastedComp ) );
 
-        return castedComp;
+        return handle;
     }
 
-    template< class C >
+    template< typename C >
     void CEntityWorld::destroyComponent( entityid entityID ) 
     {
         destroyComponentInternal( std::type_index( typeid( C ) ), entityID );
+    }
+
+
+
+
+
+    template< typename C > 
+    void CEntityWorld::reserveComponentMemoryTotal( entitysize amount )
+    {
+        setupComponentTypeIfDidntAlready<C>();
+
+        // setupComponentTypeIfDidntAlready assures this won't throw
+        internal::IComponentStorage *storage = m_mapCompTypeToStorage[ typeid(C) ];
+
+        storage->reserve( amount );
+    }
+
+    template< typename C > 
+    void CEntityWorld::reserveComponentMemoryAdditional( entitysize amount )
+    {
+        setupComponentTypeIfDidntAlready<C>();
+
+        // setupComponentTypeIfDidntAlready assures this won't throw
+        internal::IComponentStorage *storage = m_mapCompTypeToStorage[ typeid(C) ];
+
+        storage->reserveAdditional( amount );
+    }
+
+    template< typename C >
+    void CEntityWorld::freeComponentMemory( entitysize amount )
+    {
+        auto it = m_mapCompTypeToStorage.find( typeid(C) );
+        if( it != m_mapCompTypeToStorage.end() )
+        {
+            internal::IComponentStorage *storage = it->second;
+
+            storage->resize( storage->getCapacity() - amount );
+        }
     }
 
 } // namespace chestnut::ecs
