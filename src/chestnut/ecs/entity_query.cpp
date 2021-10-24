@@ -32,4 +32,22 @@ namespace chestnut::ecs
         }
     }
     
+    void CEntityQuery::forEachEntityPairWith( std::function< void( entityid, entityid ) > func ) const
+    {
+        if( m_vecEntityIDs.empty() )
+        {
+            return;
+        }
+
+        const entityid entCount = m_vecEntityIDs.size();
+
+        for (entityid i = 0; i < entCount; i++)
+        {
+            for (entityid j = i; j < entCount; j++)
+            {
+                func( m_vecEntityIDs[i], m_vecEntityIDs[j] );   
+            }
+        }
+    }
+
 } // namespace chestnut::ecs

@@ -76,6 +76,44 @@ namespace chestnut::ecs
         // Can throw std::out_of_range if requested types combination isn't stored in the query
         template< class C1, class C2, class C3, class C4 >
         void forEachEntityWith( std::function< void( entityid, C1&, C2&, C3&, C4& ) > func ) const;
+
+
+
+        // Can throw std::out_of_range if requested type isn't stored in the query
+        template< class C1 >
+        void forEachEntityPairWith( std::function< void( C1&, C1& ) > func ) const;
+
+        // Can throw std::out_of_range if requested types combination isn't stored in the query
+        template< class C1, class C2 >
+        void forEachEntityPairWith( std::function< void( C1&, C2&, C1&, C2& ) > func ) const;
+
+        // Can throw std::out_of_range if requested types combination isn't stored in the query
+        template< class C1, class C2, class C3 >
+        void forEachEntityPairWith( std::function< void( C1&, C2&, C3&, C1&, C2&, C3& ) > func ) const;
+
+        // Can throw std::out_of_range if requested types combination isn't stored in the query
+        template< class C1, class C2, class C3, class C4 >
+        void forEachEntityPairWith( std::function< void( C1&, C2&, C3&, C4&, C1&, C2&, C3&, C4& ) > func ) const;
+
+
+
+        void forEachEntityPairWith( std::function< void( entityid, entityid ) > func ) const;
+
+        // Can throw std::out_of_range if requested type isn't stored in the query
+        template< class C1 >
+        void forEachEntityPairWith( std::function< void( entityid, C1&, entityid, C1& ) > func ) const;
+
+        // Can throw std::out_of_range if requested types combination isn't stored in the query
+        template< class C1, class C2 >
+        void forEachEntityPairWith( std::function< void( entityid, C1&, C2&, entityid, C1&, C2& ) > func ) const; 
+
+        // Can throw std::out_of_range if requested types combination isn't stored in the query
+        template< class C1, class C2, class C3 >
+        void forEachEntityPairWith( std::function< void( entityid, C1&, C2&, C3&, entityid, C1&, C2&, C3& ) > func ) const;
+
+        // Can throw std::out_of_range if requested types combination isn't stored in the query
+        template< class C1, class C2, class C3, class C4 >
+        void forEachEntityPairWith( std::function< void( entityid, C1&, C2&, C3&, C4&, entityid, C1&, C2&, C3&, C4& ) > func ) const;        
     };
 
 } // namespace chestnut::ecs
