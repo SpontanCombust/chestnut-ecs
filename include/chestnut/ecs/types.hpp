@@ -11,6 +11,8 @@ namespace chestnut::ecs
     typedef uint16_t segid;
     typedef entitysize segsize; // a single segment can have the max amount of components equal to max amount of available entities
 
+    typedef uint16_t queryid;
+
 } // namespace chestnut::ecs
 
 #endif // __CHESTNUT_ECS_TYPES_H__

@@ -2,21 +2,33 @@
 
 namespace chestnut::ecs
 {
-    void forEachEntityInQuery( const SEntityQuery& query, std::function< void( entityid ) > func )
+    CEntityQuery::CEntityQuery( queryid id ) 
     {
-        if( query.vecBatches.empty() )
+        m_id = id;
+    }
+
+    queryid CEntityQuery::getID() const
+    {
+        return m_id;
+    }
+
+    entitysize CEntityQuery::getEntityCount() const
+    {
+        return m_vecEntityIDs.size();
+    }
+
+    void CEntityQuery::forEachEntityWith( std::function< void( entityid ) > func ) const
+    {
+        if( m_vecEntityIDs.empty() )
         {
             return;
         }
 
-        for( const SComponentBatch *batch : query.vecBatches )
-        {
-            entityid entCount = batch->vecEntityIDs.size();
+        const entityid entCount = m_vecEntityIDs.size();
 
-            for (entityid i = 0; i < entCount; i++)
-            {
-                func( batch->vecEntityIDs[i] );
-            }
+        for (entityid i = 0; i < entCount; i++)
+        {
+            func( m_vecEntityIDs[i] );
         }
     }
     

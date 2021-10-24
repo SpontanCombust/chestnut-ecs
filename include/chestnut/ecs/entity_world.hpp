@@ -3,15 +3,14 @@
 
 #include "types.hpp"
 #include "entity_registry.hpp"
-#include "entity_signature.hpp"
 #include "component_storage.hpp"
-#include "component_batch_guard.hpp"
+#include "entity_query_guard.hpp"
 #include "component_handle.hpp"
 #include "entity_query.hpp"
 #include "component_wrapper.hpp"
 #include "component_traits.hpp"
 
-#include <vector>
+#include <unordered_map>
 
 namespace chestnut::ecs
 {
@@ -24,10 +23,11 @@ namespace chestnut::ecs
         // A map pointing to direct component storages by the type of the component they store
         internal::CComponentStorageTypeMap m_mapCompTypeToStorage;
 
-        // A vector of batch objects organizing components by entity signature
-        // They're mutable, because we cache pending components inside them and want to update them when performing a query
+        // A map of query guards, that is, objects responsible for buffering component data for the actual queries (that they store)
+        // They're mutable, because we cache pending components inside them and want to update them when calling update on query
         // This doesn't affect World's state
-        mutable std::vector<internal::CComponentBatchGuard> m_vecBatchGuards;
+        mutable std::unordered_map< queryid, internal::CEntityQueryGuard* > m_mapQueryIDToQueryGuard;
+        queryid m_queryIDCounter;
 
     public:
         CEntityWorld();
@@ -119,13 +119,18 @@ namespace chestnut::ecs
 
 
 
-        // Returns the number of entity variations (and thus batches) queried
-        int queryEntities(SEntityQuery &query) const;
+        queryid createQuery( const CEntitySignature& requireSignature, const CEntitySignature& rejectSignature );
+
+        // Returns null if no query with this ID exists
+        const CEntityQuery* queryEntities( queryid id ) const;
+
+        void destroyQuery( queryid id );
 
 
     private:
         template< typename C >
         void setupComponentTypeIfDidntAlready();
+
 
         internal::IComponentWrapper* createComponentInternal( std::type_index compType, entityid entityID );
 
@@ -135,10 +140,8 @@ namespace chestnut::ecs
 
         void destroyComponentInternal( std::type_index compType, entityid entityID );
 
-        // Throws std::invalid_argument if signature is empty
-        // We don't make batches for empty signatures, so always check it before you call this function
-        // In any other case, assures batch guard exists (creates one if there isn't one already)
-        internal::CComponentBatchGuard& getBatchGuardWithSignature( const CEntitySignature& signature );
+        // If null passed for signature, it is interpreted as that the signature is definitely empty
+        void updateQueriesOnEntityChange( entityid entity, const CEntitySignature* prevSignature, const CEntitySignature* currSignature );
     };
 
 } // namespace chestnut::ecs

@@ -235,7 +235,7 @@ TEST_CASE( "Entity world test - general" )
 
 
 
-TEST_CASE( "Entity world test - batching" )
+TEST_CASE( "Entity world test - querying" )
 {
     CEntityWorld world;
 
@@ -276,89 +276,107 @@ TEST_CASE( "Entity world test - batching" )
     }
     
 
-    SEntityQuery query;
+    SECTION( "Create-get-destroy" )
+    {
+        // check for null
+        REQUIRE_FALSE( world.queryEntities(1) );
+
+        queryid q = world.createQuery( CEntitySignature(), CEntitySignature() );
+
+        REQUIRE( world.queryEntities(q) );
+
+        world.destroyQuery(q);
+
+        REQUIRE_FALSE( world.queryEntities(q) );        
+    }
 
     SECTION( "Query entities with Foo" )
     {
-        query.entitySignCond = []( const CEntitySignature& sign ) -> bool
-        {
-            return sign.has<Foo>();
-        };
+        queryid q = world.createQuery( makeEntitySignature<Foo>(), makeEntitySignature<>() );
 
-        REQUIRE( world.queryEntities( query ) == 4 );
+        const CEntityQuery* query = world.queryEntities(q);
+
+        REQUIRE( query );
+        REQUIRE( query->getEntityCount() == 40 );
 
         REQUIRE_NOTHROW(
-            forEachEntityInQuery<Foo>( query, 
+            query->forEachEntityWith<Foo>(
             []( entityid id, Foo& foo )
             {
                 foo.x *= foo.x;
                 REQUIRE( foo.x == id * id );
             })
         );
+
+        world.destroyQuery(q);
     }
 
     SECTION( "Doing incorrect forEach on query" )
     {
-        query.entitySignCond = []( const CEntitySignature& sign ) -> bool
-        {
-            return sign.has<Baz>() && ( sign.has<Foo>() || sign.has<Bar>() );
-        };
+        queryid q = world.createQuery( makeEntitySignature<Baz>(), makeEntitySignature<Foo>() );
 
-        REQUIRE( world.queryEntities( query ) == 3 );
+        const CEntityQuery* query = world.queryEntities(q);
+
+        REQUIRE( query->getEntityCount() == 10 );
 
         REQUIRE_THROWS( 
-            forEachEntityInQuery<Foo, Bar>( query,
-            []( Foo& foo, Bar& bar ) 
+            query->forEachEntityWith<Foo, Baz>(
+            []( Foo& foo, Baz& baz )
             {
-                foo.x = bar.y * bar.y;
+                foo.x = baz.z * baz.z;
             })
         );
+
+        world.destroyQuery(q);
     }
 
     SECTION( "Query entities with Foo, Bar and Baz" )
     {
-        query.entitySignCond = []( const CEntitySignature& sign ) -> bool
-        {
-            return sign.has<Foo>() && sign.has<Bar>() && sign.has<Baz>();
-        };
+        queryid q = world.createQuery( makeEntitySignature<Foo, Bar, Baz>(), makeEntitySignature<>() );
 
-        REQUIRE( world.queryEntities( query ) == 1 );
+        const CEntityQuery* query = world.queryEntities(q);
 
-        REQUIRE_NOTHROW(
-            forEachEntityInQuery<Foo, Bar, Baz>( query, 
-            []( Foo& foo, Bar& bar, Baz& baz ) 
+        REQUIRE( query->getEntityCount() == 10 );
+
+        REQUIRE_NOTHROW( 
+            query->forEachEntityWith<Foo, Bar, Baz>(
+            []( Foo& foo, Bar& bar, Baz& baz )
             {
                 baz.w *= foo.x + bar.y;
             })
         );
+
+        world.destroyQuery(q);
     }
 
     SECTION( "Query entities with Baz but no Foo" )
     {
-        query.entitySignCond = []( const CEntitySignature& sign ) -> bool
-        {
-            return sign.has<Baz>() && !sign.has<Foo>();
-        };
+        queryid q = world.createQuery( makeEntitySignature<Baz>(), makeEntitySignature<Foo>() );
 
-        REQUIRE( world.queryEntities( query ) == 1 );
+        const CEntityQuery* query = world.queryEntities(q);
+
+        REQUIRE( query->getEntityCount() == 10 );
 
         REQUIRE_NOTHROW( 
-            forEachEntityInQuery<Baz>( query,
+            query->forEachEntityWith<Baz>(
             []( Baz& baz )
             {
                 baz.w *= baz.z;
             })
         );
+
+        world.destroyQuery(q);
     }
 
     SECTION( "Query non-existing entities" )
     {
-        query.entitySignCond = []( const CEntitySignature& sign ) -> bool
-        {
-            return sign.has<Bar>() && !sign.has<Foo>() && !sign.has<Baz>();
-        };
+        queryid q = world.createQuery( makeEntitySignature<Bar>(), makeEntitySignature<Foo, Baz>() );
 
-        REQUIRE( world.queryEntities( query ) == 0 );
+        const CEntityQuery* query = world.queryEntities(q);
+
+        REQUIRE( query->getEntityCount() == 0 );
+
+        world.destroyQuery(q);
     }
 }
 
@@ -511,40 +529,18 @@ TEST_CASE( "Entity world test - entity templates" )
         REQUIRE( vecEnt2.size() == 20 );
 
 
+        const CEntityQuery* query;
 
-        SEntityQuery query1;
-        query1.entitySignCond = []( const CEntitySignature& signature ) -> bool
-        {
-            return signature.has<Foo>();
-        };
+        queryid q1 = world.createQuery( makeEntitySignature<Foo>(), makeEntitySignature() );
+        query = world.queryEntities(q1);
+        REQUIRE( query->getEntityCount() == 30 );
 
-        REQUIRE( world.queryEntities( query1 ) == 2 );
-        
-        entityid entCount = 0;
-        for( const SComponentBatch *batch : query1.vecBatches )
-        {
-            entCount += batch->vecEntityIDs.size();
-        }
+        queryid q2 = world.createQuery( makeEntitySignature<Foo, Bar>(), CEntitySignature() );
+        query = world.queryEntities(q2);
+        REQUIRE( query->getEntityCount() == 10 );
 
-        REQUIRE( entCount == 30 );
-
-
-
-        SEntityQuery query2;
-        query2.entitySignCond = []( const CEntitySignature& signature ) -> bool
-        {
-            return signature.has<Foo>() && signature.has<Bar>(); 
-        };
-
-        REQUIRE( world.queryEntities( query2 ) == 1 );
-        
-        entCount = 0;
-        for( const SComponentBatch *batch : query2.vecBatches )
-        {
-            entCount += batch->vecEntityIDs.size();
-        }
-
-        REQUIRE( entCount == 10 );
+        world.destroyQuery(q1);
+        world.destroyQuery(q2);
     }
 }
 

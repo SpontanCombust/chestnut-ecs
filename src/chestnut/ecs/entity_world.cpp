@@ -10,7 +10,7 @@ namespace chestnut::ecs
 
     CEntityWorld::CEntityWorld() 
     {
-        
+        m_queryIDCounter = 0;
     }
 
     CEntityWorld::~CEntityWorld() 
@@ -18,6 +18,11 @@ namespace chestnut::ecs
         for( auto& [ type, storage ] : m_mapCompTypeToStorage )
         {
             delete storage;
+        }
+
+        for( auto& [ id, guard ] : m_mapQueryIDToQueryGuard )
+        {
+            delete guard;
         }
     }
 
@@ -55,8 +60,7 @@ namespace chestnut::ecs
 
             if( !signature.isEmpty() )
             {
-                CComponentBatchGuard& batchGuard = getBatchGuardWithSignature( signature );
-                batchGuard.removeEntityWithComponents( entityID );
+                updateQueriesOnEntityChange( entityID, &signature, nullptr );
 
                 for( const auto& type : signature.m_setComponentTypes )
                 {
@@ -128,9 +132,7 @@ namespace chestnut::ecs
                     storage->storeComponentCopy( entityID, templateEntityID );
                 }
 
-
-                CComponentBatchGuard& batchGuard = getBatchGuardWithSignature( templateSignature );
-                batchGuard.fetchAndAddEntityWithComponents( entityID );
+                updateQueriesOnEntityChange( entityID, nullptr, &templateSignature );
             }
 
             return entityID; 
@@ -154,8 +156,6 @@ namespace chestnut::ecs
 
             if( !templateSignature.isEmpty() )
             {
-                CComponentBatchGuard& batchGuard = getBatchGuardWithSignature( templateSignature );
-
                 for (entitysize i = 0; i < amount; i++)
                 {
                     entityid entityID = m_entityRegistry.registerNewEntity( false, templateSignature );
@@ -166,9 +166,7 @@ namespace chestnut::ecs
                         storage->storeComponentCopy( entityID, templateEntityID );
                     }
 
-
-                    batchGuard.fetchAndAddEntityWithComponents( entityID );
-
+                    updateQueriesOnEntityChange( entityID, nullptr, &templateSignature );
 
                     ids.push_back( entityID );            
                 }
@@ -188,24 +186,50 @@ namespace chestnut::ecs
 
 
 
-    int CEntityWorld::queryEntities( SEntityQuery& query ) const
+    queryid CEntityWorld::createQuery( const CEntitySignature& requireSignature, const CEntitySignature& rejectSignature )
     {
-        query.vecBatches.clear();
-        
-        int batchesQueried = 0;
-        for( CComponentBatchGuard& batchGuard : m_vecBatchGuards )
+        m_queryIDCounter++;
+
+        internal::CEntityQueryGuard *guard = new internal::CEntityQueryGuard( m_queryIDCounter, requireSignature, rejectSignature, &m_mapCompTypeToStorage );
+
+
+        std::vector< entityid > vecEntitiesToFetchFrom = m_entityRegistry.findEntities( 
+        [&guard]( const CEntitySignature& sign )
         {
-            if( query.entitySignCond( batchGuard.getBatchSignature() ) )
-            {
-                if( batchGuard.updateBatch() )
-                {
-                    query.vecBatches.push_back( batchGuard.getBatchPtr() );
-                    batchesQueried++;
-                }
-            }
+            return guard->testQuery( sign );
+        });
+
+        for (entityid i = 0; i < vecEntitiesToFetchFrom.size(); i++)
+        {
+            guard->fetchAndAddEntityWithComponents( vecEntitiesToFetchFrom[i] );
+        }
+    
+
+        m_mapQueryIDToQueryGuard[m_queryIDCounter] = guard;
+
+        return m_queryIDCounter;
+    }
+
+    const CEntityQuery* CEntityWorld::queryEntities( queryid id ) const
+    {
+        auto it = m_mapQueryIDToQueryGuard.find( id );
+        if( it != m_mapQueryIDToQueryGuard.end() )
+        {
+            it->second->updateQuery();
+            return &it->second->getQuery();
         }
 
-        return batchesQueried;
+        return nullptr;
+    }
+
+    void CEntityWorld::destroyQuery( queryid id )
+    {
+        auto it = m_mapQueryIDToQueryGuard.find( id );
+        if( it != m_mapQueryIDToQueryGuard.end() )
+        {
+            delete it->second;
+            m_mapQueryIDToQueryGuard.erase( it );
+        }
     }
 
 
@@ -244,19 +268,10 @@ namespace chestnut::ecs
         // instantiate the actual new component
         IComponentWrapper *comp = storage->storeComponent( entityID );
 
-        // if it's not a template entity we send components from/to batch
+        // if it's not a template entity we update queries for it
         if( !m_entityRegistry.hasTemplateEntity( entityID ) )
         {
-            // remove component pointers from the previous batch if entity had any component before
-            if( !oldSignature.isEmpty() )
-            {
-                CComponentBatchGuard& oldSignBatchGuard = getBatchGuardWithSignature( oldSignature );
-                oldSignBatchGuard.removeEntityWithComponents( entityID );
-            }
-
-            // fetch component pointers to the new batch
-            CComponentBatchGuard& newSignBatchGuard = getBatchGuardWithSignature( newSignature );
-            newSignBatchGuard.fetchAndAddEntityWithComponents( entityID );
+            updateQueriesOnEntityChange( entityID, &oldSignature, &newSignature );
         }
 
 
@@ -309,19 +324,10 @@ namespace chestnut::ecs
             storage->eraseComponent( entityID );
 
 
-            // if entity is not a template entity we send components from/to batch
+            // if it's not a template entity we update queries for it
             if( !m_entityRegistry.hasTemplateEntity( entityID ) )
             {
-                // remove component pointers from the previous batch entity was asigned to
-                CComponentBatchGuard& oldSignBatchGuard = getBatchGuardWithSignature( oldSignature );
-                oldSignBatchGuard.removeEntityWithComponents( entityID );
-
-                // if after removing this component entity still has any components left, fetch them into a new batch 
-                if( !newSignature.isEmpty() )
-                {
-                    CComponentBatchGuard& newSignBatchGuard = getBatchGuardWithSignature( newSignature );
-                    newSignBatchGuard.fetchAndAddEntityWithComponents( entityID );
-                }
+                updateQueriesOnEntityChange( entityID, &oldSignature, &newSignature );
             }
 
 
@@ -330,34 +336,37 @@ namespace chestnut::ecs
         }
     }
 
-    CComponentBatchGuard& CEntityWorld::getBatchGuardWithSignature( const CEntitySignature& signature )
+    void CEntityWorld::updateQueriesOnEntityChange( entityid entity, const CEntitySignature* prevSignature, const CEntitySignature* currSignature )
     {
-        // we don't make batches for empty signatures
-        if( signature.isEmpty() )
-        {
-            throw std::invalid_argument( "Batch doesn't get created for empty signature" );
-        }
-        else
-        {
-            auto it = m_vecBatchGuards.begin();
-            while( it != m_vecBatchGuards.end() )
-            {
-                if( it->getBatchSignature() == signature )
-                {
-                    break;
-                }
+        bool prevValid, currValid;
 
-                ++it;
-            }
-
-            if( it != m_vecBatchGuards.end() )
+        for( auto& [ id, guard ] : m_mapQueryIDToQueryGuard )
+        {
+            if( prevSignature )
             {
-                return *it;
+                prevValid = guard->testQuery( *prevSignature );
             }
             else
             {
-                m_vecBatchGuards.emplace_back( signature, &m_mapCompTypeToStorage );
-                return m_vecBatchGuards.back();
+                prevValid = false;
+            }
+
+            if( currSignature )
+            {
+                currValid = guard->testQuery( *currSignature );
+            }
+            else
+            {
+                currValid = false;
+            }
+
+            if( !prevValid && currValid )
+            {
+                guard->fetchAndAddEntityWithComponents( entity );
+            }
+            else if( prevValid && !currValid )
+            {
+                guard->removeEntityWithComponents( entity );
             }
         }
     }

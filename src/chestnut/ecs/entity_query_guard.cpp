@@ -1,23 +1,25 @@
-#include "chestnut/ecs/component_batch_guard.hpp"
+#include "chestnut/ecs/entity_query_guard.hpp"
 
 #include <iterator> // next
 
 namespace chestnut::ecs::internal
 {    
-    CComponentBatchGuard::CComponentBatchGuard( const CEntitySignature& signature, CComponentStorageTypeMap *storageMapPtr ) 
+    CEntityQueryGuard::CEntityQueryGuard( queryid id, const CEntitySignature& requireSignature, const CEntitySignature& rejectSignature, CComponentStorageTypeMap *storageMapPtr )
+    : m_targetQuery( id )
     {
         m_storageMapPtr = storageMapPtr;
 
-        m_targetBatch.signature = signature;
+        m_requireSignature = requireSignature;
+        m_rejectSignature = rejectSignature;
 
         // initialize batch's component map
-        for( std::type_index type : signature.m_setComponentTypes )
+        for( std::type_index type : requireSignature.m_setComponentTypes )
         {
-            m_targetBatch.mapCompTypeToCompVec[ type ] = std::vector< IComponentWrapper * >();
+            m_targetQuery.m_mapCompTypeToVecComp[ type ] = std::vector< IComponentWrapper * >();
         }
     }
 
-    void CComponentBatchGuard::fetchAndAddEntityWithComponents( entityid entityID ) 
+    void CEntityQueryGuard::fetchAndAddEntityWithComponents( entityid entityID ) 
     {
         // First of all check if entity has been scheduled for removal
         // In that case only delete removal data
@@ -35,7 +37,7 @@ namespace chestnut::ecs::internal
         {
             m_pendingIn_vecEntityIDs.push_back( entityID );
 
-            for( std::type_index type : m_targetBatch.signature.m_setComponentTypes )
+            for( std::type_index type : m_requireSignature.m_setComponentTypes )
             {
                 // This ~~shouldn't~~ throw an exception if systems using this class are setup correctly
                 IComponentStorage *typedStorage = m_storageMapPtr->at( type );
@@ -47,7 +49,7 @@ namespace chestnut::ecs::internal
         }
     }
 
-    void CComponentBatchGuard::removeEntityWithComponents( entityid entityID ) 
+    void CEntityQueryGuard::removeEntityWithComponents( entityid entityID ) 
     {
         // First check if entity has been scheduled for addition
         // In that case delete addition data
@@ -82,7 +84,7 @@ namespace chestnut::ecs::internal
         }
     }
 
-    bool CComponentBatchGuard::updateBatch() 
+    bool CEntityQueryGuard::updateQuery() 
     {
         // first do the removal
 
@@ -93,13 +95,13 @@ namespace chestnut::ecs::internal
 
             std::vector< entityid > vecIndicesToEraseInOrder;
 
-            for (entityid i = 0; i < m_targetBatch.vecEntityIDs.size(); /*NOP*/)
+            for (entityid i = 0; i < m_targetQuery.m_vecEntityIDs.size(); /*NOP*/)
             {
-                entityid entityID = m_targetBatch.vecEntityIDs[i];
+                entityid entityID = m_targetQuery.m_vecEntityIDs[i];
 
                 if( m_pendingOut_setEntityIDs.find( entityID ) != m_pendingOut_setEntityIDs.end() )
                 {
-                    m_targetBatch.vecEntityIDs.erase( std::next( m_targetBatch.vecEntityIDs.begin(), i ) );
+                    m_targetQuery.m_vecEntityIDs.erase( std::next( m_targetQuery.m_vecEntityIDs.begin(), i ) );
                     vecIndicesToEraseInOrder.push_back(i);
                 }
                 else
@@ -108,11 +110,11 @@ namespace chestnut::ecs::internal
                 }
             }
 
-            for( auto& [ type, vecComp ] : m_targetBatch.mapCompTypeToCompVec )
+            for( auto& [ type, vecComp ] : m_targetQuery.m_mapCompTypeToVecComp )
             {
-                for( entityid index : vecIndicesToEraseInOrder )
+                for (entityid i = 0; i < vecIndicesToEraseInOrder.size(); i++)
                 {
-                    vecComp.erase( std::next( vecComp.begin(), index ) );
+                    vecComp.erase( std::next( vecComp.begin(), vecIndicesToEraseInOrder[i] ) );
                 }
             }
         }
@@ -124,12 +126,12 @@ namespace chestnut::ecs::internal
         if( !m_pendingIn_vecEntityIDs.empty() )
         {
             // add to target batch all the IDs of entities of pending components
-            m_targetBatch.vecEntityIDs.insert( m_targetBatch.vecEntityIDs.end(),
-                                               m_pendingIn_vecEntityIDs.begin(),
-                                               m_pendingIn_vecEntityIDs.end() );
+            m_targetQuery.m_vecEntityIDs.insert( m_targetQuery.m_vecEntityIDs.end(),
+                                                 m_pendingIn_vecEntityIDs.begin(),
+                                                 m_pendingIn_vecEntityIDs.end() );
 
             // now add the actual components to target batch
-            for( auto& [ type, vecComp ] : m_targetBatch.mapCompTypeToCompVec )
+            for( auto& [ type, vecComp ] : m_targetQuery.m_mapCompTypeToVecComp )
             {
                 vecComp.insert( vecComp.end(),
                                 m_pendingIn_mapCompTypeToVecComp[ type ].begin(), 
@@ -152,23 +154,17 @@ namespace chestnut::ecs::internal
 
 
         // return whether the target batch has any components now
-        return m_targetBatch.vecEntityIDs.size() > 0;
+        return m_targetQuery.m_vecEntityIDs.size() > 0;
     }
 
-    bool CComponentBatchGuard::hasAnyComponentsInBatch() const
+    bool CEntityQueryGuard::testQuery( const CEntitySignature& signature ) const
     {
-        return m_targetBatch.vecEntityIDs.size() > 0;
+        return signature.hasAllFrom( m_requireSignature ) && !signature.hasAnyFrom( m_rejectSignature );
     }
 
-    const CEntitySignature& CComponentBatchGuard::getBatchSignature() const
+    const CEntityQuery& CEntityQueryGuard::getQuery() const
     {
-        return m_targetBatch.signature;
+        return m_targetQuery;
     }
-
-    const SComponentBatch* CComponentBatchGuard::getBatchPtr() const
-    {
-        return &m_targetBatch;
-    }
-
 
 } // namespace chestnut::ecs::internal
