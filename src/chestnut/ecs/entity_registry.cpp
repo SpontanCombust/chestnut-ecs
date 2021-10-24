@@ -9,16 +9,6 @@ namespace chestnut::ecs::internal
         m_entityIdCounter = ENTITY_ID_MINIMAL;
     }
 
-    inline entityid entityIdFromIndex( entityid index )
-    {
-        return index + ENTITY_ID_MINIMAL;
-    }
-
-    inline entityid indexFromEntityId( entityid id )
-    {
-        return id - ENTITY_ID_MINIMAL;
-    }
-
     entityid CEntityRegistry::registerNewEntity( bool isTemplateEntity ) 
     {
         entityid id;
@@ -29,8 +19,8 @@ namespace chestnut::ecs::internal
             m_vecRecycledEntityIDs.pop_back();
 
             entityid idx = indexFromEntityId(id);
-            m_vecEntityRecords[idx].isIdUsed = true;
-            m_vecEntityRecords[idx].isTemplate = isTemplateEntity;
+            m_dequeEntityRecords[idx].isIdUsed = true;
+            m_dequeEntityRecords[idx].isTemplate = isTemplateEntity;
             // signature remains default
         }
         else
@@ -40,9 +30,9 @@ namespace chestnut::ecs::internal
             record.isTemplate = isTemplateEntity;
             // signature remains default
 
-            m_vecEntityRecords.push_back( record );
+            m_dequeEntityRecords.push_back( record );
 
-            id = entityIdFromIndex( m_vecEntityRecords.size() - 1 );
+            id = entityIdFromIndex( m_dequeEntityRecords.size() - 1 );
         }
 
         return id;
@@ -58,9 +48,9 @@ namespace chestnut::ecs::internal
             m_vecRecycledEntityIDs.pop_back();
 
             entityid idx = indexFromEntityId(id);
-            m_vecEntityRecords[idx].isIdUsed = true;
-            m_vecEntityRecords[idx].isTemplate = isTemplateEntity;
-            m_vecEntityRecords[idx].signature = signature;
+            m_dequeEntityRecords[idx].isIdUsed = true;
+            m_dequeEntityRecords[idx].isTemplate = isTemplateEntity;
+            m_dequeEntityRecords[idx].signature = signature;
         }
         else
         {
@@ -69,9 +59,9 @@ namespace chestnut::ecs::internal
             record.isTemplate = isTemplateEntity;
             record.signature = signature;
 
-            m_vecEntityRecords.push_back( record );
+            m_dequeEntityRecords.push_back( record );
 
-            id = entityIdFromIndex( m_vecEntityRecords.size() - 1 );
+            id = entityIdFromIndex( m_dequeEntityRecords.size() - 1 );
         }
 
         return id;
@@ -81,7 +71,7 @@ namespace chestnut::ecs::internal
     {
         if( hasEntity( id, true ) )
         {
-            m_vecEntityRecords[ indexFromEntityId(id) ].signature = newSignature;
+            m_dequeEntityRecords[ indexFromEntityId(id) ].signature = newSignature;
         }
     }
 
@@ -94,11 +84,11 @@ namespace chestnut::ecs::internal
         
         id = indexFromEntityId(id);
 
-        if( id < m_vecEntityRecords.size() && m_vecEntityRecords[id].isIdUsed )
+        if( id < m_dequeEntityRecords.size() && m_dequeEntityRecords[id].isIdUsed )
         {
             if( !canBeTemplateEntity )
             {
-                return !m_vecEntityRecords[id].isTemplate;
+                return !m_dequeEntityRecords[id].isTemplate;
             }
 
             return true;
@@ -116,9 +106,9 @@ namespace chestnut::ecs::internal
 
         id = indexFromEntityId(id);
 
-        if( id < m_vecEntityRecords.size() && m_vecEntityRecords[id].isIdUsed )
+        if( id < m_dequeEntityRecords.size() && m_dequeEntityRecords[id].isIdUsed )
         {
-            return m_vecEntityRecords[id].isTemplate;
+            return m_dequeEntityRecords[id].isTemplate;
         }
 
         return false;
@@ -133,11 +123,11 @@ namespace chestnut::ecs::internal
 
         entityid idx = indexFromEntityId(id);
 
-        if( idx < m_vecEntityRecords.size() )
+        if( idx < m_dequeEntityRecords.size() )
         {
-            m_vecEntityRecords[idx].isIdUsed = false;
-            m_vecEntityRecords[idx].isTemplate = false; 
-            m_vecEntityRecords[idx].signature.clear();
+            m_dequeEntityRecords[idx].isIdUsed = false;
+            m_dequeEntityRecords[idx].isTemplate = false; 
+            m_dequeEntityRecords[idx].signature.clear();
 
             m_vecRecycledEntityIDs.push_back(id);
         }
@@ -145,17 +135,17 @@ namespace chestnut::ecs::internal
 
     entitysize CEntityRegistry::getEntityCount() const
     {
-        return m_vecEntityRecords.size() - m_vecRecycledEntityIDs.size();
+        return m_dequeEntityRecords.size() - m_vecRecycledEntityIDs.size();
     }
 
     entitysize CEntityRegistry::getEntityCountOfExactSignature( const CEntitySignature& requiredSignature ) const
     {
-        const entitysize size = m_vecEntityRecords.size();
+        const entitysize size = m_dequeEntityRecords.size();
         
         entitysize count = 0;
         for (entityid i = 0; i < size; i++)
         {
-            if( m_vecEntityRecords[i].isIdUsed && m_vecEntityRecords[i].signature == requiredSignature )
+            if( m_dequeEntityRecords[i].isIdUsed && m_dequeEntityRecords[i].signature == requiredSignature )
             {
                 count++;
             }
@@ -166,12 +156,12 @@ namespace chestnut::ecs::internal
 
     entitysize CEntityRegistry::getEntityCountOfPartialSignature( const CEntitySignature& requiredSignaturePart ) const
     {
-        const entitysize size = m_vecEntityRecords.size();
+        const entitysize size = m_dequeEntityRecords.size();
         
         entitysize count = 0;
         for (entityid i = 0; i < size; i++)
         {
-            if( m_vecEntityRecords[i].isIdUsed && m_vecEntityRecords[i].signature.has( requiredSignaturePart ) )
+            if( m_dequeEntityRecords[i].isIdUsed && m_dequeEntityRecords[i].signature.hasAllFrom( requiredSignaturePart ) )
             {
                 count++;
             }
@@ -189,9 +179,9 @@ namespace chestnut::ecs::internal
 
         id = indexFromEntityId(id);
 
-        if( id < m_vecEntityRecords.size() && m_vecEntityRecords[id].isIdUsed )
+        if( id < m_dequeEntityRecords.size() && m_dequeEntityRecords[id].isIdUsed )
         {
-            return m_vecEntityRecords[id].signature;
+            return m_dequeEntityRecords[id].signature;
         }
         else
         {

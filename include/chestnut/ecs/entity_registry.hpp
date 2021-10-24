@@ -24,7 +24,7 @@ namespace chestnut::ecs::internal
         std::vector< entityid > m_vecRecycledEntityIDs;
 
     public:
-        std::deque< SEntityRegistryRecord > m_vecEntityRecords; // can't do it with vector if signatures get passed outside by reference
+        std::deque< SEntityRegistryRecord > m_dequeEntityRecords; // can't do it with vector if signatures get passed outside by reference
 
     public:
         CEntityRegistry();
@@ -56,9 +56,22 @@ namespace chestnut::ecs::internal
 
         // Throws std::invalid_argument exception if entity is not registered
         const CEntitySignature& getEntitySignature( entityid id ) const;
+
+        // Doesn't consider template entities
+        template< typename SignaturePredicate >
+        std::vector< entityid > findEntities( SignaturePredicate pred ) const;
+
+
+    private:
+        entityid entityIdFromIndex( entityid index ) const;
+
+        entityid indexFromEntityId( entityid id ) const;
     };
     
 } // namespace chestnut::ecs::internal
+
+
+#include "entity_registry.tpp"
 
 
 #endif // __CHESTNUT_ECS_ENTITY_REGISTRY_H__
