@@ -29,12 +29,14 @@ namespace chestnut::ecs
 
         bool has( std::type_index compType ) const;
 
-        
-        void add( const CEntitySignature& otherSign );
-
-        void remove( const CEntitySignature& otherSign );
-
-        bool has( const CEntitySignature& otherSign ) const;
+        // Add types from therSign
+        void addFrom( const CEntitySignature& otherSign );
+        // Remove all types from this that are in otherSign 
+        void removeFrom( const CEntitySignature& otherSign );
+        // Test if all of types in otherSign are in this
+        bool hasAllFrom( const CEntitySignature& otherSign ) const;
+        // Test if any of types in otherSign are in this
+        bool hasAnyFrom( const CEntitySignature& otherSign ) const;
 
 
         void clear();

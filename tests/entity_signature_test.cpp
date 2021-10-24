@@ -126,7 +126,7 @@ TEST_CASE( "Entity signature test" )
         sign2.add( typeid(Bar) );
         sign2.add( typeid(Baz) );
 
-        REQUIRE( sign2.has( sign1 ) );
-        REQUIRE_FALSE( sign1.has( sign2 ) );
+        REQUIRE( sign2.hasAllFrom( sign1 ) );
+        REQUIRE_FALSE( sign1.hasAllFrom( sign2 ) );
     }
 }
