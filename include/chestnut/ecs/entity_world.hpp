@@ -123,6 +123,9 @@ namespace chestnut::ecs
         // Returns null if no query with this ID exists
         const CEntityQuery* queryEntities( queryid id ) const;
 
+        template< typename SortingCompType >
+        void sortQuery( queryid id, std::function< bool( const SortingCompType&, const SortingCompType& ) > compare ) const;
+
         void destroyQuery( queryid id );
 
 

@@ -26,7 +26,7 @@ public:
     short w;
 };
 
-TEST_CASE( "Entity query test" )
+TEST_CASE( "Entity query test - forEach" )
 {
     // first setup the component storage map using a few component types
 
@@ -226,7 +226,7 @@ TEST_CASE( "Entity query test" )
         REQUIRE_NOTHROW(
             query.forEachEntityWith<Foo, Bar>( []( entityid id, Foo& foo, Bar& baz ) 
             {
-                id >= 6 && id <= 10;
+                REQUIRE( (id >= 6 && id <= 10) );
             })
         );
     }
@@ -264,8 +264,147 @@ TEST_CASE( "Entity query test" )
         REQUIRE_NOTHROW(
             query.forEachEntityWith<Foo>( []( entityid id, Foo& foo ) 
             {
-                id >= 1 && id <= 10;
+                REQUIRE( ( id >= 1 && id <= 10 ) );
             })
         );
     }
+}
+
+
+TEST_CASE( "Entity query test - sorting" )
+{
+    CComponentStorageTypeMap storageMap;
+
+    std::type_index fooType = typeid( Foo );
+    std::type_index barType = typeid( Bar );
+
+    auto fooStorage = std::make_unique< CComponentStorage<Foo> >( 10, 10 );
+    auto barStorage = std::make_unique< CComponentStorage<Bar> >( 15, 15 );
+
+    storageMap[ fooType ] = fooStorage.get();
+    storageMap[ barType ] = barStorage.get();
+
+    ( (SComponentWrapper<Foo> *)fooStorage->storeComponent(1) )->data.x = 235;
+    ( (SComponentWrapper<Foo> *)fooStorage->storeComponent(2) )->data.x = 917;
+    ( (SComponentWrapper<Foo> *)fooStorage->storeComponent(3) )->data.x = 184;
+    ( (SComponentWrapper<Foo> *)fooStorage->storeComponent(4) )->data.x = 281;
+    ( (SComponentWrapper<Foo> *)fooStorage->storeComponent(5) )->data.x = 893;
+
+    ( (SComponentWrapper<Bar> *)barStorage->storeComponent(1) )->data.y = 963;
+    ( (SComponentWrapper<Bar> *)barStorage->storeComponent(2) )->data.y = 8193;
+    ( (SComponentWrapper<Bar> *)barStorage->storeComponent(3) )->data.y = 1782;
+    ( (SComponentWrapper<Bar> *)barStorage->storeComponent(4) )->data.y = 1396;
+    ( (SComponentWrapper<Bar> *)barStorage->storeComponent(5) )->data.y = 1008;
+    
+
+    CEntityQueryGuard guard = CEntityQueryGuard( 0, makeEntitySignature<Foo,Bar>(), makeEntitySignature(), &storageMap );
+
+    for (entityid i = 1; i <= 5; i++)
+    {
+        guard.fetchAndAddEntityWithComponents(i);
+    }
+    guard.updateQuery();
+    guard.sortQuery<Foo>( 
+    []( const Foo& f1, const Foo& f2 ) -> bool
+    {
+        return f1.x < f2.x;
+    });
+
+    const CEntityQuery& query = guard.getQuery();
+
+    REQUIRE( query.getEntityCount() == 5 );
+    int i = 0;
+    REQUIRE_NOTHROW(
+        query.forEachEntityWith<Foo, Bar>( [&i]( entityid id, Foo& foo, Bar& bar ) 
+        {
+            if( i == 0 )
+            {
+                REQUIRE( id == 3 );
+                REQUIRE( foo.x == 184 );
+                REQUIRE( bar.y == 1782 );
+            }
+            else if( i == 1 )
+            {
+                REQUIRE( id == 1 );
+                REQUIRE( foo.x == 235 );
+                REQUIRE( bar.y == 963 );
+            }
+            else if( i == 2 )
+            {
+                REQUIRE( id == 4 );
+                REQUIRE( foo.x == 281 );
+                REQUIRE( bar.y == 1396 );
+            }
+            else if( i == 3 )
+            {
+                REQUIRE( id == 5 );
+                REQUIRE( foo.x == 893 );
+                REQUIRE( bar.y == 1008 );
+            }
+            else if( i == 4 )
+            {
+                REQUIRE( id == 2 );
+                REQUIRE( foo.x == 917 );
+                REQUIRE( bar.y == 8193 );
+            }
+            else
+            {
+                REQUIRE( false );
+            }
+
+            i++;
+        })
+    );
+
+
+
+    guard.sortQuery<Bar>( 
+    []( const Bar& b1, const Bar& b2 ) -> bool
+    {
+        return b1.y < b2.y;
+    });
+
+    i = 0;
+
+    REQUIRE_NOTHROW(
+        query.forEachEntityWith<Foo, Bar>( [&i]( entityid id, Foo& foo, Bar& bar ) 
+        {
+            if( i == 0 )
+            {
+                REQUIRE( id == 1 );
+                REQUIRE( foo.x == 235 );
+                REQUIRE( bar.y == 963 );
+            }
+            else if( i == 1 )
+            {
+                REQUIRE( id == 5 );
+                REQUIRE( foo.x == 893 );
+                REQUIRE( bar.y == 1008 );
+            }
+            else if( i == 2 )
+            {
+                REQUIRE( id == 4 );
+                REQUIRE( foo.x == 281 );
+                REQUIRE( bar.y == 1396 );
+            }
+            else if( i == 3 )
+            {
+                REQUIRE( id == 3 );
+                REQUIRE( foo.x == 184 );
+                REQUIRE( bar.y == 1782 );
+            }
+            else if( i == 4 )
+            {
+                REQUIRE( id == 2 );
+                REQUIRE( foo.x == 917 );
+                REQUIRE( bar.y == 8193 );
+            }
+            else
+            {
+                REQUIRE( false );
+            }
+
+            i++;
+        })
+    );
 }

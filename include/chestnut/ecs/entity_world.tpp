@@ -100,4 +100,17 @@ namespace chestnut::ecs
         }
     }
 
+
+
+
+    template<typename SortingCompType>
+    void CEntityWorld::sortQuery( queryid id, std::function< bool( const SortingCompType&, const SortingCompType& ) > compare ) const
+    {
+        auto it = m_mapQueryIDToQueryGuard.find( id );
+        if( it != m_mapQueryIDToQueryGuard.end() )
+        {
+            it->second->sortQuery( compare );
+        }
+    }
+
 } // namespace chestnut::ecs
