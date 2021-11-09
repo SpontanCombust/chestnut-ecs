@@ -28,18 +28,18 @@ namespace chestnut::ecs
 
 
 
-    entityid CEntityWorld::createEntity() 
+    entityid_t CEntityWorld::createEntity() 
     {
         return m_entityRegistry.registerNewEntity( false );
     }
 
-    std::vector< entityid > CEntityWorld::createEntities( entitysize amount ) 
+    std::vector< entityid_t > CEntityWorld::createEntities( entitysize_t amount ) 
     {
-        std::vector< entityid > ids;
+        std::vector< entityid_t > ids;
 
         ids.resize( amount );
 
-        for (entitysize i = 0; i < amount; i++)
+        for (entitysize_t i = 0; i < amount; i++)
         {
             ids[i] = m_entityRegistry.registerNewEntity( false );
         }
@@ -47,12 +47,12 @@ namespace chestnut::ecs
         return ids;
     }
 
-    bool CEntityWorld::hasEntity( entityid entityID ) const
+    bool CEntityWorld::hasEntity( entityid_t entityID ) const
     {
         return m_entityRegistry.hasEntity( entityID, false );
     }
 
-    void CEntityWorld::destroyEntity( entityid entityID ) 
+    void CEntityWorld::destroyEntity( entityid_t entityID ) 
     {
         if( hasEntity( entityID ) )
         {
@@ -73,9 +73,9 @@ namespace chestnut::ecs
         }
     }
 
-    void CEntityWorld::destroyEntities( const std::vector< entityid >& entityIDs ) 
+    void CEntityWorld::destroyEntities( const std::vector< entityid_t >& entityIDs ) 
     {
-        for( entityid id : entityIDs )
+        for( entityid_t id : entityIDs )
         {
             destroyEntity( id );
         }
@@ -84,17 +84,17 @@ namespace chestnut::ecs
 
 
 
-    entityid CEntityWorld::createTemplateEntity() 
+    entityid_t CEntityWorld::createTemplateEntity() 
     {
         return m_entityRegistry.registerNewEntity( true );
     }
 
-    bool CEntityWorld::hasTemplateEntity( entityid templateEntityID ) const
+    bool CEntityWorld::hasTemplateEntity( entityid_t templateEntityID ) const
     {
         return m_entityRegistry.hasTemplateEntity( templateEntityID );
     }
 
-    void CEntityWorld::destroyTemplateEntity( entityid templateEntityID ) 
+    void CEntityWorld::destroyTemplateEntity( entityid_t templateEntityID ) 
     {
         if( hasTemplateEntity( templateEntityID ) )
         {
@@ -116,13 +116,13 @@ namespace chestnut::ecs
 
 
 
-    entityid CEntityWorld::createEntityFromTemplate( entityid templateEntityID ) 
+    entityid_t CEntityWorld::createEntityFromTemplate( entityid_t templateEntityID ) 
     {
         if( hasTemplateEntity( templateEntityID ) )
         {
             const CEntitySignature& templateSignature = m_entityRegistry.getEntitySignature( templateEntityID );
 
-            entityid entityID = m_entityRegistry.registerNewEntity( false, templateSignature );
+            entityid_t entityID = m_entityRegistry.registerNewEntity( false, templateSignature );
 
             if( !templateSignature.isEmpty() )
             {
@@ -143,9 +143,9 @@ namespace chestnut::ecs
         }
     }
 
-    std::vector< entityid > CEntityWorld::createEntitiesFromTemplate( entityid templateEntityID, entitysize amount ) 
+    std::vector< entityid_t > CEntityWorld::createEntitiesFromTemplate( entityid_t templateEntityID, entitysize_t amount ) 
     {
-        std::vector< entityid > ids;
+        std::vector< entityid_t > ids;
 
         if( hasTemplateEntity( templateEntityID ) )
         {
@@ -156,9 +156,9 @@ namespace chestnut::ecs
 
             if( !templateSignature.isEmpty() )
             {
-                for (entitysize i = 0; i < amount; i++)
+                for (entitysize_t i = 0; i < amount; i++)
                 {
-                    entityid entityID = m_entityRegistry.registerNewEntity( false, templateSignature );
+                    entityid_t entityID = m_entityRegistry.registerNewEntity( false, templateSignature );
 
                     for( std::type_index type : templateSignature.m_setComponentTypes )
                     {
@@ -173,7 +173,7 @@ namespace chestnut::ecs
             }
             else
             {
-                for (entitysize i = 0; i < amount; i++)
+                for (entitysize_t i = 0; i < amount; i++)
                 {
                     ids.push_back( m_entityRegistry.registerNewEntity( false ) );
                 }
@@ -186,22 +186,22 @@ namespace chestnut::ecs
 
 
 
-    queryid CEntityWorld::createQuery( const CEntitySignature& requireSignature, const CEntitySignature& rejectSignature )
+    queryid_t CEntityWorld::createQuery( const CEntitySignature& requireSignature, const CEntitySignature& rejectSignature )
     {
-        static queryid queryIDCounter = 0;
+        static queryid_t queryIDCounter = 0;
 
         queryIDCounter++;
 
         internal::CEntityQueryGuard *guard = new internal::CEntityQueryGuard( queryIDCounter, requireSignature, rejectSignature, &m_mapCompTypeToStorage );
 
 
-        std::vector< entityid > vecEntitiesToFetchFrom = m_entityRegistry.findEntities( 
+        std::vector< entityid_t > vecEntitiesToFetchFrom = m_entityRegistry.findEntities( 
         [&guard]( const CEntitySignature& sign )
         {
             return guard->testQuery( sign );
         });
 
-        for (entityid i = 0; i < vecEntitiesToFetchFrom.size(); i++)
+        for (entityid_t i = 0; i < vecEntitiesToFetchFrom.size(); i++)
         {
             guard->fetchAndAddEntityWithComponents( vecEntitiesToFetchFrom[i] );
         }
@@ -212,7 +212,7 @@ namespace chestnut::ecs
         return queryIDCounter;
     }
 
-    const CEntityQuery* CEntityWorld::queryEntities( queryid id ) const
+    const CEntityQuery* CEntityWorld::queryEntities( queryid_t id ) const
     {
         auto it = m_mapQueryIDToQueryGuard.find( id );
         if( it != m_mapQueryIDToQueryGuard.end() )
@@ -224,7 +224,7 @@ namespace chestnut::ecs
         return nullptr;
     }
 
-    void CEntityWorld::destroyQuery( queryid id )
+    void CEntityWorld::destroyQuery( queryid_t id )
     {
         auto it = m_mapQueryIDToQueryGuard.find( id );
         if( it != m_mapQueryIDToQueryGuard.end() )
@@ -234,13 +234,18 @@ namespace chestnut::ecs
         }
     }
 
+    std::vector< entityid_t > CEntityWorld::findEntities(std::function< bool( const CEntitySignature& ) > pred ) const
+    {
+        return m_entityRegistry.findEntities( pred );
+    }
+
 
 
 
 
     // ========================= PRIVATE ========================= //
 
-    IComponentWrapper* CEntityWorld::createComponentInternal( std::type_index compType, entityid entityID ) 
+    IComponentWrapper* CEntityWorld::createComponentInternal( std::type_index compType, entityid_t entityID ) 
     {
         // check if entity exists at all
         if( !m_entityRegistry.hasEntity( entityID, true ) )
@@ -284,7 +289,7 @@ namespace chestnut::ecs
         return comp;
     }
 
-    bool CEntityWorld::hasComponentInternal( std::type_index compType, entityid entityID ) const
+    bool CEntityWorld::hasComponentInternal( std::type_index compType, entityid_t entityID ) const
     {
         if( !m_entityRegistry.hasEntity( entityID, true ) )
         {
@@ -295,7 +300,7 @@ namespace chestnut::ecs
         return signature.has( compType );
     }
 
-    IComponentWrapper* CEntityWorld::getComponentInternal( std::type_index compType, entityid entityID ) const
+    IComponentWrapper* CEntityWorld::getComponentInternal( std::type_index compType, entityid_t entityID ) const
     {
         if( hasComponentInternal( compType, entityID ) )
         {
@@ -310,7 +315,7 @@ namespace chestnut::ecs
         }
     }
 
-    void CEntityWorld::destroyComponentInternal( std::type_index compType, entityid entityID ) 
+    void CEntityWorld::destroyComponentInternal( std::type_index compType, entityid_t entityID ) 
     {
         if( hasComponentInternal( compType, entityID ) )
         {
@@ -338,7 +343,7 @@ namespace chestnut::ecs
         }
     }
 
-    void CEntityWorld::updateQueriesOnEntityChange( entityid entity, const CEntitySignature* prevSignature, const CEntitySignature* currSignature )
+    void CEntityWorld::updateQueriesOnEntityChange( entityid_t entity, const CEntitySignature* prevSignature, const CEntitySignature* currSignature )
     {
         bool prevValid, currValid;
 

@@ -26,7 +26,7 @@ namespace chestnut::ecs
         // A map of query guards, that is, objects responsible for buffering component data for the actual queries (that they store)
         // They're mutable, because we cache pending components inside them and want to update them when calling update on query
         // This doesn't affect World's state
-        mutable std::unordered_map< queryid, internal::CEntityQueryGuard* > m_mapQueryIDToQueryGuard;
+        mutable std::unordered_map< queryid_t, internal::CEntityQueryGuard* > m_mapQueryIDToQueryGuard;
 
     public:
         CEntityWorld();
@@ -45,15 +45,15 @@ namespace chestnut::ecs
         void setupComponentType();
 
 
-        entityid createEntity();
+        entityid_t createEntity();
 
-        std::vector<entityid> createEntities( entitysize amount );
+        std::vector<entityid_t> createEntities( entitysize_t amount );
 
-        bool hasEntity( entityid entityID ) const;
+        bool hasEntity( entityid_t entityID ) const;
 
-        void destroyEntity( entityid entityID );
+        void destroyEntity( entityid_t entityID );
 
-        void destroyEntities( const std::vector<entityid>& entityIDs );
+        void destroyEntities( const std::vector<entityid_t>& entityIDs );
 
 
 
@@ -63,34 +63,34 @@ namespace chestnut::ecs
         // If you haven't setup this component type before, its traits will be made default
         // You can't setup custom traits after that
         template< typename C >
-        CComponentHandle<C> createComponent( entityid entityID );
+        CComponentHandle<C> createComponent( entityid_t entityID );
 
         template< typename C >
-        bool hasComponent( entityid entityID ) const;
+        bool hasComponent( entityid_t entityID ) const;
 
         // Returns null if entity doesn't exist or if it doesn't own that component
         // Otherwise returns component owned by the entity
         template< typename C >
-        CComponentHandle<C> getComponent( entityid entityID ) const;
+        CComponentHandle<C> getComponent( entityid_t entityID ) const;
 
         template< typename C >
-        void destroyComponent( entityid entityID );
+        void destroyComponent( entityid_t entityID );
 
 
 
-        entityid createTemplateEntity();
+        entityid_t createTemplateEntity();
 
-        bool hasTemplateEntity( entityid templateEntityID ) const;
+        bool hasTemplateEntity( entityid_t templateEntityID ) const;
 
-        void destroyTemplateEntity( entityid templateEntityID );
+        void destroyTemplateEntity( entityid_t templateEntityID );
 
         // Creates entity based on component data owned by entity template with given ID
         // If no such template entity exists doesn't create any new entity or components and returns ENTITY_ID_INVALID
-        entityid createEntityFromTemplate( entityid templateEntityID );
+        entityid_t createEntityFromTemplate( entityid_t templateEntityID );
 
         // Creates entity based on component data owned by entity template with given ID
         // If no such template entity exists doesn't create any new entity or components and returns empty vector
-        std::vector<entityid> createEntitiesFromTemplate( entityid templateEntityID, entitysize amount );
+        std::vector<entityid_t> createEntitiesFromTemplate( entityid_t templateEntityID, entitysize_t amount );
 
         
 
@@ -100,7 +100,7 @@ namespace chestnut::ecs
         // If you haven't setup this component type before, its traits will be made default
         // You can't setup custom traits after that
         template< typename C > 
-        void reserveComponentMemoryTotal( entitysize amount );
+        void reserveComponentMemoryTotal( entitysize_t amount );
 
         // Allocate `amount` components of type C
         // Result of calling this function is dependant on the memory setup for component type
@@ -108,22 +108,31 @@ namespace chestnut::ecs
         // If you haven't setup this component type before, its traits will be made default
         // You can't setup custom traits after that
         template< typename C > 
-        void reserveComponentMemoryAdditional( entitysize amount );
+        void reserveComponentMemoryAdditional( entitysize_t amount );
 
         // Try to deallocate memory from the maximum of `amount` of components of type C
         // Result of calling this function is dependant on the memory setup for component type
         // See component_traits.hpp
         template< typename C >
-        void freeComponentMemory( entitysize amount );
+        void freeComponentMemory( entitysize_t amount );
 
 
 
-        queryid createQuery( const CEntitySignature& requireSignature, const CEntitySignature& rejectSignature );
+        queryid_t createQuery( const CEntitySignature& requireSignature, const CEntitySignature& rejectSignature );
 
         // Returns null if no query with this ID exists
-        const CEntityQuery* queryEntities( queryid id ) const;
+        const CEntityQuery* queryEntities( queryid_t id ) const;
 
-        void destroyQuery( queryid id );
+        template< typename SortingCompType >
+        void sortQuery( queryid_t id, std::function< bool( const SortingCompType&, const SortingCompType& ) > compare ) const;
+
+        void destroyQuery( queryid_t id );
+
+
+
+        // Simpler form of querying for entities, where you only get their IDs when
+        // Use this only when you'll be looking for entities non-frequently. Otherwise use regular queries and do forEach with entity IDs.
+        std::vector< entityid_t > findEntities( std::function< bool( const CEntitySignature& ) > pred ) const;
 
 
     private:
@@ -131,16 +140,16 @@ namespace chestnut::ecs
         void setupComponentTypeIfDidntAlready();
 
 
-        internal::IComponentWrapper* createComponentInternal( std::type_index compType, entityid entityID );
+        internal::IComponentWrapper* createComponentInternal( std::type_index compType, entityid_t entityID );
 
-        bool hasComponentInternal( std::type_index compType, entityid entityID ) const;
+        bool hasComponentInternal( std::type_index compType, entityid_t entityID ) const;
 
-        internal::IComponentWrapper* getComponentInternal( std::type_index compType, entityid entityID ) const;
+        internal::IComponentWrapper* getComponentInternal( std::type_index compType, entityid_t entityID ) const;
 
-        void destroyComponentInternal( std::type_index compType, entityid entityID );
+        void destroyComponentInternal( std::type_index compType, entityid_t entityID );
 
         // If null passed for signature, it is interpreted as that the signature is definitely empty
-        void updateQueriesOnEntityChange( entityid entity, const CEntitySignature* prevSignature, const CEntitySignature* currSignature );
+        void updateQueriesOnEntityChange( entityid_t entity, const CEntitySignature* prevSignature, const CEntitySignature* currSignature );
     };
 
 } // namespace chestnut::ecs

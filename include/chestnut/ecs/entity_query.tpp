@@ -8,10 +8,10 @@ namespace chestnut::ecs
             return;
         }
 
-        const entityid entCount = m_vecEntityIDs.size();
+        const entityid_t entCount = m_vecEntityIDs.size();
         const std::vector< internal::IComponentWrapper * >& vecC1 = m_mapCompTypeToVecComp.at( typeid(C1) );
 
-        for (entityid i = 0; i < entCount; i++)
+        for (entityid_t i = 0; i < entCount; i++)
         {
             internal::SComponentWrapper<C1> *c1 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[i] );
             func( c1->data );
@@ -26,11 +26,11 @@ namespace chestnut::ecs
             return;
         }
 
-        const entityid entCount = m_vecEntityIDs.size();
+        const entityid_t entCount = m_vecEntityIDs.size();
         const std::vector< internal::IComponentWrapper * >& vecC1 = m_mapCompTypeToVecComp.at( typeid(C1) );
         const std::vector< internal::IComponentWrapper * >& vecC2 = m_mapCompTypeToVecComp.at( typeid(C2) );
 
-        for (entityid i = 0; i < entCount; i++)
+        for (entityid_t i = 0; i < entCount; i++)
         {
             internal::SComponentWrapper<C1> *c1 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[i] );
             internal::SComponentWrapper<C2> *c2 = static_cast< internal::SComponentWrapper<C2>* >( vecC2[i] );
@@ -46,12 +46,12 @@ namespace chestnut::ecs
             return;
         }
 
-        const entityid entCount = m_vecEntityIDs.size();
+        const entityid_t entCount = m_vecEntityIDs.size();
         const std::vector< internal::IComponentWrapper * >& vecC1 = m_mapCompTypeToVecComp.at( typeid(C1) );
         const std::vector< internal::IComponentWrapper * >& vecC2 = m_mapCompTypeToVecComp.at( typeid(C2) );
         const std::vector< internal::IComponentWrapper * >& vecC3 = m_mapCompTypeToVecComp.at( typeid(C3) );
 
-        for (entityid i = 0; i < entCount; i++)
+        for (entityid_t i = 0; i < entCount; i++)
         {
             internal::SComponentWrapper<C1> *c1 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[i] );
             internal::SComponentWrapper<C2> *c2 = static_cast< internal::SComponentWrapper<C2>* >( vecC2[i] );
@@ -68,13 +68,13 @@ namespace chestnut::ecs
             return;
         }
 
-        const entityid entCount = m_vecEntityIDs.size();
+        const entityid_t entCount = m_vecEntityIDs.size();
         const std::vector< internal::IComponentWrapper * >& vecC1 = m_mapCompTypeToVecComp.at( typeid(C1) );
         const std::vector< internal::IComponentWrapper * >& vecC2 = m_mapCompTypeToVecComp.at( typeid(C2) );
         const std::vector< internal::IComponentWrapper * >& vecC3 = m_mapCompTypeToVecComp.at( typeid(C3) );
         const std::vector< internal::IComponentWrapper * >& vecC4 = m_mapCompTypeToVecComp.at( typeid(C4) );
 
-        for (entityid i = 0; i < entCount; i++)
+        for (entityid_t i = 0; i < entCount; i++)
         {
             internal::SComponentWrapper<C1> *c1 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[i] );
             internal::SComponentWrapper<C2> *c2 = static_cast< internal::SComponentWrapper<C2>* >( vecC2[i] );
@@ -90,17 +90,17 @@ namespace chestnut::ecs
 
     
     template< class C1 >
-    void CEntityQuery::forEachEntityWith( std::function< void( entityid, C1& ) > func ) const
+    void CEntityQuery::forEachEntityWith( std::function< void( entityid_t, C1& ) > func ) const
     {
         if( m_vecEntityIDs.empty() )
         {
             return;
         }
 
-        const entityid entCount = m_vecEntityIDs.size();
+        const entityid_t entCount = m_vecEntityIDs.size();
         const std::vector< internal::IComponentWrapper * >& vecC1 = m_mapCompTypeToVecComp.at( typeid(C1) );
 
-        for (entityid i = 0; i < entCount; i++)
+        for (entityid_t i = 0; i < entCount; i++)
         {
             internal::SComponentWrapper<C1> *c1 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[i] );
             func( m_vecEntityIDs[i], c1->data );
@@ -108,18 +108,18 @@ namespace chestnut::ecs
     }
 
     template< class C1, class C2 >
-    void CEntityQuery::forEachEntityWith( std::function< void( entityid, C1&, C2& ) > func ) const
+    void CEntityQuery::forEachEntityWith( std::function< void( entityid_t, C1&, C2& ) > func ) const
     {
         if( m_vecEntityIDs.empty() )
         {
             return;
         }
 
-        const entityid entCount = m_vecEntityIDs.size();
+        const entityid_t entCount = m_vecEntityIDs.size();
         const std::vector< internal::IComponentWrapper * >& vecC1 = m_mapCompTypeToVecComp.at( typeid(C1) );
         const std::vector< internal::IComponentWrapper * >& vecC2 = m_mapCompTypeToVecComp.at( typeid(C2) );
 
-        for (entityid i = 0; i < entCount; i++)
+        for (entityid_t i = 0; i < entCount; i++)
         {
             internal::SComponentWrapper<C1> *c1 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[i] );
             internal::SComponentWrapper<C2> *c2 = static_cast< internal::SComponentWrapper<C2>* >( vecC2[i] );
@@ -128,19 +128,19 @@ namespace chestnut::ecs
     }
 
     template< class C1, class C2, class C3 >
-    void CEntityQuery::forEachEntityWith( std::function< void( entityid, C1&, C2&, C3& ) > func ) const
+    void CEntityQuery::forEachEntityWith( std::function< void( entityid_t, C1&, C2&, C3& ) > func ) const
     {
         if( m_vecEntityIDs.empty() )
         {
             return;
         }
 
-        const entityid entCount = m_vecEntityIDs.size();
+        const entityid_t entCount = m_vecEntityIDs.size();
         const std::vector< internal::IComponentWrapper * >& vecC1 = m_mapCompTypeToVecComp.at( typeid(C1) );
         const std::vector< internal::IComponentWrapper * >& vecC2 = m_mapCompTypeToVecComp.at( typeid(C2) );
         const std::vector< internal::IComponentWrapper * >& vecC3 = m_mapCompTypeToVecComp.at( typeid(C3) );
 
-        for (entityid i = 0; i < entCount; i++)
+        for (entityid_t i = 0; i < entCount; i++)
         {
             internal::SComponentWrapper<C1> *c1 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[i] );
             internal::SComponentWrapper<C2> *c2 = static_cast< internal::SComponentWrapper<C2>* >( vecC2[i] );
@@ -150,20 +150,20 @@ namespace chestnut::ecs
     }
 
     template< class C1, class C2, class C3, class C4 >
-    void CEntityQuery::forEachEntityWith( std::function< void( entityid, C1&, C2&, C3&, C4& ) > func ) const
+    void CEntityQuery::forEachEntityWith( std::function< void( entityid_t, C1&, C2&, C3&, C4& ) > func ) const
     {
         if( m_vecEntityIDs.empty() )
         {
             return;
         }
 
-        const entityid entCount = m_vecEntityIDs.size();
+        const entityid_t entCount = m_vecEntityIDs.size();
         const std::vector< internal::IComponentWrapper * >& vecC1 = m_mapCompTypeToVecComp.at( typeid(C1) );
         const std::vector< internal::IComponentWrapper * >& vecC2 = m_mapCompTypeToVecComp.at( typeid(C2) );
         const std::vector< internal::IComponentWrapper * >& vecC3 = m_mapCompTypeToVecComp.at( typeid(C3) );
         const std::vector< internal::IComponentWrapper * >& vecC4 = m_mapCompTypeToVecComp.at( typeid(C4) );
 
-        for (entityid i = 0; i < entCount; i++)
+        for (entityid_t i = 0; i < entCount; i++)
         {
             internal::SComponentWrapper<C1> *c1 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[i] );
             internal::SComponentWrapper<C2> *c2 = static_cast< internal::SComponentWrapper<C2>* >( vecC2[i] );
@@ -186,12 +186,12 @@ namespace chestnut::ecs
             return;
         }
 
-        const entityid entCount = m_vecEntityIDs.size();
+        const entityid_t entCount = m_vecEntityIDs.size();
         const std::vector< internal::IComponentWrapper * >& vecC1 = m_mapCompTypeToVecComp.at( typeid(C1) );
 
-        for (entityid i = 0; i < entCount; i++)
+        for (entityid_t i = 0; i < entCount; i++)
         {
-            for (entityid j = i; j < entCount; j++)
+            for (entityid_t j = i; j < entCount; j++)
             {
                 internal::SComponentWrapper<C1> *c11 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[i] );
                 internal::SComponentWrapper<C1> *c12 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[j] );
@@ -209,13 +209,13 @@ namespace chestnut::ecs
             return;
         }
 
-        const entityid entCount = m_vecEntityIDs.size();
+        const entityid_t entCount = m_vecEntityIDs.size();
         const std::vector< internal::IComponentWrapper * >& vecC1 = m_mapCompTypeToVecComp.at( typeid(C1) );
         const std::vector< internal::IComponentWrapper * >& vecC2 = m_mapCompTypeToVecComp.at( typeid(C2) );
 
-        for (entityid i = 0; i < entCount; i++)
+        for (entityid_t i = 0; i < entCount; i++)
         {
-            for (entityid j = i; j < entCount; j++)
+            for (entityid_t j = i; j < entCount; j++)
             {
                 internal::SComponentWrapper<C1> *c11 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[i] );
                 internal::SComponentWrapper<C2> *c21 = static_cast< internal::SComponentWrapper<C2>* >( vecC2[i] );
@@ -235,14 +235,14 @@ namespace chestnut::ecs
             return;
         }
 
-        const entityid entCount = m_vecEntityIDs.size();
+        const entityid_t entCount = m_vecEntityIDs.size();
         const std::vector< internal::IComponentWrapper * >& vecC1 = m_mapCompTypeToVecComp.at( typeid(C1) );
         const std::vector< internal::IComponentWrapper * >& vecC2 = m_mapCompTypeToVecComp.at( typeid(C2) );
         const std::vector< internal::IComponentWrapper * >& vecC3 = m_mapCompTypeToVecComp.at( typeid(C3) );
 
-        for (entityid i = 0; i < entCount; i++)
+        for (entityid_t i = 0; i < entCount; i++)
         {
-            for (entityid j = i; j < entCount; j++)
+            for (entityid_t j = i; j < entCount; j++)
             {
                 internal::SComponentWrapper<C1> *c11 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[i] );
                 internal::SComponentWrapper<C2> *c21 = static_cast< internal::SComponentWrapper<C2>* >( vecC2[i] );
@@ -264,15 +264,15 @@ namespace chestnut::ecs
             return;
         }
 
-        const entityid entCount = m_vecEntityIDs.size();
+        const entityid_t entCount = m_vecEntityIDs.size();
         const std::vector< internal::IComponentWrapper * >& vecC1 = m_mapCompTypeToVecComp.at( typeid(C1) );
         const std::vector< internal::IComponentWrapper * >& vecC2 = m_mapCompTypeToVecComp.at( typeid(C2) );
         const std::vector< internal::IComponentWrapper * >& vecC3 = m_mapCompTypeToVecComp.at( typeid(C3) );
         const std::vector< internal::IComponentWrapper * >& vecC4 = m_mapCompTypeToVecComp.at( typeid(C4) );
 
-        for (entityid i = 0; i < entCount; i++)
+        for (entityid_t i = 0; i < entCount; i++)
         {
-            for (entityid j = i; j < entCount; j++)
+            for (entityid_t j = i; j < entCount; j++)
             {
                 internal::SComponentWrapper<C1> *c11 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[i] );
                 internal::SComponentWrapper<C2> *c21 = static_cast< internal::SComponentWrapper<C2>* >( vecC2[i] );
@@ -294,19 +294,19 @@ namespace chestnut::ecs
 
 
     template<class C1>
-    void CEntityQuery::forEachEntityPairWith( std::function< void( entityid, C1&, entityid, C1& ) > func) const
+    void CEntityQuery::forEachEntityPairWith( std::function< void( entityid_t, C1&, entityid_t, C1& ) > func) const
     {
         if( m_vecEntityIDs.empty() )
         {
             return;
         }
 
-        const entityid entCount = m_vecEntityIDs.size();
+        const entityid_t entCount = m_vecEntityIDs.size();
         const std::vector< internal::IComponentWrapper * >& vecC1 = m_mapCompTypeToVecComp.at( typeid(C1) );
 
-        for (entityid i = 0; i < entCount; i++)
+        for (entityid_t i = 0; i < entCount; i++)
         {
-            for (entityid j = i; j < entCount; j++)
+            for (entityid_t j = i; j < entCount; j++)
             {
                 internal::SComponentWrapper<C1> *c11 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[i] );
                 internal::SComponentWrapper<C1> *c12 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[j] );
@@ -317,20 +317,20 @@ namespace chestnut::ecs
     }
 
     template<class C1, class C2>
-    void CEntityQuery::forEachEntityPairWith( std::function< void( entityid, C1&, C2&, entityid, C1&, C2& ) > func) const
+    void CEntityQuery::forEachEntityPairWith( std::function< void( entityid_t, C1&, C2&, entityid_t, C1&, C2& ) > func) const
     {
         if( m_vecEntityIDs.empty() )
         {
             return;
         }
 
-        const entityid entCount = m_vecEntityIDs.size();
+        const entityid_t entCount = m_vecEntityIDs.size();
         const std::vector< internal::IComponentWrapper * >& vecC1 = m_mapCompTypeToVecComp.at( typeid(C1) );
         const std::vector< internal::IComponentWrapper * >& vecC2 = m_mapCompTypeToVecComp.at( typeid(C2) );
 
-        for (entityid i = 0; i < entCount; i++)
+        for (entityid_t i = 0; i < entCount; i++)
         {
-            for (entityid j = i; j < entCount; j++)
+            for (entityid_t j = i; j < entCount; j++)
             {
                 internal::SComponentWrapper<C1> *c11 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[i] );
                 internal::SComponentWrapper<C2> *c21 = static_cast< internal::SComponentWrapper<C2>* >( vecC2[i] );
@@ -343,21 +343,21 @@ namespace chestnut::ecs
     }
 
     template<class C1, class C2, class C3>
-    void CEntityQuery::forEachEntityPairWith( std::function< void( entityid, C1&, C2&, C3&, entityid, C1&, C2&, C3& ) > func) const
+    void CEntityQuery::forEachEntityPairWith( std::function< void( entityid_t, C1&, C2&, C3&, entityid_t, C1&, C2&, C3& ) > func) const
     {
         if( m_vecEntityIDs.empty() )
         {
             return;
         }
 
-        const entityid entCount = m_vecEntityIDs.size();
+        const entityid_t entCount = m_vecEntityIDs.size();
         const std::vector< internal::IComponentWrapper * >& vecC1 = m_mapCompTypeToVecComp.at( typeid(C1) );
         const std::vector< internal::IComponentWrapper * >& vecC2 = m_mapCompTypeToVecComp.at( typeid(C2) );
         const std::vector< internal::IComponentWrapper * >& vecC3 = m_mapCompTypeToVecComp.at( typeid(C3) );
 
-        for (entityid i = 0; i < entCount; i++)
+        for (entityid_t i = 0; i < entCount; i++)
         {
-            for (entityid j = i; j < entCount; j++)
+            for (entityid_t j = i; j < entCount; j++)
             {
                 internal::SComponentWrapper<C1> *c11 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[i] );
                 internal::SComponentWrapper<C2> *c21 = static_cast< internal::SComponentWrapper<C2>* >( vecC2[i] );
@@ -372,22 +372,22 @@ namespace chestnut::ecs
     }
 
     template<class C1, class C2, class C3, class C4>
-    void CEntityQuery::forEachEntityPairWith( std::function< void( entityid, C1&, C2&, C3&, C4&, entityid, C1&, C2&, C3&, C4& ) > func) const
+    void CEntityQuery::forEachEntityPairWith( std::function< void( entityid_t, C1&, C2&, C3&, C4&, entityid_t, C1&, C2&, C3&, C4& ) > func) const
     {
         if( m_vecEntityIDs.empty() )
         {
             return;
         }
 
-        const entityid entCount = m_vecEntityIDs.size();
+        const entityid_t entCount = m_vecEntityIDs.size();
         const std::vector< internal::IComponentWrapper * >& vecC1 = m_mapCompTypeToVecComp.at( typeid(C1) );
         const std::vector< internal::IComponentWrapper * >& vecC2 = m_mapCompTypeToVecComp.at( typeid(C2) );
         const std::vector< internal::IComponentWrapper * >& vecC3 = m_mapCompTypeToVecComp.at( typeid(C3) );
         const std::vector< internal::IComponentWrapper * >& vecC4 = m_mapCompTypeToVecComp.at( typeid(C4) );
 
-        for (entityid i = 0; i < entCount; i++)
+        for (entityid_t i = 0; i < entCount; i++)
         {
-            for (entityid j = i; j < entCount; j++)
+            for (entityid_t j = i; j < entCount; j++)
             {
                 internal::SComponentWrapper<C1> *c11 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[i] );
                 internal::SComponentWrapper<C2> *c21 = static_cast< internal::SComponentWrapper<C2>* >( vecC2[i] );

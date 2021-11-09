@@ -42,7 +42,7 @@ TEST_CASE( "Component storage segment test" )
     SECTION( "Test special or illegal cases for taking up slots" )
     {
         // Fill up the segment to the full
-        for (entityid i = ENTITY_ID_MINIMAL; i < ENTITY_ID_MINIMAL + 10; i++)
+        for (entityid_t i = ENTITY_ID_MINIMAL; i < ENTITY_ID_MINIMAL + 10; i++)
         {
             seg.tryTakeUpSlot(i);
         }
@@ -59,7 +59,7 @@ TEST_CASE( "Component storage segment test" )
 
     SECTION( "Getting component" )
     {
-        segsize idx;
+        segsize_t idx;
         SComponentWrapper<Foo> *foo;
 
         foo = seg.tryTakeUpSlot( ENTITY_ID_MINIMAL );

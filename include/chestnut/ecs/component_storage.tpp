@@ -1,7 +1,7 @@
 namespace chestnut::ecs::internal
 {
     template<class C>
-    CComponentStorage<C>::CComponentStorage( segsize segmentSize, segsize initCapacity )
+    CComponentStorage<C>::CComponentStorage( segsize_t segmentSize, segsize_t initCapacity )
     {
         m_segmentSize = segmentSize;
         m_segmentIDCounter = 0;
@@ -19,7 +19,7 @@ namespace chestnut::ecs::internal
     }
 
     template<class C>
-    segid CComponentStorage<C>::createNewSegment() 
+    segid_t CComponentStorage<C>::createNewSegment() 
     {
         SegType *segment = new SegType( m_segmentSize );
 
@@ -29,13 +29,13 @@ namespace chestnut::ecs::internal
     }
 
     template<class C>
-    segsize CComponentStorage<C>::getSegmentSize() const 
+    segsize_t CComponentStorage<C>::getSegmentSize() const 
     {
         return m_segmentSize;
     }
 
     template<class C>
-    bool CComponentStorage<C>::hasComponent( entityid entityID ) const 
+    bool CComponentStorage<C>::hasComponent( entityid_t entityID ) const 
     {
         for( const auto& [ idx, segment ] : m_mapSegmentIndexToSegment )
         {
@@ -49,7 +49,7 @@ namespace chestnut::ecs::internal
     }
 
     template<class C>
-    IComponentWrapper *CComponentStorage<C>::storeComponent( entityid entityID ) 
+    IComponentWrapper *CComponentStorage<C>::storeComponent( entityid_t entityID ) 
     {
         if( IComponentWrapper *component = getComponent( entityID ) )
         {
@@ -62,7 +62,7 @@ namespace chestnut::ecs::internal
         // segments at the front of this deque are of the highest priority to fill
         // as they have the least empty slots left
 
-        segid segIdx;
+        segid_t segIdx;
         if( m_dequeAvailableSegmentIndices.empty() )
         {
             segIdx = createNewSegment();
@@ -89,14 +89,14 @@ namespace chestnut::ecs::internal
     }
 
     template<class C>
-    IComponentWrapper* CComponentStorage<C>::storeComponentCopy( entityid entityID, entityid srcEntityID ) 
+    IComponentWrapper* CComponentStorage<C>::storeComponentCopy( entityid_t entityID, entityid_t srcEntityID ) 
     {
         if( IComponentWrapper *component = getComponent( entityID ) )
         {
             return component;
         }
 
-        segid segIdx;
+        segid_t segIdx;
         if( m_dequeAvailableSegmentIndices.empty() )
         {
             segIdx = createNewSegment();
@@ -134,7 +134,7 @@ namespace chestnut::ecs::internal
     }
 
     template<class C>
-    IComponentWrapper *CComponentStorage<C>::getComponent( entityid entityID ) const
+    IComponentWrapper *CComponentStorage<C>::getComponent( entityid_t entityID ) const
     {
         IComponentWrapper *comp = nullptr;
         for( const auto& [ idx, segment ] : m_mapSegmentIndexToSegment )
@@ -151,7 +151,7 @@ namespace chestnut::ecs::internal
     }
 
     template<class C>
-    void CComponentStorage<C>::eraseComponent( entityid entityID )
+    void CComponentStorage<C>::eraseComponent( entityid_t entityID )
     {
         for( const auto& [ idx, segment ] : m_mapSegmentIndexToSegment )
         {
@@ -184,9 +184,9 @@ namespace chestnut::ecs::internal
     }
 
     template<class C>
-    void CComponentStorage<C>::reserve( segsize totalSize ) 
+    void CComponentStorage<C>::reserve( segsize_t totalSize ) 
     {
-        segsize capacity = getCapacity();
+        segsize_t capacity = getCapacity();
         if( totalSize > capacity  )
         {
             reserveAdditional( totalSize - capacity );
@@ -194,9 +194,9 @@ namespace chestnut::ecs::internal
     }
 
     template<class C>
-    void CComponentStorage<C>::reserveAdditional( segsize additionalSize ) 
+    void CComponentStorage<C>::reserveAdditional( segsize_t additionalSize ) 
     {
-        segid newSegIdx;
+        segid_t newSegIdx;
         if( additionalSize < m_segmentSize )
         {
             newSegIdx = createNewSegment();
@@ -204,11 +204,11 @@ namespace chestnut::ecs::internal
         }
         else
         {
-            segsize div, mod;
+            segsize_t div, mod;
             div = additionalSize / m_segmentSize;
             mod = additionalSize % m_segmentSize;
 
-            segsize segmentsToCreate;
+            segsize_t segmentsToCreate;
             if( mod > 0 )
             {
                 segmentsToCreate = div + 1;
@@ -219,7 +219,7 @@ namespace chestnut::ecs::internal
             }
             
 
-            for (segsize i = 0; i < segmentsToCreate; i++)
+            for (segsize_t i = 0; i < segmentsToCreate; i++)
             {
                 newSegIdx = createNewSegment();
                 m_dequeAvailableSegmentIndices.push_back( newSegIdx );
@@ -228,9 +228,9 @@ namespace chestnut::ecs::internal
     }
 
     template<class C>
-    void CComponentStorage<C>::resize( segsize targetSize ) 
+    void CComponentStorage<C>::resize( segsize_t targetSize ) 
     {
-        segsize capacity = getCapacity();
+        segsize_t capacity = getCapacity();
 
         if( targetSize > capacity )
         {
@@ -244,13 +244,13 @@ namespace chestnut::ecs::internal
 
             for( auto it = m_dequeAvailableSegmentIndices.begin(); it != m_dequeAvailableSegmentIndices.end(); /*NOP*/ )
             {
-                segid idx = *it;
+                segid_t idx = *it;
 
                 SegType *segment = m_mapSegmentIndexToSegment[ idx ];
 
                 if( segment->isEmpty() )
                 {
-                    segsize size = segment->getSize();
+                    segsize_t size = segment->getSize();
 
                     if( capacity - size >= targetSize )
                     {
@@ -276,9 +276,9 @@ namespace chestnut::ecs::internal
     }
 
     template<class C>
-    segsize CComponentStorage<C>::getSize() const 
+    segsize_t CComponentStorage<C>::getSize() const 
     {
-        segsize size = 0;
+        segsize_t size = 0;
         for( const auto& [ idx, segment ] : m_mapSegmentIndexToSegment )
         {
             size += segment->getTakenSlotCount();
@@ -288,9 +288,9 @@ namespace chestnut::ecs::internal
     }
 
     template<class C>
-    segsize CComponentStorage<C>::getCapacity() const 
+    segsize_t CComponentStorage<C>::getCapacity() const 
     {
-        segsize capacity = 0;
+        segsize_t capacity = 0;
         for( const auto& [ idx, segment ] : m_mapSegmentIndexToSegment )
         {
             capacity += segment->getSize();
@@ -300,9 +300,9 @@ namespace chestnut::ecs::internal
     }
 
     template<class C>
-    segsize CComponentStorage<C>::getEmptySegmentTotalSize() const 
+    segsize_t CComponentStorage<C>::getEmptySegmentTotalSize() const 
     {
-        segsize size = 0;
+        segsize_t size = 0;
 
         for( const auto& [ idx, segment ] : m_mapSegmentIndexToSegment )
         {
@@ -321,7 +321,7 @@ namespace chestnut::ecs::internal
         auto it = m_dequeAvailableSegmentIndices.begin();
         while( it != m_dequeAvailableSegmentIndices.end() )
         {
-            segid idx = *it;
+            segid_t idx = *it;
 
             SegType *segment = m_mapSegmentIndexToSegment[ idx ];
 

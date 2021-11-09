@@ -28,13 +28,13 @@ namespace chestnut::ecs::internal
 
         // used to add entity index information to target query
         // order matters, because we'll use this vector's indices to modify vectors in the map below
-        std::vector< entityid > m_pendingIn_vecEntityIDs;
+        std::vector< entityid_t > m_pendingIn_vecEntityIDs;
         // used to add component data to target query
         std::unordered_map< std::type_index, std::vector< IComponentWrapper * > > m_pendingIn_mapCompTypeToVecComp;
 
         // used to remove component data from target query; we remove whole component row by querying indices with these owner IDs
         // it's a set so we can find IDs quicker; order doesn't matter here
-        std::unordered_set< entityid > m_pendingOut_setEntityIDs;
+        std::unordered_set< entityid_t > m_pendingOut_setEntityIDs;
 
 
         CEntitySignature m_requireSignature;
@@ -45,18 +45,21 @@ namespace chestnut::ecs::internal
 
 
     public:
-        CEntityQueryGuard( queryid id, const CEntitySignature& requireSignature, const CEntitySignature& rejectSignature, CComponentStorageTypeMap *storageMapPtr );
+        CEntityQueryGuard( queryid_t id, const CEntitySignature& requireSignature, const CEntitySignature& rejectSignature, CComponentStorageTypeMap *storageMapPtr );
 
 
         // Can throw std::out_of_range if requested entity doesn't have all the required components
         // Doesn't check for duplicates
-        void fetchAndAddEntityWithComponents( entityid entityID );
+        void fetchAndAddEntityWithComponents( entityid_t entityID );
 
-        void removeEntityWithComponents( entityid entityID );
+        void removeEntityWithComponents( entityid_t entityID );
 
 
         // Returns whether the underlying query has any components stored inside it after the update
         bool updateQuery();
+
+        template< class C >
+        void sortQuery( std::function< bool( const C&, const C& ) > compare );
 
 
         bool testQuery( const CEntitySignature& signature ) const;
@@ -65,5 +68,9 @@ namespace chestnut::ecs::internal
     };
 
 } // namespace chestnut::ecs::internal
+
+
+#include "entity_query_guard.tpp"
+
 
 #endif // __CHESTNUT_ECS_ENTITY_QUERY_GUARD_H__

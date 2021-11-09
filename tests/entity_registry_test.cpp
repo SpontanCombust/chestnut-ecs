@@ -37,8 +37,8 @@ TEST_CASE( "Entity registry test" )
         signature.add<int>();
         signature.add<char>();
 
-        entityid id1 = registry.registerNewEntity( false );
-        entityid id2 = registry.registerNewEntity( false, signature );
+        entityid_t id1 = registry.registerNewEntity( false );
+        entityid_t id2 = registry.registerNewEntity( false, signature );
 
         REQUIRE( registry.hasEntity( id1 ) );
         REQUIRE_NOTHROW( signature = registry.getEntitySignature( id1 ) );
@@ -59,7 +59,7 @@ TEST_CASE( "Entity registry test" )
     {
         CEntitySignature signature;
 
-        entityid id = registry.registerNewEntity( false );
+        entityid_t id = registry.registerNewEntity( false );
 
         signature = registry.getEntitySignature( id );
         REQUIRE( signature.isEmpty() ); 
@@ -74,10 +74,10 @@ TEST_CASE( "Entity registry test" )
 
     SECTION( "Removing entities" )
     {
-        entityid id1 = registry.registerNewEntity( false );
-        entityid id2 = registry.registerNewEntity( false );
-        entityid id3 = registry.registerNewEntity( false );
-        entityid id4 = registry.registerNewEntity( false );
+        entityid_t id1 = registry.registerNewEntity( false );
+        entityid_t id2 = registry.registerNewEntity( false );
+        entityid_t id3 = registry.registerNewEntity( false );
+        entityid_t id4 = registry.registerNewEntity( false );
 
         REQUIRE( registry.hasEntity(id1) );
         REQUIRE( registry.hasEntity(id2) );
@@ -96,10 +96,10 @@ TEST_CASE( "Entity registry test" )
 
     SECTION( "Entity ID recycling" )
     {
-        entityid id1 = registry.registerNewEntity( false );
-        entityid id2 = registry.registerNewEntity( false );
-        entityid id3 = registry.registerNewEntity( false );
-        entityid id4 = registry.registerNewEntity( false );
+        entityid_t id1 = registry.registerNewEntity( false );
+        entityid_t id2 = registry.registerNewEntity( false );
+        entityid_t id3 = registry.registerNewEntity( false );
+        entityid_t id4 = registry.registerNewEntity( false );
 
         registry.unregisterEntity( id2 );
         registry.unregisterEntity( id3 );
@@ -110,8 +110,8 @@ TEST_CASE( "Entity registry test" )
         REQUIRE( registry.hasEntity( id4 ) );
 
 
-        entityid id5 = registry.registerNewEntity( false );
-        entityid id6 = registry.registerNewEntity( false );
+        entityid_t id5 = registry.registerNewEntity( false );
+        entityid_t id6 = registry.registerNewEntity( false );
 
         REQUIRE( id5 == id3 );
         REQUIRE( id6 == id2 );
@@ -124,11 +124,11 @@ TEST_CASE( "Entity registry test" )
 
     SECTION( "Checking for template entities" )
     {
-        entityid id1 = registry.registerNewEntity(false);
-        entityid id2 = registry.registerNewEntity(true);
-        entityid id3 = registry.registerNewEntity(false);
-        entityid id4 = registry.registerNewEntity(false);
-        entityid id5 = registry.registerNewEntity(true);
+        entityid_t id1 = registry.registerNewEntity(false);
+        entityid_t id2 = registry.registerNewEntity(true);
+        entityid_t id3 = registry.registerNewEntity(false);
+        entityid_t id4 = registry.registerNewEntity(false);
+        entityid_t id5 = registry.registerNewEntity(true);
 
 
         REQUIRE( registry.hasEntity( id1, true ) );

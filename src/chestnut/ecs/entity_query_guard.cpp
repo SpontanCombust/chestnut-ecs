@@ -4,7 +4,7 @@
 
 namespace chestnut::ecs::internal
 {    
-    CEntityQueryGuard::CEntityQueryGuard( queryid id, const CEntitySignature& requireSignature, const CEntitySignature& rejectSignature, CComponentStorageTypeMap *storageMapPtr )
+    CEntityQueryGuard::CEntityQueryGuard( queryid_t id, const CEntitySignature& requireSignature, const CEntitySignature& rejectSignature, CComponentStorageTypeMap *storageMapPtr )
     : m_targetQuery( id )
     {
         m_storageMapPtr = storageMapPtr;
@@ -19,7 +19,7 @@ namespace chestnut::ecs::internal
         }
     }
 
-    void CEntityQueryGuard::fetchAndAddEntityWithComponents( entityid entityID ) 
+    void CEntityQueryGuard::fetchAndAddEntityWithComponents( entityid_t entityID ) 
     {
         // First of all check if entity has been scheduled for removal
         // In that case only delete removal data
@@ -49,14 +49,14 @@ namespace chestnut::ecs::internal
         }
     }
 
-    void CEntityQueryGuard::removeEntityWithComponents( entityid entityID ) 
+    void CEntityQueryGuard::removeEntityWithComponents( entityid_t entityID ) 
     {
         // First check if entity has been scheduled for addition
         // In that case delete addition data
         // Don't allow stuff to be added in the first place if it is to be removed later on anyways
 
         // do a for loop search, because we'll need the index
-        entityid i;
+        entityid_t i;
         for (i = 0; i < m_pendingIn_vecEntityIDs.size(); i++)
         {
             if( m_pendingIn_vecEntityIDs[i] == entityID )
@@ -93,11 +93,11 @@ namespace chestnut::ecs::internal
             // iterate over all IDs in the target batch vector of entity IDs
             // remove those that are in the set of IDs sheduled for removal 
 
-            std::vector< entityid > vecIndicesToEraseInOrder;
+            std::vector< entityid_t > vecIndicesToEraseInOrder;
 
-            for (entityid i = 0; i < m_targetQuery.m_vecEntityIDs.size(); /*NOP*/)
+            for (entityid_t i = 0; i < m_targetQuery.m_vecEntityIDs.size(); /*NOP*/)
             {
-                entityid entityID = m_targetQuery.m_vecEntityIDs[i];
+                entityid_t entityID = m_targetQuery.m_vecEntityIDs[i];
 
                 if( m_pendingOut_setEntityIDs.find( entityID ) != m_pendingOut_setEntityIDs.end() )
                 {
@@ -112,7 +112,7 @@ namespace chestnut::ecs::internal
 
             for( auto& [ type, vecComp ] : m_targetQuery.m_mapCompTypeToVecComp )
             {
-                for (entityid i = 0; i < vecIndicesToEraseInOrder.size(); i++)
+                for (entityid_t i = 0; i < vecIndicesToEraseInOrder.size(); i++)
                 {
                     vecComp.erase( std::next( vecComp.begin(), vecIndicesToEraseInOrder[i] ) );
                 }
