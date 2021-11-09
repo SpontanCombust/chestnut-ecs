@@ -2,48 +2,48 @@
 
 namespace chestnut::ecs
 {
-    CEntityQuery::CEntityQuery( queryid id ) 
+    CEntityQuery::CEntityQuery( queryid_t id ) 
     {
         m_id = id;
     }
 
-    queryid CEntityQuery::getID() const
+    queryid_t CEntityQuery::getID() const
     {
         return m_id;
     }
 
-    entitysize CEntityQuery::getEntityCount() const
+    entitysize_t CEntityQuery::getEntityCount() const
     {
         return m_vecEntityIDs.size();
     }
 
-    void CEntityQuery::forEachEntityWith( std::function< void( entityid ) > func ) const
+    void CEntityQuery::forEachEntityWith( std::function< void( entityid_t ) > func ) const
     {
         if( m_vecEntityIDs.empty() )
         {
             return;
         }
 
-        const entityid entCount = m_vecEntityIDs.size();
+        const entityid_t entCount = m_vecEntityIDs.size();
 
-        for (entityid i = 0; i < entCount; i++)
+        for (entityid_t i = 0; i < entCount; i++)
         {
             func( m_vecEntityIDs[i] );
         }
     }
     
-    void CEntityQuery::forEachEntityPairWith( std::function< void( entityid, entityid ) > func ) const
+    void CEntityQuery::forEachEntityPairWith( std::function< void( entityid_t, entityid_t ) > func ) const
     {
         if( m_vecEntityIDs.empty() )
         {
             return;
         }
 
-        const entityid entCount = m_vecEntityIDs.size();
+        const entityid_t entCount = m_vecEntityIDs.size();
 
-        for (entityid i = 0; i < entCount; i++)
+        for (entityid_t i = 0; i < entCount; i++)
         {
-            for (entityid j = i; j < entCount; j++)
+            for (entityid_t j = i; j < entCount; j++)
             {
                 func( m_vecEntityIDs[i], m_vecEntityIDs[j] );   
             }

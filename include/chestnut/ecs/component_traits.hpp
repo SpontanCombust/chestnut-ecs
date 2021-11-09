@@ -10,8 +10,8 @@ namespace chestnut::ecs
     struct ComponentTraits
     {
         static constexpr const char *name           = "CComponent";
-        static const segsize storageSegmentSize     = CHESTNUT_DEFAULT_STORAGE_SEGMENT_SIZE;
-        static const segsize storageInitCapacity    = CHESTNUT_DEFAULT_STORAGE_SEGMENT_SIZE;
+        static const segsize_t storageSegmentSize     = CHESTNUT_DEFAULT_STORAGE_SEGMENT_SIZE;
+        static const segsize_t storageInitCapacity    = CHESTNUT_DEFAULT_STORAGE_SEGMENT_SIZE;
     };
 
 } // namespace chestnut::ecs

@@ -101,7 +101,7 @@ TEST_CASE( "Entity query test - forEach" )
 
         CEntityQueryGuard guard = CEntityQueryGuard( 0, sign, CEntitySignature(), &storageMap );
 
-        for (entityid i = 1; i <= 15; i++)
+        for (entityid_t i = 1; i <= 15; i++)
         {
             guard.fetchAndAddEntityWithComponents(i);
         }
@@ -111,7 +111,7 @@ TEST_CASE( "Entity query test - forEach" )
 
         REQUIRE( query.getEntityCount() == 15 );
         REQUIRE_NOTHROW( 
-            query.forEachEntityWith<Foo>( []( entityid id, Foo& foo ) 
+            query.forEachEntityWith<Foo>( []( entityid_t id, Foo& foo ) 
             {
                 id >= 1 && id <= 15;
             })
@@ -126,7 +126,7 @@ TEST_CASE( "Entity query test - forEach" )
 
         CEntityQueryGuard guard = CEntityQueryGuard( 0, sign, CEntitySignature(), &storageMap );
 
-        for (entityid i = 11; i <= 15; i++)
+        for (entityid_t i = 11; i <= 15; i++)
         {
             guard.fetchAndAddEntityWithComponents(i);
         }
@@ -136,7 +136,7 @@ TEST_CASE( "Entity query test - forEach" )
 
         REQUIRE( query.getEntityCount() == 5 );
         REQUIRE_NOTHROW(
-            query.forEachEntityWith<Foo, Baz>( []( entityid id, Foo& foo, Baz& baz ) 
+            query.forEachEntityWith<Foo, Baz>( []( entityid_t id, Foo& foo, Baz& baz ) 
             {
                 id >= 11 && id <= 15;
             })
@@ -153,7 +153,7 @@ TEST_CASE( "Entity query test - forEach" )
 
         CEntityQueryGuard guard = CEntityQueryGuard( 0, signRequest, signReject, &storageMap );
 
-        for (entityid i = 1; i <= 10; i++)
+        for (entityid_t i = 1; i <= 10; i++)
         {
             guard.fetchAndAddEntityWithComponents(i);
         }
@@ -163,7 +163,7 @@ TEST_CASE( "Entity query test - forEach" )
 
         REQUIRE( query.getEntityCount() == 10 );
         REQUIRE_NOTHROW(
-            query.forEachEntityWith<Foo>( []( entityid id, Foo& foo ) 
+            query.forEachEntityWith<Foo>( []( entityid_t id, Foo& foo ) 
             {
                 REQUIRE( ( id >= 1 && id <= 10 ) );
             })
@@ -178,13 +178,13 @@ TEST_CASE( "Entity query test - forEach" )
 
         CEntityQueryGuard guard = CEntityQueryGuard( 0, sign, CEntitySignature(), &storageMap );
 
-        for (entityid i = 11; i <= 20; i++)
+        for (entityid_t i = 11; i <= 20; i++)
         {
             guard.fetchAndAddEntityWithComponents(i);
         }
         guard.updateQuery();
 
-        for (entityid i = 11; i <= 15; i++)
+        for (entityid_t i = 11; i <= 15; i++)
         {
             guard.removeEntityWithComponents( i );
         }
@@ -194,7 +194,7 @@ TEST_CASE( "Entity query test - forEach" )
 
         REQUIRE( query.getEntityCount() == 5 );
         REQUIRE_NOTHROW(
-            query.forEachEntityWith<Bar, Baz>( []( entityid id, Bar& bar, Baz& baz ) 
+            query.forEachEntityWith<Bar, Baz>( []( entityid_t id, Bar& bar, Baz& baz ) 
             {
                 id >= 16 && id <= 20;
             })
@@ -209,11 +209,11 @@ TEST_CASE( "Entity query test - forEach" )
 
         CEntityQueryGuard guard = CEntityQueryGuard( 0, sign, CEntitySignature(), &storageMap );
 
-        for (entityid i = 6; i < 16; i++)
+        for (entityid_t i = 6; i < 16; i++)
         {
             guard.fetchAndAddEntityWithComponents(i);
         }
-        for (entityid i = 11; i < 16; i++)
+        for (entityid_t i = 11; i < 16; i++)
         {
             guard.removeEntityWithComponents(i);
         }
@@ -224,7 +224,7 @@ TEST_CASE( "Entity query test - forEach" )
 
         REQUIRE( query.getEntityCount() == 5 );
         REQUIRE_NOTHROW(
-            query.forEachEntityWith<Foo, Bar>( []( entityid id, Foo& foo, Bar& baz ) 
+            query.forEachEntityWith<Foo, Bar>( []( entityid_t id, Foo& foo, Bar& baz ) 
             {
                 REQUIRE( (id >= 6 && id <= 10) );
             })
@@ -238,21 +238,21 @@ TEST_CASE( "Entity query test - forEach" )
 
         CEntityQueryGuard guard = CEntityQueryGuard( 0, sign, CEntitySignature(), &storageMap );
 
-        for (entityid i = 1; i < 16; i++)
+        for (entityid_t i = 1; i < 16; i++)
         {
             guard.fetchAndAddEntityWithComponents(i);
         }
         guard.updateQuery();
 
-        for (entityid i = 1; i <= 5; i++)
+        for (entityid_t i = 1; i <= 5; i++)
         {
             guard.removeEntityWithComponents( i );
         }
-        for (entityid i = 11; i <= 15; i++)
+        for (entityid_t i = 11; i <= 15; i++)
         {
             guard.removeEntityWithComponents( i );
         }
-        for (entityid i = 1; i <= 5; i++)
+        for (entityid_t i = 1; i <= 5; i++)
         {
             guard.fetchAndAddEntityWithComponents(i);
         }
@@ -262,7 +262,7 @@ TEST_CASE( "Entity query test - forEach" )
 
         REQUIRE( query.getEntityCount() == 10 );
         REQUIRE_NOTHROW(
-            query.forEachEntityWith<Foo>( []( entityid id, Foo& foo ) 
+            query.forEachEntityWith<Foo>( []( entityid_t id, Foo& foo ) 
             {
                 REQUIRE( ( id >= 1 && id <= 10 ) );
             })
@@ -299,7 +299,7 @@ TEST_CASE( "Entity query test - sorting" )
 
     CEntityQueryGuard guard = CEntityQueryGuard( 0, makeEntitySignature<Foo,Bar>(), makeEntitySignature(), &storageMap );
 
-    for (entityid i = 1; i <= 5; i++)
+    for (entityid_t i = 1; i <= 5; i++)
     {
         guard.fetchAndAddEntityWithComponents(i);
     }
@@ -315,7 +315,7 @@ TEST_CASE( "Entity query test - sorting" )
     REQUIRE( query.getEntityCount() == 5 );
     int i = 0;
     REQUIRE_NOTHROW(
-        query.forEachEntityWith<Foo, Bar>( [&i]( entityid id, Foo& foo, Bar& bar ) 
+        query.forEachEntityWith<Foo, Bar>( [&i]( entityid_t id, Foo& foo, Bar& bar ) 
         {
             if( i == 0 )
             {
@@ -367,7 +367,7 @@ TEST_CASE( "Entity query test - sorting" )
     i = 0;
 
     REQUIRE_NOTHROW(
-        query.forEachEntityWith<Foo, Bar>( [&i]( entityid id, Foo& foo, Bar& bar ) 
+        query.forEachEntityWith<Foo, Bar>( [&i]( entityid_t id, Foo& foo, Bar& bar ) 
         {
             if( i == 0 )
             {

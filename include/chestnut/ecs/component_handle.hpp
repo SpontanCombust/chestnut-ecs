@@ -20,7 +20,7 @@ namespace chestnut::ecs
         internal::SComponentWrapper<C> *m_componentWrapper;
 
     public:
-        entityid owner; // entity to which the component belongs 
+        entityid_t owner; // entity to which the component belongs 
 
 
     public:
@@ -35,7 +35,7 @@ namespace chestnut::ecs
         operator bool() const;
 
     private:
-        CComponentHandle( entityid owner, internal::SComponentWrapper<C> *componentWrapper );
+        CComponentHandle( entityid_t owner, internal::SComponentWrapper<C> *componentWrapper );
     };
 
 } // namespace chestnut::ecs

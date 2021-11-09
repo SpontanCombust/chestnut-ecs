@@ -31,7 +31,7 @@ TEST_CASE( "Entity world test - general" )
 
     SECTION( "Creating and checking empty entities" )
     {
-        entityid e1, e2, e3;
+        entityid_t e1, e2, e3;
 
         e1 = world.createEntity();
         e2 = world.createEntity();
@@ -45,7 +45,7 @@ TEST_CASE( "Entity world test - general" )
 
     SECTION( "Destroying empty entities" )
     {
-        entityid e1, e2, e3;
+        entityid_t e1, e2, e3;
 
         e1 = world.createEntity();
         e2 = world.createEntity();
@@ -64,7 +64,7 @@ TEST_CASE( "Entity world test - general" )
 
     SECTION( "Destroying multiple empty entities at once" )
     {
-        std::vector< entityid > ids1, ids2;
+        std::vector< entityid_t > ids1, ids2;
 
         ids1 = world.createEntities(10);
         ids2 = world.createEntities(10);
@@ -72,11 +72,11 @@ TEST_CASE( "Entity world test - general" )
 
         world.destroyEntities( ids2 );
 
-        for( entityid id : ids1 )
+        for( entityid_t id : ids1 )
         {
             REQUIRE( world.hasEntity( id ) );
         }
-        for( entityid id : ids2 )
+        for( entityid_t id : ids2 )
         {
             REQUIRE_FALSE( world.hasEntity( id ) );
         }
@@ -84,7 +84,7 @@ TEST_CASE( "Entity world test - general" )
 
     SECTION( "ID recycling" )
     {
-        entityid ent1, ent2, ent3, ent4;
+        entityid_t ent1, ent2, ent3, ent4;
 
         ent1 = world.createEntity();
         ent2 = world.createEntity();
@@ -106,7 +106,7 @@ TEST_CASE( "Entity world test - general" )
         REQUIRE_FALSE( world.createComponent<Foo>(1) );
 
 
-        entityid ent = world.createEntity();
+        entityid_t ent = world.createEntity();
         CComponentHandle<Foo> foo;
 
         foo = world.createComponent<Foo>( ent );
@@ -124,9 +124,9 @@ TEST_CASE( "Entity world test - general" )
 
     SECTION( "Getting components" )
     {
-        entityid ent1 = world.createEntity();
-        entityid ent2 = world.createEntity();
-        entityid ent3 = world.createEntity();
+        entityid_t ent1 = world.createEntity();
+        entityid_t ent2 = world.createEntity();
+        entityid_t ent3 = world.createEntity();
 
         CComponentHandle<Foo> foo;
         CComponentHandle<Bar> bar;
@@ -187,7 +187,7 @@ TEST_CASE( "Entity world test - general" )
 
     SECTION( "Destroying components" )
     {
-        entityid ent1, ent2;
+        entityid_t ent1, ent2;
 
         ent1 = world.createEntity();
         ent2 = world.createEntity();
@@ -212,7 +212,7 @@ TEST_CASE( "Entity world test - general" )
 
     SECTION( "Destroying entities with components" )
     {
-        entityid ent = world.createEntity();
+        entityid_t ent = world.createEntity();
 
         world.createComponent<Foo>( ent );
         world.createComponent<Bar>( ent );
@@ -242,34 +242,34 @@ TEST_CASE( "Entity world test - querying" )
     // 10 entities with Foo
     for (size_t i = 0; i < 10; i++)
     {
-        entityid ent = world.createEntity();
+        entityid_t ent = world.createEntity();
         world.createComponent<Foo>( ent )->x = ent;
     }
     // 10 with Foo and Bar
     for (size_t i = 0; i < 10; i++)
     {
-        entityid ent = world.createEntity();
+        entityid_t ent = world.createEntity();
         world.createComponent<Foo>( ent )->x = ent;
         world.createComponent<Bar>( ent )->y = ent + 1;
     }
     // 10 with Bar and Baz
     for (size_t i = 0; i < 10; i++)
     {
-        entityid ent = world.createEntity();
+        entityid_t ent = world.createEntity();
         world.createComponent<Bar>( ent )->y = ent;
         world.createComponent<Baz>( ent )->z = ent + 1;
     }
     // 10 with Foo and Baz
     for (size_t i = 0; i < 10; i++)
     {
-        entityid ent = world.createEntity();
+        entityid_t ent = world.createEntity();
         world.createComponent<Foo>( ent )->x = ent;
         world.createComponent<Baz>( ent )->z = ent + 1;
     }
     // 10 with Foo, Bar and Baz
     for (size_t i = 0; i < 10; i++)
     {
-        entityid ent = world.createEntity();
+        entityid_t ent = world.createEntity();
         world.createComponent<Foo>( ent )->x = ent;
         world.createComponent<Bar>( ent )->y = ent + 1;
         world.createComponent<Baz>( ent )->z = ent + 2;
@@ -281,7 +281,7 @@ TEST_CASE( "Entity world test - querying" )
         // check for null
         REQUIRE_FALSE( world.queryEntities(1) );
 
-        queryid q = world.createQuery( CEntitySignature(), CEntitySignature() );
+        queryid_t q = world.createQuery( CEntitySignature(), CEntitySignature() );
 
         REQUIRE( world.queryEntities(q) );
 
@@ -292,7 +292,7 @@ TEST_CASE( "Entity world test - querying" )
 
     SECTION( "Query entities with Foo" )
     {
-        queryid q = world.createQuery( makeEntitySignature<Foo>(), makeEntitySignature<>() );
+        queryid_t q = world.createQuery( makeEntitySignature<Foo>(), makeEntitySignature<>() );
 
         const CEntityQuery* query = world.queryEntities(q);
 
@@ -301,7 +301,7 @@ TEST_CASE( "Entity world test - querying" )
 
         REQUIRE_NOTHROW(
             query->forEachEntityWith<Foo>(
-            []( entityid id, Foo& foo )
+            []( entityid_t id, Foo& foo )
             {
                 foo.x *= foo.x;
                 REQUIRE( foo.x == id * id );
@@ -313,7 +313,7 @@ TEST_CASE( "Entity world test - querying" )
 
     SECTION( "Doing incorrect forEach on query" )
     {
-        queryid q = world.createQuery( makeEntitySignature<Baz>(), makeEntitySignature<Foo>() );
+        queryid_t q = world.createQuery( makeEntitySignature<Baz>(), makeEntitySignature<Foo>() );
 
         const CEntityQuery* query = world.queryEntities(q);
 
@@ -332,7 +332,7 @@ TEST_CASE( "Entity world test - querying" )
 
     SECTION( "Query entities with Foo, Bar and Baz" )
     {
-        queryid q = world.createQuery( makeEntitySignature<Foo, Bar, Baz>(), makeEntitySignature<>() );
+        queryid_t q = world.createQuery( makeEntitySignature<Foo, Bar, Baz>(), makeEntitySignature<>() );
 
         const CEntityQuery* query = world.queryEntities(q);
 
@@ -351,7 +351,7 @@ TEST_CASE( "Entity world test - querying" )
 
     SECTION( "Query entities with Baz but no Foo" )
     {
-        queryid q = world.createQuery( makeEntitySignature<Baz>(), makeEntitySignature<Foo>() );
+        queryid_t q = world.createQuery( makeEntitySignature<Baz>(), makeEntitySignature<Foo>() );
 
         const CEntityQuery* query = world.queryEntities(q);
 
@@ -370,7 +370,7 @@ TEST_CASE( "Entity world test - querying" )
 
     SECTION( "Query non-existing entities" )
     {
-        queryid q = world.createQuery( makeEntitySignature<Bar>(), makeEntitySignature<Foo, Baz>() );
+        queryid_t q = world.createQuery( makeEntitySignature<Bar>(), makeEntitySignature<Foo, Baz>() );
 
         const CEntityQuery* query = world.queryEntities(q);
 
@@ -388,13 +388,13 @@ TEST_CASE( "Entity world test - find entities" )
 {
     CEntityWorld world;
 
-    std::vector< entityid > vecFooBar;
-    std::vector< entityid > vecBarBaz;
+    std::vector< entityid_t > vecFooBar;
+    std::vector< entityid_t > vecBarBaz;
     
     // 10 with Foo and Bar
     for (size_t i = 0; i < 10; i++)
     {
-        entityid ent = world.createEntity();
+        entityid_t ent = world.createEntity();
         world.createComponent<Foo>( ent )->x = ent;
         world.createComponent<Bar>( ent )->y = ent + 1;
         vecFooBar.push_back( ent );
@@ -402,14 +402,14 @@ TEST_CASE( "Entity world test - find entities" )
     // 10 with Bar and Baz
     for (size_t i = 0; i < 10; i++)
     {
-        entityid ent = world.createEntity();
+        entityid_t ent = world.createEntity();
         world.createComponent<Bar>( ent )->y = ent;
         world.createComponent<Baz>( ent )->z = ent + 1;
         vecBarBaz.push_back( ent );
     }
 
 
-    std::vector< entityid > vecFound = world.findEntities( []( const CEntitySignature& sign ) 
+    std::vector< entityid_t > vecFound = world.findEntities( []( const CEntitySignature& sign ) 
     {
         return sign.has<Bar>();
     });
@@ -429,11 +429,11 @@ TEST_CASE( "Entity world test - entity templates" )
 
     SECTION( "Simple create-has-destroy check" )
     {
-        entityid ent1 = world.createTemplateEntity();
-        entityid ent2 = world.createTemplateEntity();
-        entityid ent3 = world.createTemplateEntity();
-        entityid ent4 = world.createTemplateEntity();
-        entityid ent5 = world.createTemplateEntity();
+        entityid_t ent1 = world.createTemplateEntity();
+        entityid_t ent2 = world.createTemplateEntity();
+        entityid_t ent3 = world.createTemplateEntity();
+        entityid_t ent4 = world.createTemplateEntity();
+        entityid_t ent5 = world.createTemplateEntity();
 
         REQUIRE( world.hasTemplateEntity( ent1 ) );
         REQUIRE( world.hasTemplateEntity( ent2 ) );
@@ -456,8 +456,8 @@ TEST_CASE( "Entity world test - entity templates" )
 
     SECTION( "Destinguishing between regular and template entity" )
     {
-        entityid regularEnt = world.createEntity();
-        entityid templateEnt = world.createTemplateEntity();
+        entityid_t regularEnt = world.createEntity();
+        entityid_t templateEnt = world.createTemplateEntity();
 
         REQUIRE( world.hasEntity( regularEnt ) );
         REQUIRE_FALSE( world.hasTemplateEntity( regularEnt ) );
@@ -468,7 +468,7 @@ TEST_CASE( "Entity world test - entity templates" )
 
     SECTION( "Applying components to template entity" )
     {
-        entityid templEnt = world.createTemplateEntity();
+        entityid_t templEnt = world.createTemplateEntity();
 
         auto foo = world.createComponent<Foo>( templEnt );
         REQUIRE( foo );
@@ -497,9 +497,9 @@ TEST_CASE( "Entity world test - entity templates" )
 
     SECTION( "Creating entities using templates" )
     {
-        entityid templEnt1 = world.createTemplateEntity();
-        entityid templEnt2 = world.createTemplateEntity();
-        entityid regularEnt = world.createEntity();
+        entityid_t templEnt1 = world.createTemplateEntity();
+        entityid_t templEnt2 = world.createTemplateEntity();
+        entityid_t regularEnt = world.createEntity();
 
         auto foo = world.createComponent<Foo>( templEnt1 );
         foo->x = 1;
@@ -513,12 +513,12 @@ TEST_CASE( "Entity world test - entity templates" )
 
 
         // try creating copy with non-template entity
-        entityid entFromTemplateInvalid = world.createEntityFromTemplate( regularEnt );
+        entityid_t entFromTemplateInvalid = world.createEntityFromTemplate( regularEnt );
         REQUIRE_FALSE( world.hasEntity( entFromTemplateInvalid ) );
 
         
-        entityid ent1 = world.createEntityFromTemplate( templEnt1 );
-        entityid ent2 = world.createEntityFromTemplate( templEnt2 );
+        entityid_t ent1 = world.createEntityFromTemplate( templEnt1 );
+        entityid_t ent2 = world.createEntityFromTemplate( templEnt2 );
 
 
 
@@ -546,8 +546,8 @@ TEST_CASE( "Entity world test - entity templates" )
 
     SECTION( "Creating multiple entities using a template and querying" )
     {
-        entityid templ1 = world.createTemplateEntity();
-        entityid templ2 = world.createTemplateEntity();
+        entityid_t templ1 = world.createTemplateEntity();
+        entityid_t templ2 = world.createTemplateEntity();
 
         auto foo = world.createComponent<Foo>( templ1 );
         foo->x = 1;
@@ -568,11 +568,11 @@ TEST_CASE( "Entity world test - entity templates" )
 
         const CEntityQuery* query;
 
-        queryid q1 = world.createQuery( makeEntitySignature<Foo>(), makeEntitySignature() );
+        queryid_t q1 = world.createQuery( makeEntitySignature<Foo>(), makeEntitySignature() );
         query = world.queryEntities(q1);
         REQUIRE( query->getEntityCount() == 30 );
 
-        queryid q2 = world.createQuery( makeEntitySignature<Foo, Bar>(), CEntitySignature() );
+        queryid_t q2 = world.createQuery( makeEntitySignature<Foo, Bar>(), CEntitySignature() );
         query = world.queryEntities(q2);
         REQUIRE( query->getEntityCount() == 10 );
 
@@ -588,7 +588,7 @@ TEST_CASE( "Entity world test - entity templates" )
 
 TEST_CASE( "Entity world test - benchmarks", "[benchmark]" )
 {
-    const entityid ENTITY_COUNT = 100;
+    const entityid_t ENTITY_COUNT = 100;
     CEntityWorld world;
 
     BENCHMARK( "Creating a lot of similair entities - naive approach" )
@@ -597,9 +597,9 @@ TEST_CASE( "Entity world test - benchmarks", "[benchmark]" )
         CComponentHandle<Bar> bar;
         CComponentHandle<Baz> baz;
 
-        for (entityid i = 0; i < ENTITY_COUNT; i++)
+        for (entityid_t i = 0; i < ENTITY_COUNT; i++)
         {
-            entityid ent = world.createEntity();
+            entityid_t ent = world.createEntity();
 
             // every foo will be different
             foo = world.createComponent<Foo>( ent );
@@ -621,9 +621,9 @@ TEST_CASE( "Entity world test - benchmarks", "[benchmark]" )
         CComponentHandle<Bar> bar;
         CComponentHandle<Baz> baz;
 
-        for (entityid i = 0; i < ENTITY_COUNT; i++)
+        for (entityid_t i = 0; i < ENTITY_COUNT; i++)
         {
-            entityid ent = world.createEntity();
+            entityid_t ent = world.createEntity();
 
             // every foo will be different
             foo = world.createComponent<Foo>( ent );
@@ -649,7 +649,7 @@ TEST_CASE( "Entity world test - benchmarks", "[benchmark]" )
         CComponentHandle<Bar> bar;
         CComponentHandle<Baz> baz;
 
-        for (entityid i = 0; i < ENTITY_COUNT; i++)
+        for (entityid_t i = 0; i < ENTITY_COUNT; i++)
         {
             // every foo will be different
             foo = world.createComponent<Foo>( vecEnt[i] );
@@ -669,7 +669,7 @@ TEST_CASE( "Entity world test - benchmarks", "[benchmark]" )
     {
         // we'll create these entities one by one
 
-        entityid templ = world.createTemplateEntity();
+        entityid_t templ = world.createTemplateEntity();
 
         auto foo = world.createComponent<Foo>( templ );
         // every foo will be different, so no point in setting it here
@@ -681,9 +681,9 @@ TEST_CASE( "Entity world test - benchmarks", "[benchmark]" )
         baz->z = 123;
 
 
-        for (entityid i = 0; i < ENTITY_COUNT; i++)
+        for (entityid_t i = 0; i < ENTITY_COUNT; i++)
         {
-            entityid ent = world.createEntityFromTemplate( templ );
+            entityid_t ent = world.createEntityFromTemplate( templ );
 
             world.getComponent<Foo>( ent )->x = i;
         }
@@ -695,7 +695,7 @@ TEST_CASE( "Entity world test - benchmarks", "[benchmark]" )
     {
         // we'll create these entities one by one
 
-        entityid templ = world.createTemplateEntity();
+        entityid_t templ = world.createTemplateEntity();
 
         auto foo = world.createComponent<Foo>( templ );
         // every foo will be different, so no point in setting it here
@@ -709,7 +709,7 @@ TEST_CASE( "Entity world test - benchmarks", "[benchmark]" )
 
         auto vecEnt = world.createEntitiesFromTemplate( templ, ENTITY_COUNT );
 
-        for (entityid i = 0; i < ENTITY_COUNT; i++)
+        for (entityid_t i = 0; i < ENTITY_COUNT; i++)
         {
             world.getComponent<Foo>( vecEnt[i] )->x = i;
         }

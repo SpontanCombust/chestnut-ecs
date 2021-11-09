@@ -11,25 +11,25 @@ namespace chestnut::ecs::internal
     class CComponentStorageSegment_Base
     {
     protected:
-        segsize m_size;
-        entityid *m_arrEntityIDs;
+        segsize_t m_size;
+        entityid_t *m_arrEntityIDs;
 
-        std::vector< segsize > m_vecAvailableIndices;
+        std::vector< segsize_t > m_vecAvailableIndices;
 
     public:
-        CComponentStorageSegment_Base( segsize size );
+        CComponentStorageSegment_Base( segsize_t size );
         CComponentStorageSegment_Base( const CComponentStorageSegment_Base& ) = delete; // we don't copy segments
         ~CComponentStorageSegment_Base();
 
-        segsize getSize() const;
+        segsize_t getSize() const;
         bool isEmpty() const;
         bool isFull() const;
 
         // Returns the number of segment slots taken up by entity components
-        segsize getTakenSlotCount() const;
+        segsize_t getTakenSlotCount() const;
 
         // Returns whether entity with id equal entityID has its component slotted in this segment 
-        bool hasSlottedComponent( entityid entityID ) const;
+        bool hasSlottedComponent( entityid_t entityID ) const;
 
     };
 
@@ -43,7 +43,7 @@ namespace chestnut::ecs::internal
         SComponentWrapper<C> *m_arrComponentSlots;
 
     public:
-        CComponentStorageSegment( segsize size );
+        CComponentStorageSegment( segsize_t size );
         CComponentStorageSegment( const CComponentStorageSegment& ) = delete; // we don't copy segments
         ~CComponentStorageSegment();
 
@@ -51,19 +51,19 @@ namespace chestnut::ecs::internal
         // Returns the slotted component or null if there was no place left for it
         // If entity already has taken up a slot, no action is taken aside from returning component at that slot
         // Asserts entityID is not ENTITY_ID_INVALID
-        SComponentWrapper<C>* tryTakeUpSlot( entityid entityID );
+        SComponentWrapper<C>* tryTakeUpSlot( entityid_t entityID );
 
         // Returns the slotted component or null if there was no place left for it
         // If entity already has taken up a slot, no action is taken aside from returning component at that slot
         // Copies contents from copySrc into the slotted component
         // Asserts entityID is not ENTITY_ID_INVALID
-        SComponentWrapper<C>* tryTakeUpSlot( entityid entityID, const SComponentWrapper<C>* copySrc );
+        SComponentWrapper<C>* tryTakeUpSlot( entityid_t entityID, const SComponentWrapper<C>* copySrc );
 
         // Returns null if entity component is not slotted
-        SComponentWrapper<C>* getSlottedComponent( entityid entityID ) const;
+        SComponentWrapper<C>* getSlottedComponent( entityid_t entityID ) const;
 
         // Nothing is done if entity doesn't take up any slot
-        void freeSlot( entityid entityID );
+        void freeSlot( entityid_t entityID );
         
         void clearSlots();
     };

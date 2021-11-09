@@ -29,7 +29,7 @@ namespace chestnut::ecs
 
 
     template< typename C >
-    CComponentHandle<C> CEntityWorld::createComponent( entityid entityID ) 
+    CComponentHandle<C> CEntityWorld::createComponent( entityid_t entityID ) 
     {
         setupComponentTypeIfDidntAlready<C>();
 
@@ -41,13 +41,13 @@ namespace chestnut::ecs
     }
 
     template< typename C >
-    bool CEntityWorld::hasComponent( entityid entityID ) const
+    bool CEntityWorld::hasComponent( entityid_t entityID ) const
     {
         return hasComponentInternal( std::type_index( typeid( C ) ), entityID );
     }
 
     template< typename C >
-    CComponentHandle<C> CEntityWorld::getComponent( entityid entityID ) const
+    CComponentHandle<C> CEntityWorld::getComponent( entityid_t entityID ) const
     {
         internal::IComponentWrapper *uncastedComp;
         uncastedComp = getComponentInternal( std::type_index( typeid( C ) ), entityID );
@@ -57,7 +57,7 @@ namespace chestnut::ecs
     }
 
     template< typename C >
-    void CEntityWorld::destroyComponent( entityid entityID ) 
+    void CEntityWorld::destroyComponent( entityid_t entityID ) 
     {
         destroyComponentInternal( std::type_index( typeid( C ) ), entityID );
     }
@@ -67,7 +67,7 @@ namespace chestnut::ecs
 
 
     template< typename C > 
-    void CEntityWorld::reserveComponentMemoryTotal( entitysize amount )
+    void CEntityWorld::reserveComponentMemoryTotal( entitysize_t amount )
     {
         setupComponentTypeIfDidntAlready<C>();
 
@@ -78,7 +78,7 @@ namespace chestnut::ecs
     }
 
     template< typename C > 
-    void CEntityWorld::reserveComponentMemoryAdditional( entitysize amount )
+    void CEntityWorld::reserveComponentMemoryAdditional( entitysize_t amount )
     {
         setupComponentTypeIfDidntAlready<C>();
 
@@ -89,7 +89,7 @@ namespace chestnut::ecs
     }
 
     template< typename C >
-    void CEntityWorld::freeComponentMemory( entitysize amount )
+    void CEntityWorld::freeComponentMemory( entitysize_t amount )
     {
         auto it = m_mapCompTypeToStorage.find( typeid(C) );
         if( it != m_mapCompTypeToStorage.end() )
@@ -104,7 +104,7 @@ namespace chestnut::ecs
 
 
     template<typename SortingCompType>
-    void CEntityWorld::sortQuery( queryid id, std::function< bool( const SortingCompType&, const SortingCompType& ) > compare ) const
+    void CEntityWorld::sortQuery( queryid_t id, std::function< bool( const SortingCompType&, const SortingCompType& ) > compare ) const
     {
         auto it = m_mapQueryIDToQueryGuard.find( id );
         if( it != m_mapQueryIDToQueryGuard.end() )

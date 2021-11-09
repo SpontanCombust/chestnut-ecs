@@ -9,16 +9,16 @@ namespace chestnut::ecs::internal
         m_entityIdCounter = ENTITY_ID_MINIMAL;
     }
 
-    entityid CEntityRegistry::registerNewEntity( bool isTemplateEntity ) 
+    entityid_t CEntityRegistry::registerNewEntity( bool isTemplateEntity ) 
     {
-        entityid id;
+        entityid_t id;
 
         if( !m_vecRecycledEntityIDs.empty() )
         {
             id = m_vecRecycledEntityIDs.back();
             m_vecRecycledEntityIDs.pop_back();
 
-            entityid idx = indexFromEntityId(id);
+            entityid_t idx = indexFromEntityId(id);
             m_dequeEntityRecords[idx].isIdUsed = true;
             m_dequeEntityRecords[idx].isTemplate = isTemplateEntity;
             // signature remains default
@@ -38,16 +38,16 @@ namespace chestnut::ecs::internal
         return id;
     }
 
-    entityid CEntityRegistry::registerNewEntity( bool isTemplateEntity, const CEntitySignature& signature ) 
+    entityid_t CEntityRegistry::registerNewEntity( bool isTemplateEntity, const CEntitySignature& signature ) 
     {
-        entityid id;
+        entityid_t id;
         
         if( !m_vecRecycledEntityIDs.empty() )
         {
             id = m_vecRecycledEntityIDs.back();
             m_vecRecycledEntityIDs.pop_back();
 
-            entityid idx = indexFromEntityId(id);
+            entityid_t idx = indexFromEntityId(id);
             m_dequeEntityRecords[idx].isIdUsed = true;
             m_dequeEntityRecords[idx].isTemplate = isTemplateEntity;
             m_dequeEntityRecords[idx].signature = signature;
@@ -67,7 +67,7 @@ namespace chestnut::ecs::internal
         return id;
     }
 
-    void CEntityRegistry::updateEntity( entityid id, const CEntitySignature& newSignature ) 
+    void CEntityRegistry::updateEntity( entityid_t id, const CEntitySignature& newSignature ) 
     {
         if( hasEntity( id, true ) )
         {
@@ -75,7 +75,7 @@ namespace chestnut::ecs::internal
         }
     }
 
-    bool CEntityRegistry::hasEntity( entityid id, bool canBeTemplateEntity ) const
+    bool CEntityRegistry::hasEntity( entityid_t id, bool canBeTemplateEntity ) const
     {
         if( id == ENTITY_ID_INVALID )
         {
@@ -97,7 +97,7 @@ namespace chestnut::ecs::internal
         return false;
     }
 
-    bool CEntityRegistry::hasTemplateEntity( entityid id ) const
+    bool CEntityRegistry::hasTemplateEntity( entityid_t id ) const
     {
         if( id == ENTITY_ID_INVALID )
         {
@@ -114,14 +114,14 @@ namespace chestnut::ecs::internal
         return false;
     }
 
-    void CEntityRegistry::unregisterEntity( entityid id ) 
+    void CEntityRegistry::unregisterEntity( entityid_t id ) 
     {
         if( id == ENTITY_ID_INVALID )
         {
             return;
         }
 
-        entityid idx = indexFromEntityId(id);
+        entityid_t idx = indexFromEntityId(id);
 
         if( idx < m_dequeEntityRecords.size() )
         {
@@ -133,17 +133,17 @@ namespace chestnut::ecs::internal
         }
     }
 
-    entitysize CEntityRegistry::getEntityCount() const
+    entitysize_t CEntityRegistry::getEntityCount() const
     {
         return m_dequeEntityRecords.size() - m_vecRecycledEntityIDs.size();
     }
 
-    entitysize CEntityRegistry::getEntityCountOfExactSignature( const CEntitySignature& requiredSignature ) const
+    entitysize_t CEntityRegistry::getEntityCountOfExactSignature( const CEntitySignature& requiredSignature ) const
     {
-        const entitysize size = m_dequeEntityRecords.size();
+        const entitysize_t size = m_dequeEntityRecords.size();
         
-        entitysize count = 0;
-        for (entityid i = 0; i < size; i++)
+        entitysize_t count = 0;
+        for (entityid_t i = 0; i < size; i++)
         {
             if( m_dequeEntityRecords[i].isIdUsed && m_dequeEntityRecords[i].signature == requiredSignature )
             {
@@ -154,12 +154,12 @@ namespace chestnut::ecs::internal
         return count;
     }
 
-    entitysize CEntityRegistry::getEntityCountOfPartialSignature( const CEntitySignature& requiredSignaturePart ) const
+    entitysize_t CEntityRegistry::getEntityCountOfPartialSignature( const CEntitySignature& requiredSignaturePart ) const
     {
-        const entitysize size = m_dequeEntityRecords.size();
+        const entitysize_t size = m_dequeEntityRecords.size();
         
-        entitysize count = 0;
-        for (entityid i = 0; i < size; i++)
+        entitysize_t count = 0;
+        for (entityid_t i = 0; i < size; i++)
         {
             if( m_dequeEntityRecords[i].isIdUsed && m_dequeEntityRecords[i].signature.hasAllFrom( requiredSignaturePart ) )
             {
@@ -170,7 +170,7 @@ namespace chestnut::ecs::internal
         return count;
     }
 
-    const CEntitySignature& CEntityRegistry::getEntitySignature( entityid id ) const
+    const CEntitySignature& CEntityRegistry::getEntitySignature( entityid_t id ) const
     {
         if( id == ENTITY_ID_INVALID )
         {
@@ -189,11 +189,11 @@ namespace chestnut::ecs::internal
         }
     }
     
-    std::vector<entityid> CEntityRegistry::findEntities( std::function< bool( const CEntitySignature& ) > pred ) const
+    std::vector<entityid_t> CEntityRegistry::findEntities( std::function< bool( const CEntitySignature& ) > pred ) const
     {
-        std::vector< entityid > ids;
+        std::vector< entityid_t > ids;
 
-        for (entityid i = 0; i < m_dequeEntityRecords.size(); i++)
+        for (entityid_t i = 0; i < m_dequeEntityRecords.size(); i++)
         {
             if( m_dequeEntityRecords[i].isIdUsed && !m_dequeEntityRecords[i].isTemplate )   
             {

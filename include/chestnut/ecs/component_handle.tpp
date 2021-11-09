@@ -10,7 +10,7 @@ namespace chestnut::ecs
     }
 
     template<typename C>
-    CComponentHandle<C>::CComponentHandle( entityid owner, internal::SComponentWrapper<C> *componentWrapper ) 
+    CComponentHandle<C>::CComponentHandle( entityid_t owner, internal::SComponentWrapper<C> *componentWrapper ) 
     {
         this->owner = owner;
         this->m_componentWrapper = componentWrapper;

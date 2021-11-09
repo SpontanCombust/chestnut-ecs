@@ -56,7 +56,7 @@ TEST_CASE( "Component storage test" )
 
 
         // filling up 1st segment
-        for (entityid i = ENTITY_ID_MINIMAL; i < ENTITY_ID_MINIMAL + 5; i++)
+        for (entityid_t i = ENTITY_ID_MINIMAL; i < ENTITY_ID_MINIMAL + 5; i++)
         {
             storage.storeComponent(i);
         }
@@ -66,7 +66,7 @@ TEST_CASE( "Component storage test" )
         REQUIRE( storage.getEmptySegmentTotalSize() == 5 );
 
         // filling up 2nd segment
-        for (entityid i = ENTITY_ID_MINIMAL + 5; i < ENTITY_ID_MINIMAL + 10; i++)
+        for (entityid_t i = ENTITY_ID_MINIMAL + 5; i < ENTITY_ID_MINIMAL + 10; i++)
         {
             storage.storeComponent(i);
         }
@@ -77,7 +77,7 @@ TEST_CASE( "Component storage test" )
 
         // creating 2 new segments
         // filling 1st one fully and 2nd one partially
-        for (entityid i = ENTITY_ID_MINIMAL + 10; i < ENTITY_ID_MINIMAL + 18; i++)
+        for (entityid_t i = ENTITY_ID_MINIMAL + 10; i < ENTITY_ID_MINIMAL + 18; i++)
         {
             storage.storeComponent(i);
         }
@@ -88,7 +88,7 @@ TEST_CASE( "Component storage test" )
 
         // try creating components with previously used IDs
         // should change nothing
-        for (entityid i = ENTITY_ID_MINIMAL; i < ENTITY_ID_MINIMAL + 5; i++)
+        for (entityid_t i = ENTITY_ID_MINIMAL; i < ENTITY_ID_MINIMAL + 5; i++)
         {
             storage.storeComponent(i);
         }
@@ -101,7 +101,7 @@ TEST_CASE( "Component storage test" )
     SECTION( "Checking and fetching components" )
     {
         SComponentWrapper<Foo> *foo;
-        for (entityid i = ENTITY_ID_MINIMAL; i < ENTITY_ID_MINIMAL + 6; i++)
+        for (entityid_t i = ENTITY_ID_MINIMAL; i < ENTITY_ID_MINIMAL + 6; i++)
         {
             foo = (SComponentWrapper<Foo> *)storage.storeComponent(i);
             foo->data.i = i;
@@ -124,7 +124,7 @@ TEST_CASE( "Component storage test" )
     {
         // fill storage with 20 components (ids 1-20)
 
-        for (entityid i = ENTITY_ID_MINIMAL; i < ENTITY_ID_MINIMAL + 20; i++)
+        for (entityid_t i = ENTITY_ID_MINIMAL; i < ENTITY_ID_MINIMAL + 20; i++)
         {
             storage.storeComponent(i);
         }
@@ -150,13 +150,13 @@ TEST_CASE( "Component storage test" )
 
         // erase another 5 components, but from different segments (ids 3-5 and 11-12)
 
-        for (entityid i = ENTITY_ID_MINIMAL + 2; i < ENTITY_ID_MINIMAL + 5; i++)
+        for (entityid_t i = ENTITY_ID_MINIMAL + 2; i < ENTITY_ID_MINIMAL + 5; i++)
         {
             REQUIRE_NOTHROW( storage.eraseComponent(i) );
 
             REQUIRE_FALSE( storage.hasComponent(i) );
         }
-        for (entityid i = ENTITY_ID_MINIMAL + 10; i < ENTITY_ID_MINIMAL + 12; i++)
+        for (entityid_t i = ENTITY_ID_MINIMAL + 10; i < ENTITY_ID_MINIMAL + 12; i++)
         {
             REQUIRE_NOTHROW( storage.eraseComponent(i) );
 
@@ -260,7 +260,7 @@ TEST_CASE( "Component storage test" )
 
         // try downsizing when there are components in segments
 
-        for (entityid i = ENTITY_ID_MINIMAL; i < ENTITY_ID_MINIMAL + 15; i++)
+        for (entityid_t i = ENTITY_ID_MINIMAL; i < ENTITY_ID_MINIMAL + 15; i++)
         {
             storage.storeComponent(i);
         }

@@ -22,39 +22,39 @@ namespace chestnut::ecs::internal
     public:
         virtual ~IComponentStorage() = default;
 
-        virtual segsize getSegmentSize() const = 0;
+        virtual segsize_t getSegmentSize() const = 0;
 
         // Returns created component or component that has already existed with that entityID
-        virtual IComponentWrapper *storeComponent( entityid entityID ) = 0;
+        virtual IComponentWrapper *storeComponent( entityid_t entityID ) = 0;
         // Returns created component or component that has already existed with that entityID
         // Attempts to copy contents from entity srcEntityID to entityID if entity with srcEntityID exists
-        virtual IComponentWrapper *storeComponentCopy( entityid entityID, entityid srcEntityID ) = 0;
-        virtual bool hasComponent( entityid entityID ) const = 0;
+        virtual IComponentWrapper *storeComponentCopy( entityid_t entityID, entityid_t srcEntityID ) = 0;
+        virtual bool hasComponent( entityid_t entityID ) const = 0;
         // Returns null if component doesn't exist
-        virtual IComponentWrapper *getComponent( entityid entityID ) const = 0;
-        virtual void eraseComponent( entityid entityID ) = 0;
+        virtual IComponentWrapper *getComponent( entityid_t entityID ) const = 0;
+        virtual void eraseComponent( entityid_t entityID ) = 0;
         // Erases all stored components; doesn't modify capacity
         virtual void clearComponents() = 0;
 
         // Allocates (if necessary) memory for the minimal number of segments 
         // that can fit in total specified number of components.
         // If specified totalSize is smaller than current capacity nothing is done.
-        virtual void reserve( segsize totalSize ) = 0;
+        virtual void reserve( segsize_t totalSize ) = 0;
         // Allocates additional memory for specified amount of components
         // The amount of memory allocated also depends on the size of segment setting
-        virtual void reserveAdditional( segsize additionalSize ) = 0;
+        virtual void reserveAdditional( segsize_t additionalSize ) = 0;
         // Similair to reserve() with an exception that it attempts to deallocate memory
         // if specified targetSize is smaller than capacity 
-        virtual void resize( segsize targetSize ) = 0;
+        virtual void resize( segsize_t targetSize ) = 0;
         // Reduces the capacity by deallocating all segments that don't store any active components at the moment
         virtual void removeEmptySegments() = 0;
 
         // Returns the number of stored components
-        virtual segsize getSize() const = 0;
+        virtual segsize_t getSize() const = 0;
         // Returns the total number of components that can be stored 
-        virtual segsize getCapacity() const = 0;
+        virtual segsize_t getCapacity() const = 0;
         // Returns collective size of empty segments
-        virtual segsize getEmptySegmentTotalSize() const = 0;   
+        virtual segsize_t getEmptySegmentTotalSize() const = 0;   
     };
 
     /**
@@ -96,54 +96,54 @@ namespace chestnut::ecs::internal
     private:
         using SegType = internal::CComponentStorageSegment<C>;
 
-        segsize m_segmentSize;
-        segid m_segmentIDCounter;
+        segsize_t m_segmentSize;
+        segid_t m_segmentIDCounter;
 
-        std::unordered_map< segid, SegType * > m_mapSegmentIndexToSegment;
-        std::deque< segid > m_dequeAvailableSegmentIndices;
+        std::unordered_map< segid_t, SegType * > m_mapSegmentIndexToSegment;
+        std::deque< segid_t > m_dequeAvailableSegmentIndices;
 
     public:
-        CComponentStorage( segsize segmentSize, segsize initCapacity );
+        CComponentStorage( segsize_t segmentSize, segsize_t initCapacity );
         CComponentStorage( CComponentStorage& ) = delete; // no copying allowed
         ~CComponentStorage();
 
-        segsize getSegmentSize() const override;
+        segsize_t getSegmentSize() const override;
 
         // Returns created component or component that has already existed with that entityID,
-        IComponentWrapper *storeComponent( entityid entityID ) override;
+        IComponentWrapper *storeComponent( entityid_t entityID ) override;
         // Returns created component or component that has already existed with that entityID
         // Attempts to copy contents from entity srcEntityID to entityID if entity with srcEntityID exists
-        IComponentWrapper *storeComponentCopy( entityid entityID, entityid srcEntityID ) override;
-        bool hasComponent( entityid entityID ) const override;
+        IComponentWrapper *storeComponentCopy( entityid_t entityID, entityid_t srcEntityID ) override;
+        bool hasComponent( entityid_t entityID ) const override;
         // Returns null if component doesn't exists
-        IComponentWrapper *getComponent( entityid entityID ) const override;
-        void eraseComponent( entityid entityID ) override;
+        IComponentWrapper *getComponent( entityid_t entityID ) const override;
+        void eraseComponent( entityid_t entityID ) override;
         // Erases all stored components; doesn't modify capacity
         void clearComponents() override;
 
         // Allocates (if necessary) memory for the minimal number of segments 
         // that can fit in total specified number of components.
         // If specified totalSize is smaller than current capacity nothing is done.
-        void reserve( segsize totalSize ) override;
+        void reserve( segsize_t totalSize ) override;
         // Allocates additional memory for the minimal number of segments 
         // that can fit specified additional number of components.
-        void reserveAdditional( segsize additionalSize ) override;
+        void reserveAdditional( segsize_t additionalSize ) override;
         // Similair to reserve() with an exception that it attempts to deallocate memory
         // if specified targetSize is smaller than capacity 
-        void resize( segsize targetSize ) override;
+        void resize( segsize_t targetSize ) override;
         // Reduces the capacity by deallocating all segments that don't store any active components at the moment
         void removeEmptySegments() override;
 
         // Returns the number of stored components
-        segsize getSize() const override;
+        segsize_t getSize() const override;
         // Returns the total number of components that can be stored 
-        segsize getCapacity() const override;
+        segsize_t getCapacity() const override;
         // Returns collective size of empty segments
-        segsize getEmptySegmentTotalSize() const override;
+        segsize_t getEmptySegmentTotalSize() const override;
 
     private:
         // Returns index of that segment
-        segid createNewSegment();
+        segid_t createNewSegment();
     };
 
 

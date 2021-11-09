@@ -24,21 +24,21 @@ namespace chestnut::ecs
     private:
         typedef std::unordered_map< std::type_index, std::vector< internal::IComponentWrapper * > > CComponentWrapperTypeMap;
 
-        queryid m_id;
+        queryid_t m_id;
 
-        std::vector< entityid > m_vecEntityIDs;
+        std::vector< entityid_t > m_vecEntityIDs;
         CComponentWrapperTypeMap m_mapCompTypeToVecComp;        
 
     public:
-        CEntityQuery( queryid id );
+        CEntityQuery( queryid_t id );
 
         CEntityQuery( const CEntityQuery& ) = delete;
         CEntityQuery& operator=( const CEntityQuery& ) = delete;
 
 
-        queryid getID() const;
+        queryid_t getID() const;
 
-        entitysize getEntityCount() const;
+        entitysize_t getEntityCount() const;
 
 
         // Can throw std::out_of_range if requested type isn't stored in the query
@@ -59,23 +59,23 @@ namespace chestnut::ecs
 
 
 
-        void forEachEntityWith( std::function< void( entityid ) > func ) const;
+        void forEachEntityWith( std::function< void( entityid_t ) > func ) const;
 
         // Can throw std::out_of_range if requested type isn't stored in the query
         template< class C1 >
-        void forEachEntityWith( std::function< void( entityid, C1& ) > func ) const;
+        void forEachEntityWith( std::function< void( entityid_t, C1& ) > func ) const;
 
         // Can throw std::out_of_range if requested types combination isn't stored in the query
         template< class C1, class C2 >
-        void forEachEntityWith( std::function< void( entityid, C1&, C2& ) > func ) const; 
+        void forEachEntityWith( std::function< void( entityid_t, C1&, C2& ) > func ) const; 
 
         // Can throw std::out_of_range if requested types combination isn't stored in the query
         template< class C1, class C2, class C3 >
-        void forEachEntityWith( std::function< void( entityid, C1&, C2&, C3& ) > func ) const;
+        void forEachEntityWith( std::function< void( entityid_t, C1&, C2&, C3& ) > func ) const;
 
         // Can throw std::out_of_range if requested types combination isn't stored in the query
         template< class C1, class C2, class C3, class C4 >
-        void forEachEntityWith( std::function< void( entityid, C1&, C2&, C3&, C4& ) > func ) const;
+        void forEachEntityWith( std::function< void( entityid_t, C1&, C2&, C3&, C4& ) > func ) const;
 
 
 
@@ -97,23 +97,23 @@ namespace chestnut::ecs
 
 
 
-        void forEachEntityPairWith( std::function< void( entityid, entityid ) > func ) const;
+        void forEachEntityPairWith( std::function< void( entityid_t, entityid_t ) > func ) const;
 
         // Can throw std::out_of_range if requested type isn't stored in the query
         template< class C1 >
-        void forEachEntityPairWith( std::function< void( entityid, C1&, entityid, C1& ) > func ) const;
+        void forEachEntityPairWith( std::function< void( entityid_t, C1&, entityid_t, C1& ) > func ) const;
 
         // Can throw std::out_of_range if requested types combination isn't stored in the query
         template< class C1, class C2 >
-        void forEachEntityPairWith( std::function< void( entityid, C1&, C2&, entityid, C1&, C2& ) > func ) const; 
+        void forEachEntityPairWith( std::function< void( entityid_t, C1&, C2&, entityid_t, C1&, C2& ) > func ) const; 
 
         // Can throw std::out_of_range if requested types combination isn't stored in the query
         template< class C1, class C2, class C3 >
-        void forEachEntityPairWith( std::function< void( entityid, C1&, C2&, C3&, entityid, C1&, C2&, C3& ) > func ) const;
+        void forEachEntityPairWith( std::function< void( entityid_t, C1&, C2&, C3&, entityid_t, C1&, C2&, C3& ) > func ) const;
 
         // Can throw std::out_of_range if requested types combination isn't stored in the query
         template< class C1, class C2, class C3, class C4 >
-        void forEachEntityPairWith( std::function< void( entityid, C1&, C2&, C3&, C4&, entityid, C1&, C2&, C3&, C4& ) > func ) const;        
+        void forEachEntityPairWith( std::function< void( entityid_t, C1&, C2&, C3&, C4&, entityid_t, C1&, C2&, C3&, C4& ) > func ) const;        
     };
 
 } // namespace chestnut::ecs

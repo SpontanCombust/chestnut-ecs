@@ -15,17 +15,17 @@ namespace chestnut::ecs::internal
 
         const std::vector< internal::IComponentWrapper * >& vecC = it->second;
 
-        entitysize entCount = m_targetQuery.getEntityCount();
+        entitysize_t entCount = m_targetQuery.getEntityCount();
         if( entCount > 0 )
         {
-            entityid *orderedIndices = new entityid[ entCount ];
+            entityid_t *orderedIndices = new entityid_t[ entCount ];
 
             // fill array with indices
             std::iota( orderedIndices, orderedIndices + entCount, 0 );
 
             // now sort these indices 
             std::stable_sort( orderedIndices, orderedIndices + entCount, 
-            [&vecC, &compare]( entityid i1, entityid i2 ) -> bool
+            [&vecC, &compare]( entityid_t i1, entityid_t i2 ) -> bool
             {
                 internal::SComponentWrapper<C>* c1 = static_cast< internal::SComponentWrapper<C>* >( vecC[i1] );
                 internal::SComponentWrapper<C>* c2 = static_cast< internal::SComponentWrapper<C>* >( vecC[i2] );
@@ -36,8 +36,8 @@ namespace chestnut::ecs::internal
 
             // based on these reordered indices we'll change the order of entity IDs and component pointers       
 
-            std::vector< entityid > reorderedEntityIDs( entCount );
-            for (entityid i = 0; i < entCount; i++)
+            std::vector< entityid_t > reorderedEntityIDs( entCount );
+            for (entityid_t i = 0; i < entCount; i++)
             {
                 reorderedEntityIDs[i] = m_targetQuery.m_vecEntityIDs[ orderedIndices[i] ];
             }
@@ -46,7 +46,7 @@ namespace chestnut::ecs::internal
             std::vector< internal::IComponentWrapper* > reorderedComponents( entCount );
             for( auto& [ type, vecComps ] : m_targetQuery.m_mapCompTypeToVecComp )
             {
-                for (entityid i = 0; i < entCount; i++)
+                for (entityid_t i = 0; i < entCount; i++)
                 {
                     reorderedComponents[i] = vecComps[ orderedIndices[i] ];
                 }

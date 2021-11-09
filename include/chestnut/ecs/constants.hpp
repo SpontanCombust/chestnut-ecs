@@ -5,9 +5,9 @@
 
 namespace chestnut::ecs
 {
-    const entityid ENTITY_ID_INVALID = 0;
+    const entityid_t ENTITY_ID_INVALID = 0;
 
-    const entityid ENTITY_ID_MINIMAL = 1;
+    const entityid_t ENTITY_ID_MINIMAL = 1;
     
 } // namespace chestnut::ecs
 
