@@ -129,6 +129,12 @@ namespace chestnut::ecs
         void destroyQuery( queryid id );
 
 
+
+        // Simpler form of querying for entities, where you only get their IDs when
+        // Use this only when you'll be looking for entities non-frequently. Otherwise use regular queries and do forEach with entity IDs.
+        std::vector< entityid > findEntities( std::function< bool( const CEntitySignature& ) > pred ) const;
+
+
     private:
         template< typename C >
         void setupComponentTypeIfDidntAlready();

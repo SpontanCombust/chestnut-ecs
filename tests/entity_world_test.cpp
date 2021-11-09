@@ -384,6 +384,43 @@ TEST_CASE( "Entity world test - querying" )
 
 
 
+TEST_CASE( "Entity world test - find entities" )
+{
+    CEntityWorld world;
+
+    std::vector< entityid > vecFooBar;
+    std::vector< entityid > vecBarBaz;
+    
+    // 10 with Foo and Bar
+    for (size_t i = 0; i < 10; i++)
+    {
+        entityid ent = world.createEntity();
+        world.createComponent<Foo>( ent )->x = ent;
+        world.createComponent<Bar>( ent )->y = ent + 1;
+        vecFooBar.push_back( ent );
+    }
+    // 10 with Bar and Baz
+    for (size_t i = 0; i < 10; i++)
+    {
+        entityid ent = world.createEntity();
+        world.createComponent<Bar>( ent )->y = ent;
+        world.createComponent<Baz>( ent )->z = ent + 1;
+        vecBarBaz.push_back( ent );
+    }
+
+
+    std::vector< entityid > vecFound = world.findEntities( []( const CEntitySignature& sign ) 
+    {
+        return sign.has<Bar>();
+    });
+
+    REQUIRE( vecFound.size() == 20 );
+}
+
+
+
+
+
 
 
 TEST_CASE( "Entity world test - entity templates" )

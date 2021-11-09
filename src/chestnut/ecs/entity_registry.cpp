@@ -188,5 +188,23 @@ namespace chestnut::ecs::internal
             throw std::invalid_argument( "Entity " + std::to_string( entityIdFromIndex(id) ) + " is not registered!" );
         }
     }
+    
+    std::vector<entityid> CEntityRegistry::findEntities( std::function< bool( const CEntitySignature& ) > pred ) const
+    {
+        std::vector< entityid > ids;
+
+        for (entityid i = 0; i < m_dequeEntityRecords.size(); i++)
+        {
+            if( m_dequeEntityRecords[i].isIdUsed && !m_dequeEntityRecords[i].isTemplate )   
+            {
+                if( pred( m_dequeEntityRecords[i].signature ) )
+                {
+                    ids.push_back( entityIdFromIndex(i) );
+                }
+            }
+        }
+
+        return ids;
+    }
 
 } // namespace chestnut::ecs::internal

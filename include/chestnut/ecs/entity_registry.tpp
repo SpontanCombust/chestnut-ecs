@@ -10,23 +10,4 @@ namespace chestnut::ecs::internal
         return id - ENTITY_ID_MINIMAL;
     }
 
-    template< typename SignaturePredicate >
-    std::vector< entityid > CEntityRegistry::findEntities( SignaturePredicate pred ) const
-    {
-        std::vector< entityid > ids;
-
-        for (entityid i = 0; i < m_dequeEntityRecords.size(); i++)
-        {
-            if( m_dequeEntityRecords[i].isIdUsed && !m_dequeEntityRecords[i].isTemplate )   
-            {
-                if( pred( m_dequeEntityRecords[i].signature ) )
-                {
-                    ids.push_back( entityIdFromIndex(i) );
-                }
-            }
-        }
-
-        return ids;
-    }
-
 } // namespace chestnut::ecs::internal

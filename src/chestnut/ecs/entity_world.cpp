@@ -234,6 +234,11 @@ namespace chestnut::ecs
         }
     }
 
+    std::vector< entityid > CEntityWorld::findEntities(std::function< bool( const CEntitySignature& ) > pred ) const
+    {
+        return m_entityRegistry.findEntities( pred );
+    }
+
 
 
 

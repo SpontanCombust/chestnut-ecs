@@ -6,6 +6,7 @@
 #include "entity_signature.hpp"
 
 #include <deque>
+#include <functional>
 #include <vector>
 
 namespace chestnut::ecs::internal
@@ -58,8 +59,7 @@ namespace chestnut::ecs::internal
         const CEntitySignature& getEntitySignature( entityid id ) const;
 
         // Doesn't consider template entities
-        template< typename SignaturePredicate >
-        std::vector< entityid > findEntities( SignaturePredicate pred ) const;
+        std::vector< entityid > findEntities( std::function< bool( const CEntitySignature& ) > pred ) const;
 
 
     private:
