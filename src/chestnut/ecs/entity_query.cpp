@@ -58,25 +58,27 @@ namespace chestnut::ecs
 
 
 
-    void CEntityQuery::reorderData( const std::vector< entityid_t >& orderedIndices ) 
+    void CEntityQuery::reorderData() 
     {
         entitysize_t entCount = getEntityCount();
 
-        std::vector< entityid_t > reorderedEntityIDs( entCount );
+        m_sort_reorderedEntityIDs.clear();
+        m_sort_reorderedEntityIDs.resize( entCount );
         for (entityid_t i = 0; i < entCount; i++)
         {
-            reorderedEntityIDs[i] = m_vecEntityIDs[ orderedIndices[i] ];
+            m_sort_reorderedEntityIDs[i] = m_vecEntityIDs[ m_sort_orderedIndices[i] ];
         }
-        m_vecEntityIDs = reorderedEntityIDs;
+        m_vecEntityIDs = m_sort_reorderedEntityIDs;
         
-        std::vector< internal::IComponentWrapper* > reorderedComponents( entCount );
+        m_sort_reorderedComponents.clear();
+        m_sort_reorderedComponents.resize( entCount );
         for( auto& [ type, vecComps ] : m_mapCompTypeToVecComp )
         {
             for (entityid_t i = 0; i < entCount; i++)
             {
-                reorderedComponents[i] = vecComps[ orderedIndices[i] ];
+                m_sort_reorderedComponents[i] = vecComps[ m_sort_orderedIndices[i] ];
             }
-            vecComps = reorderedComponents;
+            vecComps = m_sort_reorderedComponents;
         }    
     }
 

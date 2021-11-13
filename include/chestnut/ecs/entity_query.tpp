@@ -422,14 +422,14 @@ namespace chestnut::ecs
 
         const std::vector< internal::IComponentWrapper * >& vecC1 = m_mapCompTypeToVecComp.at( typeid(C1) );
 
-        std::vector< entityid_t > orderedIndices( entCount );
-
+        m_sort_orderedIndices.clear();
+        m_sort_orderedIndices.resize( entCount );
 
         // fill array with indices
-        std::iota( orderedIndices.begin(), orderedIndices.end(), 0 );
+        std::iota( m_sort_orderedIndices.begin(), m_sort_orderedIndices.end(), 0 );
 
         // now sort these indices 
-        std::stable_sort( orderedIndices.begin(), orderedIndices.end(), 
+        std::stable_sort( m_sort_orderedIndices.begin(), m_sort_orderedIndices.end(), 
         [&vecC1, &compare]( entityid_t i1, entityid_t i2 ) -> bool
         {
             internal::SComponentWrapper<C1>* c11 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[i1] );
@@ -438,7 +438,7 @@ namespace chestnut::ecs
             return compare( c11->data, c12->data );
         });
 
-        reorderData( orderedIndices );
+        reorderData();
     }
 
     template<class C1, class C2>
@@ -453,14 +453,14 @@ namespace chestnut::ecs
         const std::vector< internal::IComponentWrapper * >& vecC1 = m_mapCompTypeToVecComp.at( typeid(C1) );
         const std::vector< internal::IComponentWrapper * >& vecC2 = m_mapCompTypeToVecComp.at( typeid(C2) );
 
-        std::vector< entityid_t > orderedIndices( entCount );
-
+        m_sort_orderedIndices.clear();
+        m_sort_orderedIndices.resize( entCount );
 
         // fill array with indices
-        std::iota( orderedIndices.begin(), orderedIndices.end(), 0 );
+        std::iota( m_sort_orderedIndices.begin(), m_sort_orderedIndices.end(), 0 );
 
         // now sort these indices 
-        std::stable_sort( orderedIndices.begin(), orderedIndices.end(), 
+        std::stable_sort( m_sort_orderedIndices.begin(), m_sort_orderedIndices.end(), 
         [&vecC1, &vecC2, &compare]( entityid_t i1, entityid_t i2 ) -> bool
         {
             internal::SComponentWrapper<C1>* c11 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[i1] );
@@ -471,7 +471,7 @@ namespace chestnut::ecs
             return compare( c11->data, c21->data, c12->data, c22->data );
         });
 
-        reorderData( orderedIndices );
+        reorderData();
     }
 
     template<class C1, class C2, class C3>
@@ -487,14 +487,14 @@ namespace chestnut::ecs
         const std::vector< internal::IComponentWrapper * >& vecC2 = m_mapCompTypeToVecComp.at( typeid(C2) );
         const std::vector< internal::IComponentWrapper * >& vecC3 = m_mapCompTypeToVecComp.at( typeid(C3) );
 
-        std::vector< entityid_t > orderedIndices( entCount );
-
+        m_sort_orderedIndices.clear();
+        m_sort_orderedIndices.resize( entCount );
 
         // fill array with indices
-        std::iota( orderedIndices.begin(), orderedIndices.end(), 0 );
+        std::iota( m_sort_orderedIndices.begin(), m_sort_orderedIndices.end(), 0 );
 
         // now sort these indices 
-        std::stable_sort( orderedIndices.begin(), orderedIndices.end(), 
+        std::stable_sort( m_sort_orderedIndices.begin(), m_sort_orderedIndices.end(), 
         [&vecC1, &vecC2, &vecC3, &compare]( entityid_t i1, entityid_t i2 ) -> bool
         {
             internal::SComponentWrapper<C1>* c11 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[i1] );
@@ -507,7 +507,7 @@ namespace chestnut::ecs
             return compare( c11->data, c21->data, c31->data, c12->data, c22->data, c32->data );
         });
 
-        reorderData( orderedIndices );
+        reorderData();
     }
 
     template<class C1, class C2, class C3, class C4>
@@ -524,14 +524,14 @@ namespace chestnut::ecs
         const std::vector< internal::IComponentWrapper * >& vecC3 = m_mapCompTypeToVecComp.at( typeid(C3) );
         const std::vector< internal::IComponentWrapper * >& vecC4 = m_mapCompTypeToVecComp.at( typeid(C4) );
 
-        std::vector< entityid_t > orderedIndices( entCount );
-
+        m_sort_orderedIndices.clear();
+        m_sort_orderedIndices.resize( entCount );
 
         // fill array with indices
-        std::iota( orderedIndices.begin(), orderedIndices.end(), 0 );
+        std::iota( m_sort_orderedIndices.begin(), m_sort_orderedIndices.end(), 0 );
 
         // now sort these indices 
-        std::stable_sort( orderedIndices.begin(), orderedIndices.end(), 
+        std::stable_sort( m_sort_orderedIndices.begin(), m_sort_orderedIndices.end(), 
         [&vecC1, &vecC2, &vecC3, &vecC4, &compare]( entityid_t i1, entityid_t i2 ) -> bool
         {
             internal::SComponentWrapper<C1>* c11 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[i1] );
@@ -546,7 +546,7 @@ namespace chestnut::ecs
             return compare( c11->data, c21->data, c31->data, c41->data, c12->data, c22->data, c32->data, c42->data );
         });
 
-        reorderData( orderedIndices );
+        reorderData();
     }
 
 

@@ -29,6 +29,11 @@ namespace chestnut::ecs
         std::vector< entityid_t > m_vecEntityIDs;
         CComponentWrapperTypeMap m_mapCompTypeToVecComp;        
 
+        // Sorting helper vectors as query members to avoid allocating and deallocating memory for them on every sort call
+        std::vector< entityid_t > m_sort_orderedIndices;
+        std::vector< entityid_t > m_sort_reorderedEntityIDs;
+        std::vector< internal::IComponentWrapper* > m_sort_reorderedComponents;
+
     public:
         CEntityQuery( queryid_t id );
 
@@ -135,7 +140,7 @@ namespace chestnut::ecs
 
 
     private:
-        void reorderData( const std::vector< entityid_t >& orderedIndices );
+        void reorderData();
     };
 
 } // namespace chestnut::ecs
