@@ -121,10 +121,7 @@ namespace chestnut::ecs
         queryid_t createQuery( const CEntitySignature& requireSignature, const CEntitySignature& rejectSignature );
 
         // Returns null if no query with this ID exists
-        const CEntityQuery* queryEntities( queryid_t id ) const;
-
-        template< typename SortingCompType >
-        void sortQuery( queryid_t id, std::function< bool( const SortingCompType&, const SortingCompType& ) > compare ) const;
+        CEntityQuery* queryEntities( queryid_t id ) const;
 
         void destroyQuery( queryid_t id );
 

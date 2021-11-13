@@ -212,13 +212,13 @@ namespace chestnut::ecs
         return queryIDCounter;
     }
 
-    const CEntityQuery* CEntityWorld::queryEntities( queryid_t id ) const
+    CEntityQuery* CEntityWorld::queryEntities( queryid_t id ) const
     {
         auto it = m_mapQueryIDToQueryGuard.find( id );
         if( it != m_mapQueryIDToQueryGuard.end() )
         {
             it->second->updateQuery();
-            return &it->second->getQuery();
+            return it->second->getQuery();
         }
 
         return nullptr;

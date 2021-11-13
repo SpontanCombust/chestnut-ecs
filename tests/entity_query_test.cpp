@@ -107,11 +107,11 @@ TEST_CASE( "Entity query test - forEach" )
         }
         guard.updateQuery();
 
-        const CEntityQuery& query = guard.getQuery();
+        CEntityQuery* query = guard.getQuery();
 
-        REQUIRE( query.getEntityCount() == 15 );
+        REQUIRE( query->getEntityCount() == 15 );
         REQUIRE_NOTHROW( 
-            query.forEachEntityWith<Foo>( []( entityid_t id, Foo& foo ) 
+            query->forEachEntityWith<Foo>( []( entityid_t id, Foo& foo ) 
             {
                 id >= 1 && id <= 15;
             })
@@ -132,11 +132,11 @@ TEST_CASE( "Entity query test - forEach" )
         }
         guard.updateQuery();
 
-        const CEntityQuery& query = guard.getQuery();
+        CEntityQuery* query = guard.getQuery();
 
-        REQUIRE( query.getEntityCount() == 5 );
+        REQUIRE( query->getEntityCount() == 5 );
         REQUIRE_NOTHROW(
-            query.forEachEntityWith<Foo, Baz>( []( entityid_t id, Foo& foo, Baz& baz ) 
+            query->forEachEntityWith<Foo, Baz>( []( entityid_t id, Foo& foo, Baz& baz ) 
             {
                 id >= 11 && id <= 15;
             })
@@ -159,11 +159,11 @@ TEST_CASE( "Entity query test - forEach" )
         }
         guard.updateQuery();
 
-        const CEntityQuery& query = guard.getQuery();
+        CEntityQuery* query = guard.getQuery();
 
-        REQUIRE( query.getEntityCount() == 10 );
+        REQUIRE( query->getEntityCount() == 10 );
         REQUIRE_NOTHROW(
-            query.forEachEntityWith<Foo>( []( entityid_t id, Foo& foo ) 
+            query->forEachEntityWith<Foo>( []( entityid_t id, Foo& foo ) 
             {
                 REQUIRE( ( id >= 1 && id <= 10 ) );
             })
@@ -190,11 +190,11 @@ TEST_CASE( "Entity query test - forEach" )
         }
         guard.updateQuery();
 
-        const CEntityQuery& query = guard.getQuery();
+        CEntityQuery* query = guard.getQuery();
 
-        REQUIRE( query.getEntityCount() == 5 );
+        REQUIRE( query->getEntityCount() == 5 );
         REQUIRE_NOTHROW(
-            query.forEachEntityWith<Bar, Baz>( []( entityid_t id, Bar& bar, Baz& baz ) 
+            query->forEachEntityWith<Bar, Baz>( []( entityid_t id, Bar& bar, Baz& baz ) 
             {
                 id >= 16 && id <= 20;
             })
@@ -220,11 +220,11 @@ TEST_CASE( "Entity query test - forEach" )
 
         guard.updateQuery();
 
-        const CEntityQuery& query = guard.getQuery();
+        CEntityQuery* query = guard.getQuery();
 
-        REQUIRE( query.getEntityCount() == 5 );
+        REQUIRE( query->getEntityCount() == 5 );
         REQUIRE_NOTHROW(
-            query.forEachEntityWith<Foo, Bar>( []( entityid_t id, Foo& foo, Bar& baz ) 
+            query->forEachEntityWith<Foo, Bar>( []( entityid_t id, Foo& foo, Bar& baz ) 
             {
                 REQUIRE( (id >= 6 && id <= 10) );
             })
@@ -258,11 +258,11 @@ TEST_CASE( "Entity query test - forEach" )
         }
         guard.updateQuery();
 
-        const CEntityQuery& query = guard.getQuery();
+        CEntityQuery* query = guard.getQuery();
 
-        REQUIRE( query.getEntityCount() == 10 );
+        REQUIRE( query->getEntityCount() == 10 );
         REQUIRE_NOTHROW(
-            query.forEachEntityWith<Foo>( []( entityid_t id, Foo& foo ) 
+            query->forEachEntityWith<Foo>( []( entityid_t id, Foo& foo ) 
             {
                 REQUIRE( ( id >= 1 && id <= 10 ) );
             })
@@ -304,18 +304,17 @@ TEST_CASE( "Entity query test - sorting" )
         guard.fetchAndAddEntityWithComponents(i);
     }
     guard.updateQuery();
-    guard.sortQuery<Foo>( 
-    []( const Foo& f1, const Foo& f2 ) -> bool
+
+    CEntityQuery* query = guard.getQuery();
+    REQUIRE( query->getEntityCount() == 5 );
+    query->sort<Foo>( []( const Foo& f1, const Foo& f2 ) -> bool
     {
         return f1.x < f2.x;
     });
 
-    const CEntityQuery& query = guard.getQuery();
-
-    REQUIRE( query.getEntityCount() == 5 );
     int i = 0;
     REQUIRE_NOTHROW(
-        query.forEachEntityWith<Foo, Bar>( [&i]( entityid_t id, Foo& foo, Bar& bar ) 
+        query->forEachEntityWith<Foo, Bar>( [&i]( entityid_t id, Foo& foo, Bar& bar ) 
         {
             if( i == 0 )
             {
@@ -358,7 +357,7 @@ TEST_CASE( "Entity query test - sorting" )
 
 
 
-    guard.sortQuery<Bar>( 
+    query->sort<Bar>( 
     []( const Bar& b1, const Bar& b2 ) -> bool
     {
         return b1.y < b2.y;
@@ -367,7 +366,7 @@ TEST_CASE( "Entity query test - sorting" )
     i = 0;
 
     REQUIRE_NOTHROW(
-        query.forEachEntityWith<Foo, Bar>( [&i]( entityid_t id, Foo& foo, Bar& bar ) 
+        query->forEachEntityWith<Foo, Bar>( [&i]( entityid_t id, Foo& foo, Bar& bar ) 
         {
             if( i == 0 )
             {

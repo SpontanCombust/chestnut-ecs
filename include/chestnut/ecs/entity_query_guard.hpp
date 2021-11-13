@@ -58,19 +58,14 @@ namespace chestnut::ecs::internal
         // Returns whether the underlying query has any components stored inside it after the update
         bool updateQuery();
 
-        template< class C >
-        void sortQuery( std::function< bool( const C&, const C& ) > compare );
-
 
         bool testQuery( const CEntitySignature& signature ) const;
 
-        const CEntityQuery& getQuery() const;
+        const CEntityQuery* getQuery() const;
+
+        CEntityQuery* getQuery();
     };
 
 } // namespace chestnut::ecs::internal
-
-
-#include "entity_query_guard.tpp"
-
 
 #endif // __CHESTNUT_ECS_ENTITY_QUERY_GUARD_H__

@@ -162,9 +162,14 @@ namespace chestnut::ecs::internal
         return signature.hasAllFrom( m_requireSignature ) && !signature.hasAnyFrom( m_rejectSignature );
     }
 
-    const CEntityQuery& CEntityQueryGuard::getQuery() const
+    const CEntityQuery* CEntityQueryGuard::getQuery() const
     {
-        return m_targetQuery;
+        return &m_targetQuery;
+    }
+
+    CEntityQuery* CEntityQueryGuard::getQuery() 
+    {
+        return &m_targetQuery;
     }
 
 } // namespace chestnut::ecs::internal

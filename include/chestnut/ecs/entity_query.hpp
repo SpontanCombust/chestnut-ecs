@@ -114,6 +114,28 @@ namespace chestnut::ecs
         // Can throw std::out_of_range if requested types combination isn't stored in the query
         template< class C1, class C2, class C3, class C4 >
         void forEachEntityPairWith( std::function< void( entityid_t, C1&, C2&, C3&, C4&, entityid_t, C1&, C2&, C3&, C4& ) > func ) const;        
+
+
+
+        // Can throw std::out_of_range if requested type isn't stored in the query
+        template< class C1 >
+        void sort( std::function< bool( const C1&, const C1& )> compare );
+
+        // Can throw std::out_of_range if requested types combination isn't stored in the query
+        template< class C1, class C2 >
+        void sort( std::function< bool( const C1&, const C2&, const C1&, const C2& )> compare );
+
+        // Can throw std::out_of_range if requested types combination isn't stored in the query
+        template< class C1, class C2, class C3 >
+        void sort( std::function< bool( const C1&, const C2&, const C3&, const C1&, const C2&, const C3& )> compare );
+
+        // Can throw std::out_of_range if requested types combination isn't stored in the query
+        template< class C1, class C2, class C3, class C4 >
+        void sort( std::function< bool( const C1&, const C2&, const C3&, const C4&, const C1&, const C2&, const C3&, const C4& )> compare );
+
+
+    private:
+        void reorderData( const std::vector< entityid_t >& orderedIndices );
     };
 
 } // namespace chestnut::ecs
