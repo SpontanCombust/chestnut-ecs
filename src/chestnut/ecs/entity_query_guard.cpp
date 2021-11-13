@@ -39,7 +39,7 @@ namespace chestnut::ecs::internal
 
             for( std::type_index type : m_requireSignature.m_setComponentTypes )
             {
-                // This ~~shouldn't~~ throw an exception if systems using this class are setup correctly
+                // This will throw std::out_of_range if systems using this class don't assure the type exists in storage map
                 IComponentStorage *typedStorage = m_storageMapPtr->at( type );
 
                 IComponentWrapper *comp = typedStorage->getComponent( entityID );

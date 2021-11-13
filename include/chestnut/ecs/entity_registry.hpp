@@ -55,8 +55,8 @@ namespace chestnut::ecs::internal
         entitysize_t getEntityCountOfPartialSignature( const CEntitySignature& requiredSignaturePart ) const;
 
 
-        // Throws std::invalid_argument exception if entity is not registered
-        const CEntitySignature& getEntitySignature( entityid_t id ) const;
+        // Returns null if entity is not registered
+        const CEntitySignature* getEntitySignature( entityid_t id ) const;
 
         // Doesn't consider template entities
         std::vector< entityid_t > findEntities( std::function< bool( const CEntitySignature& ) > pred ) const;

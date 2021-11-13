@@ -170,23 +170,21 @@ namespace chestnut::ecs::internal
         return count;
     }
 
-    const CEntitySignature& CEntityRegistry::getEntitySignature( entityid_t id ) const
+    const CEntitySignature* CEntityRegistry::getEntitySignature( entityid_t id ) const
     {
         if( id == ENTITY_ID_INVALID )
         {
-            throw std::invalid_argument( "Entity has invalid ID!" );
+            return nullptr;
         }
 
         id = indexFromEntityId(id);
 
         if( id < m_dequeEntityRecords.size() && m_dequeEntityRecords[id].isIdUsed )
         {
-            return m_dequeEntityRecords[id].signature;
+            return &m_dequeEntityRecords[id].signature;
         }
-        else
-        {
-            throw std::invalid_argument( "Entity " + std::to_string( entityIdFromIndex(id) ) + " is not registered!" );
-        }
+        
+        return nullptr;
     }
     
     std::vector<entityid_t> CEntityRegistry::findEntities( std::function< bool( const CEntitySignature& ) > pred ) const

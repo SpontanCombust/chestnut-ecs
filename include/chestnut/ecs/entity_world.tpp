@@ -71,7 +71,7 @@ namespace chestnut::ecs
     {
         setupComponentTypeIfDidntAlready<C>();
 
-        // setupComponentTypeIfDidntAlready assures this won't throw
+        // setupComponentTypeIfDidntAlready assures this won't return null
         internal::IComponentStorage *storage = m_mapCompTypeToStorage[ typeid(C) ];
 
         storage->reserve( amount );
@@ -82,7 +82,7 @@ namespace chestnut::ecs
     {
         setupComponentTypeIfDidntAlready<C>();
 
-        // setupComponentTypeIfDidntAlready assures this won't throw
+        // setupComponentTypeIfDidntAlready assures this won't return null
         internal::IComponentStorage *storage = m_mapCompTypeToStorage[ typeid(C) ];
 
         storage->reserveAdditional( amount );

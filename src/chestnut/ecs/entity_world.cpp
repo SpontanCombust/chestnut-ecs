@@ -56,13 +56,13 @@ namespace chestnut::ecs
     {
         if( hasEntity( entityID ) )
         {
-            const CEntitySignature& signature = m_entityRegistry.getEntitySignature( entityID );
+            const CEntitySignature* signature = m_entityRegistry.getEntitySignature( entityID );
 
-            if( !signature.isEmpty() )
+            if( !signature->isEmpty() )
             {
-                updateQueriesOnEntityChange( entityID, &signature, nullptr );
+                updateQueriesOnEntityChange( entityID, signature, nullptr );
 
-                for( const auto& type : signature.m_setComponentTypes )
+                for( const auto& type : signature->m_setComponentTypes )
                 {
                     IComponentStorage *storage = m_mapCompTypeToStorage.at( type );
                     storage->eraseComponent( entityID );
@@ -98,11 +98,11 @@ namespace chestnut::ecs
     {
         if( hasTemplateEntity( templateEntityID ) )
         {
-            const CEntitySignature& signature = m_entityRegistry.getEntitySignature( templateEntityID );
+            const CEntitySignature* signature = m_entityRegistry.getEntitySignature( templateEntityID );
 
-            if( !signature.isEmpty() )
+            if( !signature->isEmpty() )
             {
-                for( const auto& type : signature.m_setComponentTypes )
+                for( const auto& type : signature->m_setComponentTypes )
                 {
                     IComponentStorage *storage = m_mapCompTypeToStorage.at( type );
                     storage->eraseComponent( templateEntityID );
@@ -120,19 +120,19 @@ namespace chestnut::ecs
     {
         if( hasTemplateEntity( templateEntityID ) )
         {
-            const CEntitySignature& templateSignature = m_entityRegistry.getEntitySignature( templateEntityID );
+            const CEntitySignature* templateSignature = m_entityRegistry.getEntitySignature( templateEntityID );
 
-            entityid_t entityID = m_entityRegistry.registerNewEntity( false, templateSignature );
+            entityid_t entityID = m_entityRegistry.registerNewEntity( false, *templateSignature );
 
-            if( !templateSignature.isEmpty() )
+            if( !templateSignature->isEmpty() )
             {
-                for( std::type_index type : templateSignature.m_setComponentTypes )
+                for( std::type_index type : templateSignature->m_setComponentTypes )
                 {
                     IComponentStorage *storage = m_mapCompTypeToStorage[ type ];
                     storage->storeComponentCopy( entityID, templateEntityID );
                 }
 
-                updateQueriesOnEntityChange( entityID, nullptr, &templateSignature );
+                updateQueriesOnEntityChange( entityID, nullptr, templateSignature );
             }
 
             return entityID; 
@@ -152,21 +152,21 @@ namespace chestnut::ecs
             ids.reserve( amount );
 
 
-            const CEntitySignature& templateSignature = m_entityRegistry.getEntitySignature( templateEntityID );
+            const CEntitySignature* templateSignature = m_entityRegistry.getEntitySignature( templateEntityID );
 
-            if( !templateSignature.isEmpty() )
+            if( !templateSignature->isEmpty() )
             {
                 for (entitysize_t i = 0; i < amount; i++)
                 {
-                    entityid_t entityID = m_entityRegistry.registerNewEntity( false, templateSignature );
+                    entityid_t entityID = m_entityRegistry.registerNewEntity( false, *templateSignature );
 
-                    for( std::type_index type : templateSignature.m_setComponentTypes )
+                    for( std::type_index type : templateSignature->m_setComponentTypes )
                     {
                         IComponentStorage *storage = m_mapCompTypeToStorage[ type ];
                         storage->storeComponentCopy( entityID, templateEntityID );
                     }
 
-                    updateQueriesOnEntityChange( entityID, nullptr, &templateSignature );
+                    updateQueriesOnEntityChange( entityID, nullptr, templateSignature );
 
                     ids.push_back( entityID );            
                 }
@@ -257,11 +257,11 @@ namespace chestnut::ecs
 
         // check if entity already owns the component
 
-        const CEntitySignature& oldSignature = m_entityRegistry.getEntitySignature( entityID ); // hasEntity() assures entity exists
+        const CEntitySignature* oldSignature = m_entityRegistry.getEntitySignature( entityID ); // hasEntity() assures entity exists
 
         IComponentStorage *storage = m_mapCompTypeToStorage[ compType ]; // createComponent assures this won't return null
 
-        if( oldSignature.has( compType ) )
+        if( oldSignature->has( compType ) )
         {
             return storage->getComponent( entityID );
         }
@@ -269,7 +269,7 @@ namespace chestnut::ecs
 
 
         // make an updated signature for the entity
-        CEntitySignature newSignature = oldSignature; 
+        CEntitySignature newSignature = *oldSignature; 
         newSignature.add( compType );
         
         // instantiate the actual new component
@@ -278,7 +278,7 @@ namespace chestnut::ecs
         // if it's not a template entity we update queries for it
         if( !m_entityRegistry.hasTemplateEntity( entityID ) )
         {
-            updateQueriesOnEntityChange( entityID, &oldSignature, &newSignature );
+            updateQueriesOnEntityChange( entityID, oldSignature, &newSignature );
         }
 
 
@@ -296,8 +296,8 @@ namespace chestnut::ecs
             return false;
         }
 
-        CEntitySignature signature = m_entityRegistry.getEntitySignature( entityID ); // hasEntity() assures entity exists
-        return signature.has( compType );
+        const CEntitySignature* signature = m_entityRegistry.getEntitySignature( entityID ); // hasEntity() assures entity exists
+        return signature->has( compType );
     }
 
     IComponentWrapper* CEntityWorld::getComponentInternal( std::type_index compType, entityid_t entityID ) const
@@ -320,9 +320,9 @@ namespace chestnut::ecs
         if( hasComponentInternal( compType, entityID ) )
         {
             // compute signatures //
-            const CEntitySignature& oldSignature = m_entityRegistry.getEntitySignature( entityID ); // hasComponent() assures entity exists
+            const CEntitySignature* oldSignature = m_entityRegistry.getEntitySignature( entityID ); // hasComponent() assures entity exists
 
-            CEntitySignature newSignature = oldSignature;
+            CEntitySignature newSignature = *oldSignature;
             newSignature.remove( compType );
 
 
@@ -334,7 +334,7 @@ namespace chestnut::ecs
             // if it's not a template entity we update queries for it
             if( !m_entityRegistry.hasTemplateEntity( entityID ) )
             {
-                updateQueriesOnEntityChange( entityID, &oldSignature, &newSignature );
+                updateQueriesOnEntityChange( entityID, oldSignature, &newSignature );
             }
 
 

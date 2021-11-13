@@ -40,36 +40,38 @@ TEST_CASE( "Entity registry test" )
         entityid_t id1 = registry.registerNewEntity( false );
         entityid_t id2 = registry.registerNewEntity( false, signature );
 
+        const CEntitySignature* signaturePtr;
         REQUIRE( registry.hasEntity( id1 ) );
-        REQUIRE_NOTHROW( signature = registry.getEntitySignature( id1 ) );
-        REQUIRE( signature.isEmpty() );
+        REQUIRE( ( signaturePtr = registry.getEntitySignature( id1 ) ) );
+        REQUIRE( signaturePtr->isEmpty() );
 
         REQUIRE( registry.hasEntity( id2 ) );
-        REQUIRE_NOTHROW( signature = registry.getEntitySignature( id2 ) );
-        REQUIRE( ( signature.has<int>() && signature.has<char>() ) );
+        REQUIRE( ( signaturePtr = registry.getEntitySignature( id2 ) ) );
+        REQUIRE( ( signaturePtr->has<int>() && signaturePtr->has<char>() ) );
     }
 
     SECTION( "Test exception throw when fetching signature of unregistered entity" )
     {
-        REQUIRE_THROWS( registry.getEntitySignature( ENTITY_ID_INVALID ) );
-        REQUIRE_THROWS( registry.getEntitySignature( ENTITY_ID_MINIMAL ) ); // none were registered yet
+        REQUIRE_FALSE( registry.getEntitySignature( ENTITY_ID_INVALID ) );
+        REQUIRE_FALSE( registry.getEntitySignature( ENTITY_ID_MINIMAL ) ); // none were registered yet
     }
 
     SECTION( "Updating registry entity" )
     {
         CEntitySignature signature;
+        const CEntitySignature* signaturePtr;
 
         entityid_t id = registry.registerNewEntity( false );
 
-        signature = registry.getEntitySignature( id );
-        REQUIRE( signature.isEmpty() ); 
+        signaturePtr = registry.getEntitySignature( id );
+        REQUIRE( signaturePtr->isEmpty() ); 
 
         signature.add<int>();
         registry.updateEntity( id, signature );
 
-        signature = registry.getEntitySignature( id );
-        REQUIRE_FALSE( signature.isEmpty() );
-        REQUIRE( signature.has<int>() );
+        signaturePtr = registry.getEntitySignature( id );
+        REQUIRE_FALSE( signaturePtr->isEmpty() );
+        REQUIRE( signaturePtr->has<int>() );
     }
 
     SECTION( "Removing entities" )
