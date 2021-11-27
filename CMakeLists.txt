@@ -18,13 +18,25 @@ add_subdirectory(src/chestnut/ecs)
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/ DESTINATION include)
 install(TARGETS ${PROJECT_NAME} DESTINATION lib)
 
+
+
 ## ========================================== Tests ========================================
+
+include(FetchContent)
+
+FetchContent_Declare(
+    catch2
+    GIT_REPOSITORY https://github.com/catchorg/Catch2
+    GIT_TAG v2.13.7
+)
+
+FetchContent_MakeAvailable(catch2)
+list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/contrib)
+
 
 add_executable(${PROJECT_NAME}_Test)
 
 add_subdirectory(tests)
-
-find_package(Catch2)
 
 target_link_libraries(${PROJECT_NAME}_Test ${PROJECT_NAME})
 target_link_libraries(${PROJECT_NAME}_Test Catch2::Catch2)
