@@ -1,10 +1,24 @@
+#include <type_traits>
+
 namespace chestnut::ecs
 {
+    namespace internal
+    {
+        template< typename T >
+        inline constexpr bool is_valid_component_type = !std::is_fundamental_v<T> && 
+                                                         std::is_default_constructible_v<T> && 
+                                                         std::is_copy_assignable_v<T>;
+
+    } // namespace internal
+
+
     // ========================= PUBLIC ========================= //
 
     template< typename C, typename Traits >
     void CEntityWorld::setupComponentType()
     {
+        static_assert( internal::is_valid_component_type<C>, "Given type is not a valid component type!" );
+
         std::type_index type = typeid(C);
 
         auto it = m_mapCompTypeToStorage.find( type );

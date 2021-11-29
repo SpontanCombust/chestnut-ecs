@@ -233,6 +233,45 @@ TEST_CASE( "Entity world test - general" )
 
 
 
+TEST_CASE( "Entity world test - check valid component type" )
+{
+    // uncomment sections to try compiling
+
+    /*
+    CEntityWorld world;
+
+
+    // test for integral type
+
+    //world.setupComponentType<int>();    
+
+
+    // test for default constructible type
+    struct Foo
+    {
+        Foo( int i )
+        {
+
+        }
+    };
+
+    //world.setupComponentType<Foo>();
+
+
+    // test for copy assignable type
+    struct Bar
+    {
+        Bar& operator=( const Bar& ) = delete;
+    };
+
+    //world.setupComponentType<Bar>();
+    */
+}
+
+
+
+
+
 
 
 TEST_CASE( "Entity world test - querying" )
