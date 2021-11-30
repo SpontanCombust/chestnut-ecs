@@ -242,6 +242,16 @@ namespace chestnut::ecs
 
 
 
+    CEntityWorld::WriteLock CEntityWorld::lockForWriting() const
+    {
+        return WriteLock( m_mutex );
+    }
+
+    CEntityWorld::ReadLock CEntityWorld::lockForReading() const
+    {
+        return ReadLock( m_mutex );
+    }
+
 
     // ========================= PRIVATE ========================= //
 

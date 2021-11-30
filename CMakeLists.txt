@@ -44,13 +44,15 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(catch2)
 list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/contrib)
 
+find_package(Threads)
+
 
 add_executable(${PROJECT_NAME}_Test)
 
 add_subdirectory(tests)
 
 target_link_libraries(${PROJECT_NAME}_Test ${PROJECT_NAME})
-target_link_libraries(${PROJECT_NAME}_Test Catch2::Catch2)
+target_link_libraries(${PROJECT_NAME}_Test Catch2::Catch2 Threads::Threads)
 
 include(CTest)
 include(Catch)

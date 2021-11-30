@@ -622,6 +622,102 @@ TEST_CASE( "Entity world test - entity templates" )
 
 
 
+#include <future>
+
+struct BarTraits
+{
+    static constexpr const char *name           = "Bar";
+    static const segsize_t storageSegmentSize   = 1000;
+    static const segsize_t storageInitCapacity  = 1000;
+};
+
+//TODO benchmark comp creation with different segment sizes
+TEST_CASE( "Entity world test - multithreading" )
+{
+    CEntityWorld world;
+
+
+    world.setupComponentType<Bar, BarTraits>();
+
+    std::vector< entityid_t > ents;
+    const entitysize_t ENT_COUNT = 100000;
+
+    for (size_t i = 0; i < ENT_COUNT; i++)
+    {
+        entityid_t ent = world.createEntity();
+
+        auto handle = world.createComponent<Bar>( ent );
+        handle->y = i;
+
+        ents.push_back( ent );
+    }
+    
+
+    auto accumInRange = [&]( entityid_t begin, entityid_t end ) {
+        long acc = 0;
+        for (entityid_t i = begin; i < end; i++)
+        {
+            auto lock = world.lockForReading();
+            acc += world.getComponent<Bar>( ents[i] )->y;
+        }
+        
+        return acc;
+    };
+
+    auto addMoreEnts = [&] {
+        for (size_t i = 0; i < 100; i++)
+        {
+            auto lock = world.lockForWriting();
+            entityid_t ent = world.createEntity();
+            auto handle = world.createComponent<Bar>( ent );
+            handle->y = i;
+        }
+    };
+
+
+
+    // The task is to sum all y values from Bar components in vector ents
+    // while also adding a few extra entities to the world
+
+    /// Deferred ///
+    long sumDeferred = 0;
+
+    auto start = std::chrono::steady_clock::now();
+
+    sumDeferred += accumInRange( 0, ENT_COUNT/2 );
+    addMoreEnts();
+    sumDeferred += accumInRange( ENT_COUNT/2, ENT_COUNT );
+
+    auto finish = std::chrono::steady_clock::now();
+
+    auto timeDeferred = finish - start; 
+
+
+
+    /// Multithreaded ///
+    start = std::chrono::steady_clock::now();
+
+    auto task1Result = std::async( std::launch::async, accumInRange, 0, ENT_COUNT/2 );
+    auto taskInterrupter = std::async( std::launch::async, addMoreEnts );
+    auto task2Result = std::async( std::launch::async, accumInRange, ENT_COUNT/2, ENT_COUNT );
+
+    long sumAsync = task1Result.get() + task2Result.get();
+
+    finish = std::chrono::steady_clock::now();
+
+    auto timeAsync = finish - start;
+
+
+    REQUIRE( sumDeferred == sumAsync );
+
+    REQUIRE( timeAsync.count() < timeDeferred.count() );
+    
+    WARN( "Async time:" + std::to_string(timeAsync.count()) );
+    WARN( "Deferred time:" + std::to_string(timeDeferred.count()) );
+}
+
+
+
 
 
 

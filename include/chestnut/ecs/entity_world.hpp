@@ -10,6 +10,7 @@
 #include "component_wrapper.hpp"
 #include "component_traits.hpp"
 
+#include <shared_mutex>
 #include <unordered_map>
 
 namespace chestnut::ecs
@@ -27,6 +28,14 @@ namespace chestnut::ecs
         // They're mutable, because we cache pending components inside them and want to update them when calling update on query
         // This doesn't affect World's state
         mutable std::unordered_map< queryid_t, internal::CEntityQueryGuard* > m_mapQueryIDToQueryGuard;
+
+
+        mutable std::shared_mutex m_mutex;
+
+    public:
+        typedef std::unique_lock< std::shared_mutex > WriteLock;
+        typedef std::shared_lock< std::shared_mutex > ReadLock;
+
 
     public:
         CEntityWorld();
@@ -130,6 +139,11 @@ namespace chestnut::ecs
         // Simpler form of querying for entities, where you only get their IDs when
         // Use this only when you'll be looking for entities non-frequently. Otherwise use regular queries and do forEach with entity IDs.
         std::vector< entityid_t > findEntities( std::function< bool( const CEntitySignature& ) > pred ) const;
+
+
+        WriteLock lockForWriting() const;
+
+        ReadLock lockForReading() const;
 
 
     private:
