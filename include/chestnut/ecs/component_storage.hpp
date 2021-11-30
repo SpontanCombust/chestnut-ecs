@@ -1,3 +1,15 @@
+/**
+ * @file component_storage.hpp
+ * @author Cedro Przemysław
+ * @brief Header file for the internal component storage implementation
+ * @version 1.0
+ * @date 2021-11-30
+ * 
+ * @copyright Copyright (c) 2021
+ * 
+ */
+
+
 #ifndef __CHESTNUT_ECS_COMPONENT_STORAGE_H__
 #define __CHESTNUT_ECS_COMPONENT_STORAGE_H__
 
@@ -12,7 +24,7 @@
 namespace chestnut::ecs::internal
 {
     /**
-     * @brief Interface for CComponentStorage.
+     * @brief Interface class for CComponentStorage.
      */
     class IComponentStorage
     {
@@ -60,6 +72,8 @@ namespace chestnut::ecs::internal
     /**
      * @brief Component storage class keeping its data in constant size segments
      * 
+     * @tparam C type of component
+     * 
      * @details
      * Can store components in a series of contiguous segments. Segments between each other are not necesairly contiguous.
      * Memory for these segments never has to be moved. It only needs to be allocated and deallocated (during storage's 
@@ -89,64 +103,154 @@ namespace chestnut::ecs::internal
      * When specifying segment size strike a balance between how big it will be and in which quantities will be created. It general it's best
      * to keep the number of segments that will have to be created to minimum, but at the same time think not to make these too big to be able
      * to load them from memory more easily.
+     * 
+     * This class works a bit similair to how std::deque is implemented, but here we can specify the size of allocated arrays.
      */
     template< class C >
     class CComponentStorage : public IComponentStorage
     {
     private:
+        /**
+         * @brief Segment type typedef
+         */
         using SegType = internal::CComponentStorageSegment<C>;
 
+        /**
+         * @brief Size of each segment
+         */
         segsize_t m_segmentSize;
+        /**
+         * @brief ID counter for segments
+         */
         segid_t m_segmentIDCounter;
 
+        /**
+         * @brief Map with segment ID key and segment pointer value
+         */
         std::unordered_map< segid_t, SegType * > m_mapSegmentIndexToSegment;
+        /**
+         * @brief Deque of segment IDs that are not full
+         */
         std::deque< segid_t > m_dequeAvailableSegmentIndices;
 
     public:
+        /**
+         * @brief Constructor
+         * 
+         * @param segmentSize size of each segment 
+         * @param initCapacity initial capacity of the storage
+         */
         CComponentStorage( segsize_t segmentSize, segsize_t initCapacity );
-        CComponentStorage( CComponentStorage& ) = delete; // no copying allowed
+        /**
+         * @brief Destructor; frees stored segments
+         */
         ~CComponentStorage();
 
+        /**
+         * @brief Get size of a storage segment
+         * 
+         * @return segsize_t size of segment
+         */
         segsize_t getSegmentSize() const override;
 
-        // Returns created component or component that has already existed with that entityID,
+        /**
+         * @brief Construct a component
+         * 
+         * @param entityID ID of the entity
+         * @return upcasted pointer to newly constructed component or one that already exists
+         */
         IComponentWrapper *storeComponent( entityid_t entityID ) override;
-        // Returns created component or component that has already existed with that entityID
-        // Attempts to copy contents from entity srcEntityID to entityID if entity with srcEntityID exists
+        /**
+         * @brief Construct a component with data copied from other component
+         * 
+         * @param entityID ID of the entity
+         * @param srcEntityID ID of the enity to copy from 
+         * @return upcasted pointer to newly constructed component or one that already exists
+         */
         IComponentWrapper *storeComponentCopy( entityid_t entityID, entityid_t srcEntityID ) override;
+        /**
+         * @brief Returns whether storage holds component for specified entity
+         * 
+         * @param entityID ID of the entity
+         * @return true if component exists
+         * @return false otherwise
+         */
         bool hasComponent( entityid_t entityID ) const override;
-        // Returns null if component doesn't exists
+        /**
+         * @brief Returns pointer to component owned by entity or null if it doesn't exist
+         * 
+         * @param entityID ID of the owner entity
+         * @return upcasted pointer to component wrapper or null if it doesn't exist
+         */
         IComponentWrapper *getComponent( entityid_t entityID ) const override;
+        /**
+         * @brief Erase component belonging to entity from storage
+         * 
+         * @param entityID ID of the entity
+         */
         void eraseComponent( entityid_t entityID ) override;
-        // Erases all stored components; doesn't modify capacity
+        /**
+         * @brief Clear all components in the storage; doesn't modify capacity
+         */
         void clearComponents() override;
 
-        // Allocates (if necessary) memory for the minimal number of segments 
-        // that can fit in total specified number of components.
-        // If specified totalSize is smaller than current capacity nothing is done.
+        /**
+         * @brief Allocates (if necessary) memory for the minimal number of segments that can fit in total specified number of components
+         * 
+         * @details If specified totalSize is smaller than current capacity nothing is done.
+         * 
+         * @param totalSize the total amount of components for which storage should have allocated memory 
+         */
         void reserve( segsize_t totalSize ) override;
-        // Allocates additional memory for the minimal number of segments 
-        // that can fit specified additional number of components.
+        /**
+         * @brief Allocates additional memory for the minimal number of segments that can fit specified additional number of components
+         * 
+         * @param additionalSize the amount of components storage should allocate memory for 
+         */
         void reserveAdditional( segsize_t additionalSize ) override;
-        // Similair to reserve() with an exception that it attempts to deallocate memory
-        // if specified targetSize is smaller than capacity 
+        /**
+         * @brief Similair to reserve() with an exception that it attempts to deallocate memory if specified targetSize is smaller than capacity 
+         * 
+         * @param targetSize the target amount of components for which storage should have allocated memory 
+         */
         void resize( segsize_t targetSize ) override;
-        // Reduces the capacity by deallocating all segments that don't store any active components at the moment
+        /**
+         * @brief Reduces the capacity by deallocating all segments that don't store any active components at the moment
+         */
         void removeEmptySegments() override;
 
-        // Returns the number of stored components
+        /**
+         * @brief Returns the number of stored components
+         * 
+         * @return stored components amount 
+         */
         segsize_t getSize() const override;
-        // Returns the total number of components that can be stored 
+        /**
+         * @brief Returns the total number of components that can be stored 
+         * 
+         * @return total number of components that can be stored  
+         */
         segsize_t getCapacity() const override;
-        // Returns collective size of empty segments
+        /**
+         * @brief Returns collective size of empty segments
+         * 
+         * @return collective size of empty segments 
+         */
         segsize_t getEmptySegmentTotalSize() const override;
 
     private:
-        // Returns index of that segment
+        /**
+         * @brief Create and returns ID of new segment
+         * 
+         * @return new segment ID 
+         */
         segid_t createNewSegment();
     };
 
 
+    /**
+     * @brief Typedef of map with type for key and a upcasted pointer to component storage as value
+     */
     typedef std::unordered_map< std::type_index, IComponentStorage * > CComponentStorageTypeMap;
 
 

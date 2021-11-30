@@ -1,3 +1,15 @@
+/**
+ * @file component_storage_segment.hpp
+ * @author Cedro Przemysław
+ * @brief Header for the internal implementation of storage segment
+ * @version 1.0
+ * @date 2021-11-30
+ * 
+ * @copyright Copyright (c) 2021
+ * 
+ */
+
+
 #ifndef __CHESTNUT_ECS_COMPONENT_STORAGE_SEGMENT_H__
 #define __CHESTNUT_ECS_COMPONENT_STORAGE_SEGMENT_H__
 
@@ -8,64 +20,160 @@
 
 namespace chestnut::ecs::internal
 {
+    /**
+     * @brief Storage segment base class
+     * 
+     */
     class CComponentStorageSegment_Base
     {
     protected:
+        /**
+         * @brief Size of the underlying component array
+         * 
+         */
         segsize_t m_size;
+        /**
+         * @brief Array of tracked entity IDs
+         * 
+         */
         entityid_t *m_arrEntityIDs;
 
+        /**
+         * @brief Vector of freed indices in the array
+         * 
+         */
         std::vector< segsize_t > m_vecAvailableIndices;
 
     public:
-        CComponentStorageSegment_Base( segsize_t size );
-        CComponentStorageSegment_Base( const CComponentStorageSegment_Base& ) = delete; // we don't copy segments
+        /**
+         * @brief Constructor
+         * 
+         * @param size size of the underlying array
+         */
+        CComponentStorageSegment_Base( segsize_t size ) noexcept;
+        /**
+         * @brief Destructor; frees memory entity ID array
+         * 
+         */
         ~CComponentStorageSegment_Base();
 
-        segsize_t getSize() const;
-        bool isEmpty() const;
-        bool isFull() const;
+        /**
+         * @brief Get segment size
+         * 
+         * @return segsize_t segment size
+         */
+        segsize_t getSize() const noexcept;
+        /**
+         * @brief Return if segment is empty
+         * 
+         * @return true if all slots are free
+         * @return false if at least one slot is not free
+         */
+        bool isEmpty() const noexcept;
+        /**
+         * @brief Return if segment is full
+         * 
+         * @return true if all slots are taken
+         * @return false if at least one slot is not taken
+         */
+        bool isFull() const noexcept;
 
-        // Returns the number of segment slots taken up by entity components
-        segsize_t getTakenSlotCount() const;
+        /**
+         * @brief Get the number of taken slots
+         * 
+         * @return segsize_t taken slots quanity
+         */
+        segsize_t getTakenSlotCount() const noexcept;
 
-        // Returns whether entity with id equal entityID has its component slotted in this segment 
-        bool hasSlottedComponent( entityid_t entityID ) const;
+        /**
+         * @brief Returns whether a component belonging to the entity is slotted in the segment
+         * 
+         * @param entityID entity ID
+         * @return true ifcomponent is slotted
+         * @return false if component is not slotted
+         */
+        bool hasSlottedComponent( entityid_t entityID ) const noexcept;
 
     };
 
 
 
 
+    /**
+     * @brief Storage segment template class
+     * 
+     * @tparam C type of the component
+     */
     template< class C >
     class CComponentStorageSegment : public CComponentStorageSegment_Base
     {
     private:
+        /**
+         * @brief Underlying component (wrapper) array
+         * 
+         */
         SComponentWrapper<C> *m_arrComponentSlots;
 
     public:
-        CComponentStorageSegment( segsize_t size );
-        CComponentStorageSegment( const CComponentStorageSegment& ) = delete; // we don't copy segments
+        /**
+         * @brief Constructor
+         * 
+         * @param size size of the underlying array
+         */
+        CComponentStorageSegment( segsize_t size ) noexcept;
+        /**
+         * @brief Destructor; frees underlying component array
+         * 
+         */
         ~CComponentStorageSegment();
 
         
-        // Returns the slotted component or null if there was no place left for it
-        // If entity already has taken up a slot, no action is taken aside from returning component at that slot
-        // Asserts entityID is not ENTITY_ID_INVALID
-        SComponentWrapper<C>* tryTakeUpSlot( entityid_t entityID );
+        /**
+         * @brief Construct an instance of component (wrapper)
+         * 
+         * @details
+         * Null is returned if entity ID is invalid or if there are no free slots.
+         * 
+         * @param entityID ID of the entity
+         * @return Newly slotted component wrapper or null or error
+         */
+        SComponentWrapper<C>* tryTakeUpSlot( entityid_t entityID ) noexcept;
 
-        // Returns the slotted component or null if there was no place left for it
-        // If entity already has taken up a slot, no action is taken aside from returning component at that slot
-        // Copies contents from copySrc into the slotted component
-        // Asserts entityID is not ENTITY_ID_INVALID
-        SComponentWrapper<C>* tryTakeUpSlot( entityid_t entityID, const SComponentWrapper<C>* copySrc );
+        /**
+         * @brief Construct an instance of component (wrapper) and copy to it from copySrc; if copySrc is null - always returns null
+         * 
+         * @details
+         * Null is returned if entity ID is invalid, if there are no free slots or if copySrc is null.
+         * 
+         * @param entityID ID of the entity
+         * @param copySrc pointer to the component to copy from
+         * @return Newly slotted component wrapper or null or error
+         */
+        SComponentWrapper<C>* tryTakeUpSlot( entityid_t entityID, const SComponentWrapper<C>* copySrc ) noexcept;
 
-        // Returns null if entity component is not slotted
-        SComponentWrapper<C>* getSlottedComponent( entityid_t entityID ) const;
+        /**
+         * @brief Find a return a component belonging to the entity
+         * 
+         * @param entityID ID of the entity
+         * @return component wrapper if found, null otherwise 
+         */
+        SComponentWrapper<C>* getSlottedComponent( entityid_t entityID ) const noexcept;
 
-        // Nothing is done if entity doesn't take up any slot
-        void freeSlot( entityid_t entityID );
+        /**
+         * @brief Erase component belonging to entity from segment
+         * 
+         * @details
+         * If entity doesn't have the component slotted in this segment, nothing is done
+         * 
+         * @param entityID ID of the entity
+         */
+        void freeSlot( entityid_t entityID ) noexcept;
         
-        void clearSlots();
+        /**
+         * @brief Clear all components from the segment
+         * 
+         */
+        void clearSlots() noexcept;
     };
 
 } // namespace chestnut::ecs::internal
