@@ -122,6 +122,14 @@ TEST_CASE( "Entity world test - general" )
         REQUIRE( world.hasComponent<Foo>( ent ) );
     }
 
+    SECTION( "Getting invalid components" )
+    {
+        auto foo = world.getComponent<Foo>(9127);
+
+        REQUIRE_FALSE( foo );
+        REQUIRE_THROWS( foo->x = 4 );
+    }
+
     SECTION( "Getting components" )
     {
         entityid_t ent1 = world.createEntity();
