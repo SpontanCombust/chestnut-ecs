@@ -626,7 +626,6 @@ TEST_CASE( "Entity world test - entity templates" )
 
 struct BarTraits
 {
-    static constexpr const char *name           = "Bar";
     static const segsize_t storageSegmentSize   = 1000;
     static const segsize_t storageInitCapacity  = 1000;
 };
