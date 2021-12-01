@@ -49,7 +49,7 @@ namespace chestnut::ecs
 
     bool CEntityWorld::hasEntity( entityid_t entityID ) const
     {
-        return m_entityRegistry.hasEntity( entityID, false );
+        return m_entityRegistry.hasEntity( entityID, CEntityRegistry::CAN_BE_REGULAR_ENTITY );
     }
 
     void CEntityWorld::destroyEntity( entityid_t entityID ) 
@@ -91,7 +91,7 @@ namespace chestnut::ecs
 
     bool CEntityWorld::hasTemplateEntity( entityid_t templateEntityID ) const
     {
-        return m_entityRegistry.hasTemplateEntity( templateEntityID );
+        return m_entityRegistry.hasEntity( templateEntityID, CEntityRegistry::CAN_BE_TEMPLATE_ENTITY );
     }
 
     void CEntityWorld::destroyTemplateEntity( entityid_t templateEntityID ) 
@@ -199,7 +199,8 @@ namespace chestnut::ecs
         [&guard]( const CEntitySignature& sign )
         {
             return guard->testQuery( sign );
-        });
+
+        }, CEntityRegistry::CAN_BE_REGULAR_ENTITY );
 
         for (entityid_t i = 0; i < vecEntitiesToFetchFrom.size(); i++)
         {
@@ -236,7 +237,7 @@ namespace chestnut::ecs
 
     std::vector< entityid_t > CEntityWorld::findEntities(std::function< bool( const CEntitySignature& ) > pred ) const
     {
-        return m_entityRegistry.findEntities( pred );
+        return m_entityRegistry.findEntities( pred, CEntityRegistry::CAN_BE_REGULAR_ENTITY );
     }
 
 
@@ -258,7 +259,7 @@ namespace chestnut::ecs
     IComponentWrapper* CEntityWorld::createComponentInternal( std::type_index compType, entityid_t entityID ) 
     {
         // check if entity exists at all
-        if( !m_entityRegistry.hasEntity( entityID, true ) )
+        if( !m_entityRegistry.hasEntity( entityID, CEntityRegistry::CAN_BE_REGULAR_ENTITY | CEntityRegistry::CAN_BE_TEMPLATE_ENTITY ) )
         {
             return nullptr;
         }
@@ -286,7 +287,7 @@ namespace chestnut::ecs
         IComponentWrapper *comp = storage->storeComponent( entityID );
 
         // if it's not a template entity we update queries for it
-        if( !m_entityRegistry.hasTemplateEntity( entityID ) )
+        if( m_entityRegistry.hasEntity( entityID, CEntityRegistry::CAN_BE_REGULAR_ENTITY ) )
         {
             updateQueriesOnEntityChange( entityID, oldSignature, &newSignature );
         }
@@ -301,7 +302,7 @@ namespace chestnut::ecs
 
     bool CEntityWorld::hasComponentInternal( std::type_index compType, entityid_t entityID ) const
     {
-        if( !m_entityRegistry.hasEntity( entityID, true ) )
+        if( !m_entityRegistry.hasEntity( entityID, CEntityRegistry::CAN_BE_REGULAR_ENTITY | CEntityRegistry::CAN_BE_TEMPLATE_ENTITY ) )
         {
             return false;
         }
@@ -342,7 +343,7 @@ namespace chestnut::ecs
 
 
             // if it's not a template entity we update queries for it
-            if( !m_entityRegistry.hasTemplateEntity( entityID ) )
+            if( m_entityRegistry.hasEntity( entityID, CEntityRegistry::CAN_BE_REGULAR_ENTITY ) )
             {
                 updateQueriesOnEntityChange( entityID, oldSignature, &newSignature );
             }

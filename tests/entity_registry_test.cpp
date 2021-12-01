@@ -133,28 +133,21 @@ TEST_CASE( "Entity registry test" )
         entityid_t id5 = registry.registerNewEntity(true);
 
 
-        REQUIRE( registry.hasEntity( id1, true ) );
-        REQUIRE( registry.hasEntity( id1, false ) );
-        REQUIRE_FALSE( registry.hasTemplateEntity( id1 ) );
+        REQUIRE( registry.hasEntity( id1, CEntityRegistry::CAN_BE_REGULAR_ENTITY ) );
+        REQUIRE_FALSE( registry.hasEntity( id1, CEntityRegistry::CAN_BE_TEMPLATE_ENTITY ) );
+        REQUIRE( registry.hasEntity( id1, CEntityRegistry::CAN_BE_REGULAR_ENTITY | CEntityRegistry::CAN_BE_TEMPLATE_ENTITY ) );
 
-        REQUIRE( registry.hasEntity( id2, true ) );
-        REQUIRE_FALSE( registry.hasEntity( id2, false ) );
-        REQUIRE( registry.hasTemplateEntity( id2 ) );
+        REQUIRE_FALSE( registry.hasEntity( id2, CEntityRegistry::CAN_BE_REGULAR_ENTITY ) );
+        REQUIRE( registry.hasEntity( id2, CEntityRegistry::CAN_BE_TEMPLATE_ENTITY ) );
+        REQUIRE( registry.hasEntity( id2, CEntityRegistry::CAN_BE_REGULAR_ENTITY | CEntityRegistry::CAN_BE_TEMPLATE_ENTITY ) );
 
-        REQUIRE( registry.hasEntity( id4, true ) );
-        REQUIRE( registry.hasEntity( id4, false ) );
-        REQUIRE_FALSE( registry.hasTemplateEntity( id4 ) );
-
-        REQUIRE( registry.hasEntity( id5, true ) );
-        REQUIRE_FALSE( registry.hasEntity( id5, false ) );
-        REQUIRE( registry.hasTemplateEntity( id5 ) );
-
+        REQUIRE( registry.hasEntity( id4, CEntityRegistry::CAN_BE_REGULAR_ENTITY ) );
+        REQUIRE_FALSE( registry.hasEntity( id4, CEntityRegistry::CAN_BE_TEMPLATE_ENTITY ) );
+        REQUIRE( registry.hasEntity( id4, CEntityRegistry::CAN_BE_REGULAR_ENTITY | CEntityRegistry::CAN_BE_TEMPLATE_ENTITY ) );
 
         REQUIRE( registry.getEntityCount() == 5 );
 
-
         registry.unregisterEntity( id2 );
-        REQUIRE_FALSE( registry.hasEntity( id2, true ) );
-        REQUIRE_FALSE( registry.hasEntity( id2, false ) );
+        REQUIRE_FALSE( registry.hasEntity( id2, CEntityRegistry::CAN_BE_REGULAR_ENTITY | CEntityRegistry::CAN_BE_TEMPLATE_ENTITY ) );
     }
 }
