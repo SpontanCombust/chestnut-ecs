@@ -1,6 +1,6 @@
 /**
  * @file component_storage_segment.hpp
- * @author Cedro Przemysław
+ * @author Przemysław Cedro (SpontanCombust)
  * @brief Header for the internal implementation of storage segment
  * @version 1.0
  * @date 2021-11-30

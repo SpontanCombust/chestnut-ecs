@@ -1,6 +1,6 @@
 /**
  * @file component_traits.hpp
- * @author Cedro Przmysław
+ * @author Cedro Przmysław (SpontanCombust)
  * @brief Header file for the draft of component traits type
  * @version 1.0
  * @date 2021-11-30

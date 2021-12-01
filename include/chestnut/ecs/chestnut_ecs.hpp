@@ -1,6 +1,6 @@
 /**
  * @file chestnut_ecs.hpp
- * @author Cedro Przemysław
+ * @author Przemysław Cedro (SpontanCombust)
  * @brief An all-including library header 
  * @version 1.0
  * @date 2021-11-30

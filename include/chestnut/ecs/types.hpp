@@ -1,6 +1,6 @@
 /**
  * @file types.hpp
- * @author Cedro Przemysław
+ * @author Przemysław Cedro (SpontanCombust)
  * @brief Header file with library typedefs
  * @version 1.0
  * @date 2021-11-30

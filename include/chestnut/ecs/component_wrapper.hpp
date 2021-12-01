@@ -1,6 +1,6 @@
 /**
  * @file component_wrapper.hpp
- * @author Cedro Przemysław
+ * @author Przemysław Cedro (SpontanCombust)
  * @brief Header file for a wrapper type of component data used internally by the library
  * @version 1.0
  * @date 2021-11-30

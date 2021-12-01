@@ -1,6 +1,6 @@
 /**
  * @file component_handle.hpp
- * @author Cedro Przemysław
+ * @author Przemysław Cedro (SpontanCombust)
  * @brief Header file for the component handle template class
  * @version 1.0
  * @date 2021-11-30

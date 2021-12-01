@@ -1,6 +1,6 @@
 /**
  * @file component_storage.hpp
- * @author Cedro Przemysław
+ * @author Przemysław Cedro (SpontanCombust)
  * @brief Header file for the internal component storage implementation
  * @version 1.0
  * @date 2021-11-30
