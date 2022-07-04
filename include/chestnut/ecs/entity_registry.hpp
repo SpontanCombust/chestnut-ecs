@@ -10,8 +10,7 @@
  */
 
 
-#ifndef __CHESTNUT_ECS_ENTITY_REGISTRY_H__
-#define __CHESTNUT_ECS_ENTITY_REGISTRY_H__
+#pragma once
 
 #include "types.hpp"
 #include "constants.hpp"
@@ -200,7 +199,4 @@ namespace chestnut::ecs::internal
 } // namespace chestnut::ecs::internal
 
 
-#include "entity_registry.tpp"
-
-
-#endif // __CHESTNUT_ECS_ENTITY_REGISTRY_H__
+#include "entity_registry.inl"

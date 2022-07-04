@@ -10,8 +10,7 @@
  */
 
 
-#ifndef __CHESTNUT_ECS_COMPONENT_STORAGE_H__
-#define __CHESTNUT_ECS_COMPONENT_STORAGE_H__
+#pragma once
 
 #include "types.hpp"
 #include "component_wrapper.hpp"
@@ -257,7 +256,4 @@ namespace chestnut::ecs::internal
 } // namespace chestnut::ecs::internal
 
 
-#include "component_storage.tpp"
-
-
-#endif // __CHESTNUT_ECS_COMPONENT_STORAGE_H__
+#include "component_storage.inl"

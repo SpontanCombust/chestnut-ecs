@@ -10,8 +10,7 @@
  */
 
 
-#ifndef __CHESTNUT_ECS_COMPONENT_HANDLE_H__
-#define __CHESTNUT_ECS_COMPONENT_HANDLE_H__
+#pragma once
 
 #include "types.hpp"
 #include "component_wrapper.hpp"
@@ -110,7 +109,4 @@ namespace chestnut::ecs
 } // namespace chestnut::ecs
 
 
-#include "component_handle.tpp"
-
-
-#endif // __CHESTNUT_ECS_COMPONENT_HANDLE_H__
+#include "component_handle.inl"

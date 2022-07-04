@@ -1,5 +1,4 @@
-#ifndef __CHESTNUT_ECS_ENTITY_QUERY_GUARD_H__
-#define __CHESTNUT_ECS_ENTITY_QUERY_GUARD_H__
+#pragma once
 
 #include "component_wrapper.hpp"
 #include "component_storage.hpp"
@@ -68,4 +67,5 @@ namespace chestnut::ecs::internal
 
 } // namespace chestnut::ecs::internal
 
-#endif // __CHESTNUT_ECS_ENTITY_QUERY_GUARD_H__
+
+#include "entity_query_guard.inl"

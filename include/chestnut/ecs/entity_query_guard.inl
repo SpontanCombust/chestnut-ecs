@@ -1,10 +1,8 @@
-#include "chestnut/ecs/entity_query_guard.hpp"
-
 #include <iterator> // next
 
 namespace chestnut::ecs::internal
 {    
-    CEntityQueryGuard::CEntityQueryGuard( queryid_t id, const CEntitySignature& requireSignature, const CEntitySignature& rejectSignature, CComponentStorageTypeMap *storageMapPtr )
+    inline CEntityQueryGuard::CEntityQueryGuard( queryid_t id, const CEntitySignature& requireSignature, const CEntitySignature& rejectSignature, CComponentStorageTypeMap *storageMapPtr )
     : m_targetQuery( id )
     {
         m_storageMapPtr = storageMapPtr;
@@ -19,7 +17,7 @@ namespace chestnut::ecs::internal
         }
     }
 
-    void CEntityQueryGuard::fetchAndAddEntityWithComponents( entityid_t entityID ) 
+    inline void CEntityQueryGuard::fetchAndAddEntityWithComponents( entityid_t entityID ) 
     {
         // First of all check if entity has been scheduled for removal
         // In that case only delete removal data
@@ -49,7 +47,7 @@ namespace chestnut::ecs::internal
         }
     }
 
-    void CEntityQueryGuard::removeEntityWithComponents( entityid_t entityID ) 
+    inline void CEntityQueryGuard::removeEntityWithComponents( entityid_t entityID ) 
     {
         // First check if entity has been scheduled for addition
         // In that case delete addition data
@@ -84,7 +82,7 @@ namespace chestnut::ecs::internal
         }
     }
 
-    bool CEntityQueryGuard::updateQuery() 
+    inline bool CEntityQueryGuard::updateQuery() 
     {
         // first do the removal
 
@@ -157,17 +155,17 @@ namespace chestnut::ecs::internal
         return m_targetQuery.m_vecEntityIDs.size() > 0;
     }
 
-    bool CEntityQueryGuard::testQuery( const CEntitySignature& signature ) const
+    inline bool CEntityQueryGuard::testQuery( const CEntitySignature& signature ) const
     {
         return signature.hasAllFrom( m_requireSignature ) && !signature.hasAnyFrom( m_rejectSignature );
     }
 
-    const CEntityQuery* CEntityQueryGuard::getQuery() const
+    inline const CEntityQuery* CEntityQueryGuard::getQuery() const
     {
         return &m_targetQuery;
     }
 
-    CEntityQuery* CEntityQueryGuard::getQuery() 
+    inline CEntityQuery* CEntityQueryGuard::getQuery() 
     {
         return &m_targetQuery;
     }

@@ -1,15 +1,23 @@
-#include "chestnut/ecs/entity_registry.hpp"
-
 #include <exception> // invalid_argument
 
 namespace chestnut::ecs::internal
 {
-    CEntityRegistry::CEntityRegistry() 
+    inline entityid_t CEntityRegistry::entityIdFromIndex( entityid_t index ) const
+    {
+        return index + ENTITY_ID_MINIMAL;
+    }
+
+    inline entityid_t CEntityRegistry::indexFromEntityId( entityid_t id ) const
+    {
+        return id - ENTITY_ID_MINIMAL;
+    }
+
+    inline CEntityRegistry::CEntityRegistry() 
     {
         m_entityIdCounter = ENTITY_ID_MINIMAL;
     }
 
-    entityid_t CEntityRegistry::registerNewEntity( bool isTemplateEntity ) 
+    inline entityid_t CEntityRegistry::registerNewEntity( bool isTemplateEntity ) 
     {
         entityid_t id;
 
@@ -38,7 +46,7 @@ namespace chestnut::ecs::internal
         return id;
     }
 
-    entityid_t CEntityRegistry::registerNewEntity( bool isTemplateEntity, const CEntitySignature& signature ) 
+    inline entityid_t CEntityRegistry::registerNewEntity( bool isTemplateEntity, const CEntitySignature& signature ) 
     {
         entityid_t id;
         
@@ -67,7 +75,7 @@ namespace chestnut::ecs::internal
         return id;
     }
 
-    void CEntityRegistry::updateEntity( entityid_t id, const CEntitySignature& newSignature ) 
+    inline void CEntityRegistry::updateEntity( entityid_t id, const CEntitySignature& newSignature ) 
     {
         if( hasEntity( id, CAN_BE_REGULAR_ENTITY | CAN_BE_TEMPLATE_ENTITY ) )
         {
@@ -90,7 +98,7 @@ namespace chestnut::ecs::internal
         return result;
     }
 
-    bool CEntityRegistry::hasEntity( entityid_t id, int searchFlags ) const
+    inline bool CEntityRegistry::hasEntity( entityid_t id, int searchFlags ) const
     {
         if( id == ENTITY_ID_INVALID )
         {
@@ -107,7 +115,7 @@ namespace chestnut::ecs::internal
         return false;
     }
 
-    void CEntityRegistry::unregisterEntity( entityid_t id ) 
+    inline void CEntityRegistry::unregisterEntity( entityid_t id ) 
     {
         if( id == ENTITY_ID_INVALID )
         {
@@ -126,7 +134,7 @@ namespace chestnut::ecs::internal
         }
     }
 
-    entitysize_t CEntityRegistry::getEntityCount( int searchFlags ) const
+    inline entitysize_t CEntityRegistry::getEntityCount( int searchFlags ) const
     {
         if( flagEq( searchFlags, CAN_BE_REGULAR_ENTITY | CAN_BE_TEMPLATE_ENTITY ) )
         {
@@ -150,7 +158,7 @@ namespace chestnut::ecs::internal
         }
     }
 
-    entitysize_t CEntityRegistry::getEntityCountOfExactSignature( const CEntitySignature& requiredSignature, int searchFlags ) const
+    inline entitysize_t CEntityRegistry::getEntityCountOfExactSignature( const CEntitySignature& requiredSignature, int searchFlags ) const
     {
         const entitysize_t size = m_dequeEntityRecords.size();
         
@@ -167,7 +175,7 @@ namespace chestnut::ecs::internal
         return count;
     }
 
-    entitysize_t CEntityRegistry::getEntityCountOfPartialSignature( const CEntitySignature& requiredSignaturePart, int searchFlags ) const
+    inline entitysize_t CEntityRegistry::getEntityCountOfPartialSignature( const CEntitySignature& requiredSignaturePart, int searchFlags ) const
     {
         const entitysize_t size = m_dequeEntityRecords.size();
         
@@ -184,7 +192,7 @@ namespace chestnut::ecs::internal
         return count;
     }
 
-    const CEntitySignature* CEntityRegistry::getEntitySignature( entityid_t id ) const
+    inline const CEntitySignature* CEntityRegistry::getEntitySignature( entityid_t id ) const
     {
         if( id == ENTITY_ID_INVALID )
         {
@@ -201,7 +209,7 @@ namespace chestnut::ecs::internal
         return nullptr;
     }
     
-    std::vector<entityid_t> CEntityRegistry::findEntities( std::function< bool( const CEntitySignature& ) > pred, int searchFlags ) const
+    inline std::vector<entityid_t> CEntityRegistry::findEntities( std::function< bool( const CEntitySignature& ) > pred, int searchFlags ) const
     {
         std::vector< entityid_t > ids;
 

@@ -10,8 +10,7 @@
  */
 
 
-#ifndef __CHESTNUT_ECS_ENTITY_SIGNATURE_H__
-#define __CHESTNUT_ECS_ENTITY_SIGNATURE_H__
+#pragma once
 
 #include <string>
 #include <typeindex>
@@ -209,7 +208,4 @@ namespace chestnut::ecs
 } // namespace chestnut::ecs
 
 
-#include "entity_signature.tpp"
-
-
-#endif // __CHESTNUT_ECS_ENTITY_SIGNATURE_H__
+#include "entity_signature.inl"

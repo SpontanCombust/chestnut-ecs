@@ -1,5 +1,4 @@
-#ifndef __CHESTNUT_ECS_ENTITY_QUERY_H__
-#define __CHESTNUT_ECS_ENTITY_QUERY_H__
+#pragma once
 
 #include "types.hpp"
 #include "component_wrapper.hpp"
@@ -146,7 +145,4 @@ namespace chestnut::ecs
 } // namespace chestnut::ecs
 
 
-#include "entity_query.tpp"
-
-
-#endif // __CHESTNUT_ECS_ENTITY_QUERY_H__
+#include "entity_query.inl"

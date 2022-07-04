@@ -10,8 +10,7 @@
  */
 
 
-#ifndef __CHESTNUT_ECS_TYPES_H__
-#define __CHESTNUT_ECS_TYPES_H__
+#pragma once
 
 #include <cstdint> // uint16_t, uint32_t
 
@@ -52,5 +51,3 @@ namespace chestnut::ecs
     typedef uint16_t queryid_t;
 
 } // namespace chestnut::ecs
-
-#endif // __CHESTNUT_ECS_TYPES_H__

@@ -1,19 +1,27 @@
-#include "chestnut/ecs/entity_world.hpp"
-
+#include <type_traits>
 #include <exception> // invalid_argument
 
 namespace chestnut::ecs
 {
-    using namespace internal;
+    namespace internal
+    {
+        template< typename T >
+        inline constexpr bool is_valid_component_type = !std::is_fundamental_v<T> && 
+                                                         std::is_default_constructible_v<T> && 
+                                                         std::is_copy_assignable_v<T>;
+
+    } // namespace internal
+
+
 
     // ========================= PUBLIC ========================= //
 
-    CEntityWorld::CEntityWorld() 
+    inline CEntityWorld::CEntityWorld() 
     {
         
     }
 
-    CEntityWorld::~CEntityWorld() 
+    inline CEntityWorld::~CEntityWorld() 
     {
         for( auto& [ type, storage ] : m_mapCompTypeToStorage )
         {
@@ -28,12 +36,12 @@ namespace chestnut::ecs
 
 
 
-    entityid_t CEntityWorld::createEntity() 
+    inline entityid_t CEntityWorld::createEntity() 
     {
         return m_entityRegistry.registerNewEntity( false );
     }
 
-    std::vector< entityid_t > CEntityWorld::createEntities( entitysize_t amount ) 
+    inline std::vector< entityid_t > CEntityWorld::createEntities( entitysize_t amount ) 
     {
         std::vector< entityid_t > ids;
 
@@ -47,12 +55,12 @@ namespace chestnut::ecs
         return ids;
     }
 
-    bool CEntityWorld::hasEntity( entityid_t entityID ) const
+    inline bool CEntityWorld::hasEntity( entityid_t entityID ) const
     {
-        return m_entityRegistry.hasEntity( entityID, CEntityRegistry::CAN_BE_REGULAR_ENTITY );
+        return m_entityRegistry.hasEntity( entityID, internal::CEntityRegistry::CAN_BE_REGULAR_ENTITY );
     }
 
-    void CEntityWorld::destroyEntity( entityid_t entityID ) 
+    inline void CEntityWorld::destroyEntity( entityid_t entityID ) 
     {
         if( hasEntity( entityID ) )
         {
@@ -64,7 +72,7 @@ namespace chestnut::ecs
 
                 for( const auto& type : signature->m_setComponentTypes )
                 {
-                    IComponentStorage *storage = m_mapCompTypeToStorage.at( type );
+                    internal::IComponentStorage *storage = m_mapCompTypeToStorage.at( type );
                     storage->eraseComponent( entityID );
                 }
             }
@@ -73,7 +81,7 @@ namespace chestnut::ecs
         }
     }
 
-    void CEntityWorld::destroyEntities( const std::vector< entityid_t >& entityIDs ) 
+    inline void CEntityWorld::destroyEntities( const std::vector< entityid_t >& entityIDs ) 
     {
         for( entityid_t id : entityIDs )
         {
@@ -84,17 +92,17 @@ namespace chestnut::ecs
 
 
 
-    entityid_t CEntityWorld::createTemplateEntity() 
+    inline entityid_t CEntityWorld::createTemplateEntity() 
     {
         return m_entityRegistry.registerNewEntity( true );
     }
 
-    bool CEntityWorld::hasTemplateEntity( entityid_t templateEntityID ) const
+    inline bool CEntityWorld::hasTemplateEntity( entityid_t templateEntityID ) const
     {
-        return m_entityRegistry.hasEntity( templateEntityID, CEntityRegistry::CAN_BE_TEMPLATE_ENTITY );
+        return m_entityRegistry.hasEntity( templateEntityID, internal::CEntityRegistry::CAN_BE_TEMPLATE_ENTITY );
     }
 
-    void CEntityWorld::destroyTemplateEntity( entityid_t templateEntityID ) 
+    inline void CEntityWorld::destroyTemplateEntity( entityid_t templateEntityID ) 
     {
         if( hasTemplateEntity( templateEntityID ) )
         {
@@ -104,7 +112,7 @@ namespace chestnut::ecs
             {
                 for( const auto& type : signature->m_setComponentTypes )
                 {
-                    IComponentStorage *storage = m_mapCompTypeToStorage.at( type );
+                    internal::IComponentStorage *storage = m_mapCompTypeToStorage.at( type );
                     storage->eraseComponent( templateEntityID );
                 }
             }
@@ -116,7 +124,7 @@ namespace chestnut::ecs
 
 
 
-    entityid_t CEntityWorld::createEntityFromTemplate( entityid_t templateEntityID ) 
+    inline entityid_t CEntityWorld::createEntityFromTemplate( entityid_t templateEntityID ) 
     {
         if( hasTemplateEntity( templateEntityID ) )
         {
@@ -128,7 +136,7 @@ namespace chestnut::ecs
             {
                 for( std::type_index type : templateSignature->m_setComponentTypes )
                 {
-                    IComponentStorage *storage = m_mapCompTypeToStorage[ type ];
+                    internal::IComponentStorage *storage = m_mapCompTypeToStorage[ type ];
                     storage->storeComponentCopy( entityID, templateEntityID );
                 }
 
@@ -143,7 +151,7 @@ namespace chestnut::ecs
         }
     }
 
-    std::vector< entityid_t > CEntityWorld::createEntitiesFromTemplate( entityid_t templateEntityID, entitysize_t amount ) 
+    inline std::vector< entityid_t > CEntityWorld::createEntitiesFromTemplate( entityid_t templateEntityID, entitysize_t amount ) 
     {
         std::vector< entityid_t > ids;
 
@@ -162,7 +170,7 @@ namespace chestnut::ecs
 
                     for( std::type_index type : templateSignature->m_setComponentTypes )
                     {
-                        IComponentStorage *storage = m_mapCompTypeToStorage[ type ];
+                        internal::IComponentStorage *storage = m_mapCompTypeToStorage[ type ];
                         storage->storeComponentCopy( entityID, templateEntityID );
                     }
 
@@ -186,7 +194,7 @@ namespace chestnut::ecs
 
 
 
-    queryid_t CEntityWorld::createQuery( const CEntitySignature& requireSignature, const CEntitySignature& rejectSignature )
+    inline queryid_t CEntityWorld::createQuery( const CEntitySignature& requireSignature, const CEntitySignature& rejectSignature )
     {
         static queryid_t queryIDCounter = 0;
 
@@ -200,7 +208,7 @@ namespace chestnut::ecs
         {
             return guard->testQuery( sign );
 
-        }, CEntityRegistry::CAN_BE_REGULAR_ENTITY );
+        }, internal::CEntityRegistry::CAN_BE_REGULAR_ENTITY );
 
         for (entityid_t i = 0; i < vecEntitiesToFetchFrom.size(); i++)
         {
@@ -213,7 +221,7 @@ namespace chestnut::ecs
         return queryIDCounter;
     }
 
-    CEntityQuery* CEntityWorld::queryEntities( queryid_t id ) const
+    inline CEntityQuery* CEntityWorld::queryEntities( queryid_t id ) const
     {
         auto it = m_mapQueryIDToQueryGuard.find( id );
         if( it != m_mapQueryIDToQueryGuard.end() )
@@ -225,7 +233,7 @@ namespace chestnut::ecs
         return nullptr;
     }
 
-    void CEntityWorld::destroyQuery( queryid_t id )
+    inline void CEntityWorld::destroyQuery( queryid_t id )
     {
         auto it = m_mapQueryIDToQueryGuard.find( id );
         if( it != m_mapQueryIDToQueryGuard.end() )
@@ -235,20 +243,20 @@ namespace chestnut::ecs
         }
     }
 
-    std::vector< entityid_t > CEntityWorld::findEntities(std::function< bool( const CEntitySignature& ) > pred ) const
+    inline std::vector< entityid_t > CEntityWorld::findEntities(std::function< bool( const CEntitySignature& ) > pred ) const
     {
-        return m_entityRegistry.findEntities( pred, CEntityRegistry::CAN_BE_REGULAR_ENTITY );
+        return m_entityRegistry.findEntities( pred, internal::CEntityRegistry::CAN_BE_REGULAR_ENTITY );
     }
 
 
 
 
-    CEntityWorld::WriteLock CEntityWorld::lockForWriting() const
+    inline CEntityWorld::WriteLock CEntityWorld::lockForWriting() const
     {
         return WriteLock( m_mutex );
     }
 
-    CEntityWorld::ReadLock CEntityWorld::lockForReading() const
+    inline CEntityWorld::ReadLock CEntityWorld::lockForReading() const
     {
         return ReadLock( m_mutex );
     }
@@ -256,10 +264,10 @@ namespace chestnut::ecs
 
     // ========================= PRIVATE ========================= //
 
-    IComponentWrapper* CEntityWorld::createComponentInternal( std::type_index compType, entityid_t entityID ) 
+    inline internal::IComponentWrapper* CEntityWorld::createComponentInternal( std::type_index compType, entityid_t entityID ) 
     {
         // check if entity exists at all
-        if( !m_entityRegistry.hasEntity( entityID, CEntityRegistry::CAN_BE_REGULAR_ENTITY | CEntityRegistry::CAN_BE_TEMPLATE_ENTITY ) )
+        if( !m_entityRegistry.hasEntity( entityID, internal::CEntityRegistry::CAN_BE_REGULAR_ENTITY | internal::CEntityRegistry::CAN_BE_TEMPLATE_ENTITY ) )
         {
             return nullptr;
         }
@@ -270,7 +278,7 @@ namespace chestnut::ecs
 
         const CEntitySignature* oldSignature = m_entityRegistry.getEntitySignature( entityID ); // hasEntity() assures entity exists
 
-        IComponentStorage *storage = m_mapCompTypeToStorage[ compType ]; // createComponent assures this won't return null
+        internal::IComponentStorage *storage = m_mapCompTypeToStorage[ compType ]; // createComponent assures this won't return null
 
         if( oldSignature->has( compType ) )
         {
@@ -284,10 +292,10 @@ namespace chestnut::ecs
         newSignature.add( compType );
         
         // instantiate the actual new component
-        IComponentWrapper *comp = storage->storeComponent( entityID );
+        internal::IComponentWrapper *comp = storage->storeComponent( entityID );
 
         // if it's not a template entity we update queries for it
-        if( m_entityRegistry.hasEntity( entityID, CEntityRegistry::CAN_BE_REGULAR_ENTITY ) )
+        if( m_entityRegistry.hasEntity( entityID, internal::CEntityRegistry::CAN_BE_REGULAR_ENTITY ) )
         {
             updateQueriesOnEntityChange( entityID, oldSignature, &newSignature );
         }
@@ -300,9 +308,9 @@ namespace chestnut::ecs
         return comp;
     }
 
-    bool CEntityWorld::hasComponentInternal( std::type_index compType, entityid_t entityID ) const
+    inline bool CEntityWorld::hasComponentInternal( std::type_index compType, entityid_t entityID ) const
     {
-        if( !m_entityRegistry.hasEntity( entityID, CEntityRegistry::CAN_BE_REGULAR_ENTITY | CEntityRegistry::CAN_BE_TEMPLATE_ENTITY ) )
+        if( !m_entityRegistry.hasEntity( entityID, internal::CEntityRegistry::CAN_BE_REGULAR_ENTITY | internal::CEntityRegistry::CAN_BE_TEMPLATE_ENTITY ) )
         {
             return false;
         }
@@ -311,12 +319,12 @@ namespace chestnut::ecs
         return signature->has( compType );
     }
 
-    IComponentWrapper* CEntityWorld::getComponentInternal( std::type_index compType, entityid_t entityID ) const
+    inline internal::IComponentWrapper* CEntityWorld::getComponentInternal( std::type_index compType, entityid_t entityID ) const
     {
         if( hasComponentInternal( compType, entityID ) )
         {
             // we know it won't throw exception from hasComponentInternal
-            IComponentStorage *storage = m_mapCompTypeToStorage.at( compType );
+            internal::IComponentStorage *storage = m_mapCompTypeToStorage.at( compType );
 
             return storage->getComponent( entityID );
         }
@@ -326,7 +334,7 @@ namespace chestnut::ecs
         }
     }
 
-    void CEntityWorld::destroyComponentInternal( std::type_index compType, entityid_t entityID ) 
+    inline void CEntityWorld::destroyComponentInternal( std::type_index compType, entityid_t entityID ) 
     {
         if( hasComponentInternal( compType, entityID ) )
         {
@@ -338,12 +346,12 @@ namespace chestnut::ecs
 
 
             // remove instance of the component for that entity
-            IComponentStorage *storage = m_mapCompTypeToStorage[ compType ];
+            internal::IComponentStorage *storage = m_mapCompTypeToStorage[ compType ];
             storage->eraseComponent( entityID );
 
 
             // if it's not a template entity we update queries for it
-            if( m_entityRegistry.hasEntity( entityID, CEntityRegistry::CAN_BE_REGULAR_ENTITY ) )
+            if( m_entityRegistry.hasEntity( entityID, internal::CEntityRegistry::CAN_BE_REGULAR_ENTITY ) )
             {
                 updateQueriesOnEntityChange( entityID, oldSignature, &newSignature );
             }
@@ -354,7 +362,7 @@ namespace chestnut::ecs
         }
     }
 
-    void CEntityWorld::updateQueriesOnEntityChange( entityid_t entity, const CEntitySignature* prevSignature, const CEntitySignature* currSignature )
+    inline void CEntityWorld::updateQueriesOnEntityChange( entityid_t entity, const CEntitySignature* prevSignature, const CEntitySignature* currSignature )
     {
         bool prevValid, currValid;
 
@@ -386,6 +394,110 @@ namespace chestnut::ecs
             {
                 guard->removeEntityWithComponents( entity );
             }
+        }
+    }
+
+
+
+    // ========================= PUBLIC ========================= //
+
+    template< typename C, typename Traits >
+    void CEntityWorld::setupComponentType()
+    {
+        static_assert( internal::is_valid_component_type<C>, "Given type is not a valid component type!" );
+
+        std::type_index type = typeid(C);
+
+        auto it = m_mapCompTypeToStorage.find( type );
+        
+        if( it == m_mapCompTypeToStorage.end() )
+        {
+            m_mapCompTypeToStorage[ type ] = new internal::CComponentStorage<C>( 
+                Traits::storageSegmentSize, 
+                Traits::storageInitCapacity 
+            );
+        }
+    }
+
+    template< typename C >
+    inline void CEntityWorld::setupComponentTypeIfDidntAlready() 
+    {
+        setupComponentType< C, chestnut::ecs::ComponentTraits<C> >();
+    }
+
+
+
+
+
+    template< typename C >
+    CComponentHandle<C> CEntityWorld::createComponent( entityid_t entityID ) 
+    {
+        setupComponentTypeIfDidntAlready<C>();
+
+        internal::IComponentWrapper *uncastedComp;
+        uncastedComp = createComponentInternal( std::type_index( typeid( C ) ), entityID );
+        auto handle = CComponentHandle<C>( entityID, static_cast< internal::SComponentWrapper<C>* >( uncastedComp ) );
+
+        return handle;
+    }
+
+    template< typename C >
+    bool CEntityWorld::hasComponent( entityid_t entityID ) const
+    {
+        return hasComponentInternal( std::type_index( typeid( C ) ), entityID );
+    }
+
+    template< typename C >
+    CComponentHandle<C> CEntityWorld::getComponent( entityid_t entityID ) const
+    {
+        internal::IComponentWrapper *uncastedComp;
+        uncastedComp = getComponentInternal( std::type_index( typeid( C ) ), entityID );
+        auto handle = CComponentHandle<C>( entityID, static_cast< internal::SComponentWrapper<C>* >( uncastedComp ) );
+
+        return handle;
+    }
+
+    template< typename C >
+    void CEntityWorld::destroyComponent( entityid_t entityID ) 
+    {
+        destroyComponentInternal( std::type_index( typeid( C ) ), entityID );
+    }
+
+
+
+
+
+    template< typename C > 
+    void CEntityWorld::reserveComponentMemoryTotal( entitysize_t amount )
+    {
+        setupComponentTypeIfDidntAlready<C>();
+
+        // setupComponentTypeIfDidntAlready assures this won't return null
+        internal::IComponentStorage *storage = m_mapCompTypeToStorage[ typeid(C) ];
+
+        storage->reserve( amount );
+    }
+
+    template< typename C > 
+    void CEntityWorld::reserveComponentMemoryAdditional( entitysize_t amount )
+    {
+        setupComponentTypeIfDidntAlready<C>();
+
+        // setupComponentTypeIfDidntAlready assures this won't return null
+        internal::IComponentStorage *storage = m_mapCompTypeToStorage[ typeid(C) ];
+
+        storage->reserveAdditional( amount );
+    }
+
+    template< typename C >
+    void CEntityWorld::freeComponentMemory( entitysize_t amount )
+    {
+        auto it = m_mapCompTypeToStorage.find( typeid(C) );
+        if( it != m_mapCompTypeToStorage.end() )
+        {
+            internal::IComponentStorage *storage = it->second;
+
+            storage->resize( storage->getCapacity() - amount );
         }
     }
 

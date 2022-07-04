@@ -10,8 +10,7 @@
  */
 
 
-#ifndef __CHESTNUT_ECS_COMPONENT_WRAPPER_H__
-#define __CHESTNUT_ECS_COMPONENT_WRAPPER_H__
+#pragma once
 
 namespace chestnut::ecs::internal
 {
@@ -37,5 +36,3 @@ namespace chestnut::ecs::internal
     };
 
 } // namespace chestnut::ecs::internal
-
-#endif // __CHESTNUT_ECS_COMPONENT_WRAPPER_H__

@@ -10,8 +10,7 @@
  */
 
 
-#ifndef __CHESTNUT_ECS_ENTITY_WORLD_H__
-#define __CHESTNUT_ECS_ENTITY_WORLD_H__
+#pragma once
 
 #include "types.hpp"
 #include "entity_registry.hpp"
@@ -243,6 +242,5 @@ namespace chestnut::ecs
 
 } // namespace chestnut::ecs
 
-#include "entity_world.tpp"
 
-#endif // __CHESTNUT_ECS_ENTITY_WORLD_H__
+#include "entity_world.inl"

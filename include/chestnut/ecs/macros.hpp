@@ -10,8 +10,7 @@
  */
 
 
-#ifndef __CHESTNUT_ECS_MACROS_H__
-#define __CHESTNUT_ECS_MACROS_H__
+#pragma once
 
 #ifndef CHESTNUT_DEFAULT_STORAGE_SEGMENT_SIZE
     /**
@@ -21,5 +20,3 @@
      */
     #define CHESTNUT_DEFAULT_STORAGE_SEGMENT_SIZE 64 //arbitrary number
 #endif
-
-#endif // __CHESTNUT_ECS_MACROS_H__

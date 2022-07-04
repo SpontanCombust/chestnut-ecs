@@ -10,8 +10,7 @@
  */
 
 
-#ifndef __CHESTNUT_ECS_CONSTANTS_H__
-#define __CHESTNUT_ECS_CONSTANTS_H__
+#pragma once
 
 #include "types.hpp"
 
@@ -28,5 +27,3 @@ namespace chestnut::ecs
     const entityid_t ENTITY_ID_MINIMAL = 1;
     
 } // namespace chestnut::ecs
-
-#endif // __CHESTNUT_ECS_CONSTANTS_H__

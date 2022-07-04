@@ -10,8 +10,7 @@
  */
 
 
-#ifndef __CHESTNUT_ECS_COMPONENT_TRAITS_H__
-#define __CHESTNUT_ECS_COMPONENT_TRAITS_H__
+#pragma once
 
 #include "types.hpp"
 #include "macros.hpp"
@@ -41,5 +40,3 @@ namespace chestnut::ecs
     };
 
 } // namespace chestnut::ecs
-
-#endif // __CHESTNUT_ECS_COMPONENT_TRAITS_H__
