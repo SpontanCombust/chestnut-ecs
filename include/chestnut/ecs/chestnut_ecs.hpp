@@ -1,3 +1,15 @@
+/**
+ * @file chestnut_ecs.hpp
+ * @author Przemysław Cedro (SpontanCombust)
+ * @brief An all-including library header 
+ * @version 1.0
+ * @date 2021-11-30
+ * 
+ * @copyright Copyright (c) 2021
+ * 
+ */
+
+
 #include "types.hpp"
 #include "constants.hpp"
 #include "macros.hpp"

@@ -7,7 +7,7 @@
 
 namespace chestnut::ecs::internal
 {    
-    CComponentStorageSegment_Base::CComponentStorageSegment_Base( segsize_t size ) 
+    CComponentStorageSegment_Base::CComponentStorageSegment_Base( segsize_t size ) noexcept
     {
         m_size = size;
 
@@ -24,29 +24,29 @@ namespace chestnut::ecs::internal
         delete[] m_arrEntityIDs;
     }
 
-    segsize_t CComponentStorageSegment_Base::getSize() const
+    segsize_t CComponentStorageSegment_Base::getSize() const noexcept
     {
         return m_size;
     }
 
-    bool CComponentStorageSegment_Base::isEmpty() const
+    bool CComponentStorageSegment_Base::isEmpty() const noexcept
     {
         // if all indices are available, segment is empty
         return m_vecAvailableIndices.size() == m_size;
     }
 
-    bool CComponentStorageSegment_Base::isFull() const
+    bool CComponentStorageSegment_Base::isFull() const noexcept
     {
         // if there are no available indices, segment is full
         return m_vecAvailableIndices.empty();
     }
 
-    segsize_t CComponentStorageSegment_Base::getTakenSlotCount() const
+    segsize_t CComponentStorageSegment_Base::getTakenSlotCount() const noexcept
     {
         return m_size - m_vecAvailableIndices.size();
     }
 
-    bool CComponentStorageSegment_Base::hasSlottedComponent( entityid_t entityID ) const
+    bool CComponentStorageSegment_Base::hasSlottedComponent( entityid_t entityID ) const noexcept
     {
         if( entityID == ENTITY_ID_INVALID )
         {

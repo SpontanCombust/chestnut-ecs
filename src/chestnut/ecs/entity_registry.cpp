@@ -69,13 +69,28 @@ namespace chestnut::ecs::internal
 
     void CEntityRegistry::updateEntity( entityid_t id, const CEntitySignature& newSignature ) 
     {
-        if( hasEntity( id, true ) )
+        if( hasEntity( id, CAN_BE_REGULAR_ENTITY | CAN_BE_TEMPLATE_ENTITY ) )
         {
             m_dequeEntityRecords[ indexFromEntityId(id) ].signature = newSignature;
         }
     }
 
-    bool CEntityRegistry::hasEntity( entityid_t id, bool canBeTemplateEntity ) const
+    inline bool flagEq( int val, int flags )
+    {
+        return ( val & flags ) == flags;
+    }
+
+    inline bool recordMatchesSearchFlags( const SEntityRegistryRecord& record, int flags )
+    {
+        bool result = false;
+
+        result |= flagEq( flags, CEntityRegistry::CAN_BE_REGULAR_ENTITY ) && !record.isTemplate;
+        result |= flagEq( flags, CEntityRegistry::CAN_BE_TEMPLATE_ENTITY ) && record.isTemplate;
+        
+        return result;
+    }
+
+    bool CEntityRegistry::hasEntity( entityid_t id, int searchFlags ) const
     {
         if( id == ENTITY_ID_INVALID )
         {
@@ -86,29 +101,7 @@ namespace chestnut::ecs::internal
 
         if( id < m_dequeEntityRecords.size() && m_dequeEntityRecords[id].isIdUsed )
         {
-            if( !canBeTemplateEntity )
-            {
-                return !m_dequeEntityRecords[id].isTemplate;
-            }
-
-            return true;
-        }
-
-        return false;
-    }
-
-    bool CEntityRegistry::hasTemplateEntity( entityid_t id ) const
-    {
-        if( id == ENTITY_ID_INVALID )
-        {
-            return false;
-        }
-
-        id = indexFromEntityId(id);
-
-        if( id < m_dequeEntityRecords.size() && m_dequeEntityRecords[id].isIdUsed )
-        {
-            return m_dequeEntityRecords[id].isTemplate;
+            return recordMatchesSearchFlags( m_dequeEntityRecords[id], searchFlags );
         }
 
         return false;
@@ -133,19 +126,39 @@ namespace chestnut::ecs::internal
         }
     }
 
-    entitysize_t CEntityRegistry::getEntityCount() const
+    entitysize_t CEntityRegistry::getEntityCount( int searchFlags ) const
     {
-        return m_dequeEntityRecords.size() - m_vecRecycledEntityIDs.size();
+        if( flagEq( searchFlags, CAN_BE_REGULAR_ENTITY | CAN_BE_TEMPLATE_ENTITY ) )
+        {
+            return m_dequeEntityRecords.size() - m_vecRecycledEntityIDs.size();
+        }
+        else
+        {
+            const entitysize_t size = m_dequeEntityRecords.size();
+            entitysize_t count = 0;
+
+            for (entityid_t i = 0; i < size; i++)
+            {
+                const auto& record = m_dequeEntityRecords[i];
+                if( record.isIdUsed && recordMatchesSearchFlags( record, searchFlags ) )
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
     }
 
-    entitysize_t CEntityRegistry::getEntityCountOfExactSignature( const CEntitySignature& requiredSignature ) const
+    entitysize_t CEntityRegistry::getEntityCountOfExactSignature( const CEntitySignature& requiredSignature, int searchFlags ) const
     {
         const entitysize_t size = m_dequeEntityRecords.size();
         
         entitysize_t count = 0;
         for (entityid_t i = 0; i < size; i++)
         {
-            if( m_dequeEntityRecords[i].isIdUsed && m_dequeEntityRecords[i].signature == requiredSignature )
+            const auto& record = m_dequeEntityRecords[i];
+            if( record.isIdUsed && recordMatchesSearchFlags( record, searchFlags ) && record.signature == requiredSignature )
             {
                 count++;
             }
@@ -154,14 +167,15 @@ namespace chestnut::ecs::internal
         return count;
     }
 
-    entitysize_t CEntityRegistry::getEntityCountOfPartialSignature( const CEntitySignature& requiredSignaturePart ) const
+    entitysize_t CEntityRegistry::getEntityCountOfPartialSignature( const CEntitySignature& requiredSignaturePart, int searchFlags ) const
     {
         const entitysize_t size = m_dequeEntityRecords.size();
         
         entitysize_t count = 0;
         for (entityid_t i = 0; i < size; i++)
         {
-            if( m_dequeEntityRecords[i].isIdUsed && m_dequeEntityRecords[i].signature.hasAllFrom( requiredSignaturePart ) )
+            const auto& record = m_dequeEntityRecords[i];
+            if( record.isIdUsed && recordMatchesSearchFlags( record, searchFlags ) && record.signature.hasAllFrom( requiredSignaturePart ) )
             {
                 count++;
             }
@@ -187,15 +201,16 @@ namespace chestnut::ecs::internal
         return nullptr;
     }
     
-    std::vector<entityid_t> CEntityRegistry::findEntities( std::function< bool( const CEntitySignature& ) > pred ) const
+    std::vector<entityid_t> CEntityRegistry::findEntities( std::function< bool( const CEntitySignature& ) > pred, int searchFlags ) const
     {
         std::vector< entityid_t > ids;
 
         for (entityid_t i = 0; i < m_dequeEntityRecords.size(); i++)
         {
-            if( m_dequeEntityRecords[i].isIdUsed && !m_dequeEntityRecords[i].isTemplate )   
+            const auto& record = m_dequeEntityRecords[i];
+            if( record.isIdUsed && recordMatchesSearchFlags( record, searchFlags ) )   
             {
-                if( pred( m_dequeEntityRecords[i].signature ) )
+                if( pred( record.signature ) )
                 {
                     ids.push_back( entityIdFromIndex(i) );
                 }

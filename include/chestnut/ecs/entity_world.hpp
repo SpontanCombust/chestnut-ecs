@@ -1,3 +1,15 @@
+/**
+ * @file entity_world.hpp
+ * @author Przemysław Cedro (SpontanCombust)
+ * @brief Header file for the main class of the library - Entity World
+ * @version 1.0
+ * @date 2021-12-02
+ * 
+ * @copyright Copyright (c) 2021
+ * 
+ */
+
+
 #ifndef __CHESTNUT_ECS_ENTITY_WORLD_H__
 #define __CHESTNUT_ECS_ENTITY_WORLD_H__
 
@@ -10,6 +22,7 @@
 #include "component_wrapper.hpp"
 #include "component_traits.hpp"
 
+#include <shared_mutex>
 #include <unordered_map>
 
 namespace chestnut::ecs
@@ -17,42 +30,116 @@ namespace chestnut::ecs
     class CEntityWorld
     {
     private:
-        // A bookkeeping object used to keep track of created entities and their signatures
+        /**
+         * @brief A bookkeeping object used to keep track of created entities and their signatures
+         */
         internal::CEntityRegistry m_entityRegistry;
 
-        // A map pointing to direct component storages by the type of the component they store
+        /**
+         * @brief A map pointing to direct component storages by the type of the component they store
+         */
         internal::CComponentStorageTypeMap m_mapCompTypeToStorage;
 
-        // A map of query guards, that is, objects responsible for buffering component data for the actual queries (that they store)
-        // They're mutable, because we cache pending components inside them and want to update them when calling update on query
-        // This doesn't affect World's state
+        /**
+         * @brief A map of query guards, that is, objects responsible for buffering component data for the actual queries (that they store)
+         * 
+         * @details
+         * Query guards are mutable, because we cache pending components inside them and want to update them when calling update on query.
+         * This action doesn't affect World itself.
+         */
         mutable std::unordered_map< queryid_t, internal::CEntityQueryGuard* > m_mapQueryIDToQueryGuard;
 
+        /**
+         * @brief Shared mutex that can be used for synchronizing actions on the world between threads
+         */
+        mutable std::shared_mutex m_mutex;
+
     public:
+        /**
+         * @brief Write lock typedef for World's mutex
+         */
+        typedef std::unique_lock< std::shared_mutex > WriteLock;
+        /**
+         * @brief Read lock typedef for World's mutex
+         */
+        typedef std::shared_lock< std::shared_mutex > ReadLock;
+
+
+    public:
+        /**
+         * @brief Constructor
+         */
         CEntityWorld();
 
-        CEntityWorld( const CEntityWorld& ) = delete; // we don't allow copying components
+        /**
+         * @brief World is too heavy to have it be able to be copied
+         */
+        CEntityWorld( const CEntityWorld& ) = delete;
 
+        /**
+         * @brief Destructor
+         * 
+         * @details
+         * Takes care of cleaning out any left components
+         */
         ~CEntityWorld();
 
 
-        // Traits describe how memory for this component type is managed
-        // You can setup component type only once
-        // Make sure to use this function before ever using this component type with other functions,
-        // because they may do it automatically, but with default traits
-        // To know how to write traits and for more information, see component_traits.hpp
+        // To know how to write traits and for more information, see 
+        /**
+         * @brief Initialize a component type that is to be used by the World
+         * 
+         * @tparam C component type
+         * @tparam Traits component traits
+         * 
+         * @details
+         * Traits describe how memory for this component type is managed.
+         * You can setup component type only once.
+         * Make sure to use this function before ever using this component type with other functions,
+         * because they may do it automatically, but with default traits.
+         * 
+         * @see ComponentTraits
+         */
         template< typename C, typename Traits = chestnut::ecs::ComponentTraits<C> >
         void setupComponentType();
 
 
+        /**
+         * @brief Create a new entity and return its ID
+         * 
+         * @return entity ID
+         */
         entityid_t createEntity();
 
+        /**
+         * @brief Create multiple new entities and return a vector of their IDs
+         * 
+         * @param amount number of entities
+         * @return vector of entity IDs
+         */
         std::vector<entityid_t> createEntities( entitysize_t amount );
 
+        /**
+         * @brief Checks if entity with that ID exists
+         * 
+         * @param entityID ID of the entity
+         * @return true if entity exists
+         * @return false otherwise
+         */
         bool hasEntity( entityid_t entityID ) const;
 
+        /**
+         * @brief Erase entity and all components that belong to it 
+         * 
+         * @param entityID ID of the entity
+         */
         void destroyEntity( entityid_t entityID );
 
+        /**
+         * @brief Erase multiple entities
+         * 
+         * @param entityIDs vector of entity IDs
+         */
         void destroyEntities( const std::vector<entityid_t>& entityIDs );
 
 
@@ -130,6 +217,11 @@ namespace chestnut::ecs
         // Simpler form of querying for entities, where you only get their IDs when
         // Use this only when you'll be looking for entities non-frequently. Otherwise use regular queries and do forEach with entity IDs.
         std::vector< entityid_t > findEntities( std::function< bool( const CEntitySignature& ) > pred ) const;
+
+
+        WriteLock lockForWriting() const;
+
+        ReadLock lockForReading() const;
 
 
     private:

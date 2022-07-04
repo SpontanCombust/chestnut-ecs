@@ -116,4 +116,9 @@ namespace chestnut::ecs
         return lhs.m_setComponentTypes == rhs.m_setComponentTypes;
     }
 
+    bool operator!=( const CEntitySignature& lhs, const CEntitySignature& rhs )
+    {
+        return lhs.m_setComponentTypes != rhs.m_setComponentTypes;
+    }
+
 } // namespace chestnut::ecs

@@ -6,7 +6,7 @@
 namespace chestnut::ecs::internal
 {    
     template<class C>
-    CComponentStorageSegment<C>::CComponentStorageSegment( segsize_t size ) 
+    CComponentStorageSegment<C>::CComponentStorageSegment( segsize_t size ) noexcept
     : CComponentStorageSegment_Base( size )
     {
         m_arrComponentSlots = new SComponentWrapper<C>[ size ];
@@ -19,7 +19,7 @@ namespace chestnut::ecs::internal
     }
 
     template<class C>
-    SComponentWrapper<C>* CComponentStorageSegment<C>::tryTakeUpSlot( entityid_t entityID ) 
+    SComponentWrapper<C>* CComponentStorageSegment<C>::tryTakeUpSlot( entityid_t entityID ) noexcept
     {
         if( entityID == ENTITY_ID_INVALID )
         {
@@ -43,9 +43,9 @@ namespace chestnut::ecs::internal
     }
 
     template<class C>
-    SComponentWrapper<C>* CComponentStorageSegment<C>::tryTakeUpSlot( entityid_t entityID, const SComponentWrapper<C>* copySrc ) 
+    SComponentWrapper<C>* CComponentStorageSegment<C>::tryTakeUpSlot( entityid_t entityID, const SComponentWrapper<C>* copySrc ) noexcept
     {
-        if( entityID == ENTITY_ID_INVALID )
+        if( entityID == ENTITY_ID_INVALID || !copySrc )
         {
             return nullptr;
         }
@@ -68,7 +68,7 @@ namespace chestnut::ecs::internal
     }
 
     template<class C>
-    SComponentWrapper<C>* CComponentStorageSegment<C>::getSlottedComponent( entityid_t entityID ) const
+    SComponentWrapper<C>* CComponentStorageSegment<C>::getSlottedComponent( entityid_t entityID ) const noexcept
     {
         if( entityID == ENTITY_ID_INVALID )
         {
@@ -87,7 +87,7 @@ namespace chestnut::ecs::internal
     }
     
     template<class C>
-    void CComponentStorageSegment<C>::freeSlot( entityid_t entityID ) 
+    void CComponentStorageSegment<C>::freeSlot( entityid_t entityID ) noexcept
     {
         for (entityid_t i = 0; i < m_size; i++)
         {
@@ -103,7 +103,7 @@ namespace chestnut::ecs::internal
     }
 
     template<class C>
-    void CComponentStorageSegment<C>::clearSlots() 
+    void CComponentStorageSegment<C>::clearSlots() noexcept
     {
         m_vecAvailableIndices.clear();
         m_vecAvailableIndices.resize( m_size );
