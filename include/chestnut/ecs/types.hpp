@@ -19,6 +19,8 @@ namespace chestnut::ecs
 {
     /**
      * @brief Type for the ID of the entity
+     * 
+     * @details Entity ID is specified as unsigned 32-bit integer.
      */
     typedef uint32_t entityid_t;
     /**
@@ -28,17 +30,24 @@ namespace chestnut::ecs
 
     /**
      * @brief Type for the ID of the segment in the component storage
+     * 
+     * @details Segment ID is specified as unsigned 16-bit integer.
      */
     typedef uint16_t segid_t;
     /**
      * @brief Type for the size of the segment in the component storage
      * 
-     * @details A single segment can have the max amount of components equal to max amount of available entities.
+     * @details 
+     * A single segment can have the max amount of components equal to max amount of available entities.
+     * Segment size is specified as unsigned 16-bit integer.
      */
     typedef entitysize_t segsize_t;
 
     /**
      * @brief Type for the entity of entity query
+     * 
+     * @details
+     * Query ID is specified as unsigned 16-bit integer.
      */
     typedef uint16_t queryid_t;
 
