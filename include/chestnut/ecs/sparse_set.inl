@@ -76,20 +76,6 @@ const T& CSparseSet<T>::at(unsigned int idx) const
 }
 
 template<typename T>
-T& CSparseSet<T>::operator[](unsigned int idx) noexcept
-{
-    resizeSparce(idx + 1);
-    
-    if(m_sparse[idx] == NIL_INDEX)
-    {
-        m_dense.emplace_back();
-        m_sparse[idx] = m_dense.size() - 1;
-    }
-
-    return m_dense[m_sparse[idx]];
-}
-
-template<typename T>
 bool CSparseSet<T>::empty() const noexcept
 {
     return m_dense.empty();
@@ -123,7 +109,7 @@ void CSparseSet<T>::clear() noexcept
 template<typename T>
 void CSparseSet<T>::insert(unsigned int idx, T&& arg) noexcept
 {
-    resizeSparce(idx + 1);
+    m_sparse.resize(idx + 1, NIL_INDEX);
 
     if(m_sparse[idx] != NIL_INDEX)
     {
@@ -145,12 +131,6 @@ void CSparseSet<T>::erase(unsigned int idx) noexcept
         m_dense.pop_back();
         m_sparse[idx] = NIL_INDEX;
     }
-}
-
-template<typename T>
-inline void CSparseSet<T>::resizeSparce(unsigned int newSize) noexcept
-{
-    m_sparse.resize(newSize, NIL_INDEX);
 }
 
 } // namespace chestnut::ecs::internal

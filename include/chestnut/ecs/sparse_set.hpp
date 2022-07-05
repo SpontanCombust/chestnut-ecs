@@ -33,7 +33,6 @@ namespace chestnut::ecs::internal
 
         T& at(unsigned int idx);
         const T& at(unsigned int idx) const;
-        T& operator[](unsigned int idx) noexcept;
 
         bool empty() const noexcept;
         unsigned int size() const noexcept;
@@ -42,9 +41,6 @@ namespace chestnut::ecs::internal
         void clear() noexcept;
         void insert(unsigned int idx, T&& arg) noexcept;
         void erase(unsigned int idx) noexcept;
-
-    private:
-        void resizeSparce(unsigned int newSize) noexcept;
     };
     
 } // namespace chestnut::ecs::internal
