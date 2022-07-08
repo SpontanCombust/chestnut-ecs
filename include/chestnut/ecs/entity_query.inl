@@ -1,633 +1,83 @@
-#include <algorithm> //stable_sort
-#include <numeric> //iota
+#include <algorithm> // stable_sort
+#include <cassert>
+#include <numeric> // iota
 
 namespace chestnut::ecs
 {
-    inline CEntityQuery::CEntityQuery( queryid_t id ) 
-    {
-        m_id = id;
-    }
 
-    inline queryid_t CEntityQuery::getID() const
-    {
-        return m_id;
-    }
+inline CEntityQuery::CEntityQuery(internal::CComponentStorage *storagePtr, queryid_t id, CEntitySignature requireSignature, CEntitySignature rejectSignature) noexcept
+: m_storagePtr(storagePtr), m_id(id), m_requireSignature(requireSignature), m_rejectSignature(rejectSignature)
+{
 
-    inline entitysize_t CEntityQuery::getEntityCount() const
-    {
-        return m_vecEntityIDs.size();
-    }
+}
 
-    inline void CEntityQuery::forEachEntityWith( std::function< void( entityid_t ) > func ) const
-    {
-        if( m_vecEntityIDs.empty() )
-        {
-            return;
+inline queryid_t CEntityQuery::getID() const noexcept
+{
+    return m_id;
+}
+
+inline const CEntitySignature& CEntityQuery::getRejectSignature() const noexcept
+{
+    return m_rejectSignature;
+}
+
+inline const CEntitySignature& CEntityQuery::getRequireSignature() const noexcept
+{
+    return m_requireSignature;
+}
+
+inline entitysize_t CEntityQuery::getEntityCount() const noexcept
+{
+    return m_vecEntityIDs.size();
+}
+
+
+
+
+template<typename ...Types>
+CEntityQuery::Iterator<Types...> CEntityQuery::begin() noexcept
+{
+    assert(m_requireSignature.has<Types...>() && "All types supplied must be in query's 'require' signature");
+
+    CEntitySignature sign = makeEntitySignature<Types...>();
+    assert(m_rejectSignature.hasAnyFrom(sign) && "None of the supplied types should be in query's 'reject' signature");
+
+    return Iterator(this, 0);
+}
+
+template<typename ...Types>
+CEntityQuery::Iterator<Types...> CEntityQuery::end() noexcept
+{
+    assert(m_requireSignature.has<Types...>() && "All types supplied must be in query's 'require' signature");
+
+    CEntitySignature sign = makeEntitySignature<Types...>();
+    assert(m_rejectSignature.hasAnyFrom(sign) && "None of the supplied types should be in query's 'reject' signature");
+
+    return Iterator(this, m_vecEntityIDs.size());
+}
+
+template<typename ...Types>
+CEntityQuery CEntityQuery::getSorted(std::function<bool(CEntityQuery::Iterator<Types...>, CEntityQuery::Iterator<Types...>)> comparator) noexcept
+{
+    std::vector<unsigned int> indices(m_vecEntityIDs.size());
+    std::iota(indices.begin(), indices.end(), 0);
+
+    std::stable_sort(indices.begin(), indices.end(),
+        [&](unsigned int idx1, unsigned int idx2) -> bool {
+            Iterator<Types...> it1(this, idx1);
+            Iterator<Types...> it2(this, idx2);
+
+            return comparator(it1, it2);
         }
+    );
 
-        const entityid_t entCount = m_vecEntityIDs.size();
-
-        for (entityid_t i = 0; i < entCount; i++)
-        {
-            func( m_vecEntityIDs[i] );
-        }
+    CEntityQuery sortedQuery(this->m_storagePtr, this->m_id, this->m_requireSignature, this->m_rejectSignature);
+    for (unsigned int i = 0; i < m_vecEntityIDs.size(); i++)
+    {
+        sortedQuery.m_vecEntityIDs[i] = this->m_vecEntityIDs[indices[i]];
     }
     
-    inline void CEntityQuery::forEachEntityPairWith( std::function< void( entityid_t, entityid_t ) > func ) const
-    {
-        if( m_vecEntityIDs.empty() )
-        {
-            return;
-        }
-
-        const entityid_t entCount = m_vecEntityIDs.size();
-
-        for (entityid_t i = 0; i < entCount; i++)
-        {
-            for (entityid_t j = i; j < entCount; j++)
-            {
-                func( m_vecEntityIDs[i], m_vecEntityIDs[j] );   
-            }
-        }
-    }
-
-    inline void CEntityQuery::reorderData() 
-    {
-        entitysize_t entCount = getEntityCount();
-
-        m_sort_reorderedEntityIDs.clear();
-        m_sort_reorderedEntityIDs.resize( entCount );
-        for (entityid_t i = 0; i < entCount; i++)
-        {
-            m_sort_reorderedEntityIDs[i] = m_vecEntityIDs[ m_sort_orderedIndices[i] ];
-        }
-        m_vecEntityIDs = m_sort_reorderedEntityIDs;
-        
-        m_sort_reorderedComponents.clear();
-        m_sort_reorderedComponents.resize( entCount );
-        for( auto& [ type, vecComps ] : m_mapCompTypeToVecComp )
-        {
-            for (entityid_t i = 0; i < entCount; i++)
-            {
-                m_sort_reorderedComponents[i] = vecComps[ m_sort_orderedIndices[i] ];
-            }
-            vecComps = m_sort_reorderedComponents;
-        }    
-    }
-
-
-
-
-
-
-
-
-
-    template< class C1 >
-    void CEntityQuery::forEachEntityWith( std::function< void( C1& ) > func ) const
-    {
-        if( m_vecEntityIDs.empty() )
-        {
-            return;
-        }
-
-        const entityid_t entCount = m_vecEntityIDs.size();
-        const std::vector< internal::IComponentWrapper * >& vecC1 = m_mapCompTypeToVecComp.at( typeid(C1) );
-
-        for (entityid_t i = 0; i < entCount; i++)
-        {
-            internal::SComponentWrapper<C1> *c1 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[i] );
-            func( c1->data );
-        }
-    }
-
-    template< class C1, class C2 >
-    void CEntityQuery::forEachEntityWith( std::function< void( C1&, C2& ) > func ) const
-    {
-        if( m_vecEntityIDs.empty() )
-        {
-            return;
-        }
-
-        const entityid_t entCount = m_vecEntityIDs.size();
-        const std::vector< internal::IComponentWrapper * >& vecC1 = m_mapCompTypeToVecComp.at( typeid(C1) );
-        const std::vector< internal::IComponentWrapper * >& vecC2 = m_mapCompTypeToVecComp.at( typeid(C2) );
-
-        for (entityid_t i = 0; i < entCount; i++)
-        {
-            internal::SComponentWrapper<C1> *c1 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[i] );
-            internal::SComponentWrapper<C2> *c2 = static_cast< internal::SComponentWrapper<C2>* >( vecC2[i] );
-            func( c1->data, c2->data );
-        }
-    }
-
-    template< class C1, class C2, class C3 >
-    void CEntityQuery::forEachEntityWith( std::function< void( C1&, C2&, C3& ) > func ) const
-    {
-        if( m_vecEntityIDs.empty() )
-        {
-            return;
-        }
-
-        const entityid_t entCount = m_vecEntityIDs.size();
-        const std::vector< internal::IComponentWrapper * >& vecC1 = m_mapCompTypeToVecComp.at( typeid(C1) );
-        const std::vector< internal::IComponentWrapper * >& vecC2 = m_mapCompTypeToVecComp.at( typeid(C2) );
-        const std::vector< internal::IComponentWrapper * >& vecC3 = m_mapCompTypeToVecComp.at( typeid(C3) );
-
-        for (entityid_t i = 0; i < entCount; i++)
-        {
-            internal::SComponentWrapper<C1> *c1 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[i] );
-            internal::SComponentWrapper<C2> *c2 = static_cast< internal::SComponentWrapper<C2>* >( vecC2[i] );
-            internal::SComponentWrapper<C3> *c3 = static_cast< internal::SComponentWrapper<C3>* >( vecC3[i] );
-            func( c1->data, c2->data, c3->data );
-        }
-    }
-
-    template< class C1, class C2, class C3, class C4 >
-    void CEntityQuery::forEachEntityWith( std::function< void( C1&, C2&, C3&, C4& ) > func ) const
-    {
-        if( m_vecEntityIDs.empty() )
-        {
-            return;
-        }
-
-        const entityid_t entCount = m_vecEntityIDs.size();
-        const std::vector< internal::IComponentWrapper * >& vecC1 = m_mapCompTypeToVecComp.at( typeid(C1) );
-        const std::vector< internal::IComponentWrapper * >& vecC2 = m_mapCompTypeToVecComp.at( typeid(C2) );
-        const std::vector< internal::IComponentWrapper * >& vecC3 = m_mapCompTypeToVecComp.at( typeid(C3) );
-        const std::vector< internal::IComponentWrapper * >& vecC4 = m_mapCompTypeToVecComp.at( typeid(C4) );
-
-        for (entityid_t i = 0; i < entCount; i++)
-        {
-            internal::SComponentWrapper<C1> *c1 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[i] );
-            internal::SComponentWrapper<C2> *c2 = static_cast< internal::SComponentWrapper<C2>* >( vecC2[i] );
-            internal::SComponentWrapper<C3> *c3 = static_cast< internal::SComponentWrapper<C3>* >( vecC3[i] );
-            internal::SComponentWrapper<C4> *c4 = static_cast< internal::SComponentWrapper<C4>* >( vecC4[i] );
-            func( c1->data, c2->data, c3->data, c4->data );
-        }
-    }
-
-
-
-
-
-    
-    template< class C1 >
-    void CEntityQuery::forEachEntityWith( std::function< void( entityid_t, C1& ) > func ) const
-    {
-        if( m_vecEntityIDs.empty() )
-        {
-            return;
-        }
-
-        const entityid_t entCount = m_vecEntityIDs.size();
-        const std::vector< internal::IComponentWrapper * >& vecC1 = m_mapCompTypeToVecComp.at( typeid(C1) );
-
-        for (entityid_t i = 0; i < entCount; i++)
-        {
-            internal::SComponentWrapper<C1> *c1 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[i] );
-            func( m_vecEntityIDs[i], c1->data );
-        }
-    }
-
-    template< class C1, class C2 >
-    void CEntityQuery::forEachEntityWith( std::function< void( entityid_t, C1&, C2& ) > func ) const
-    {
-        if( m_vecEntityIDs.empty() )
-        {
-            return;
-        }
-
-        const entityid_t entCount = m_vecEntityIDs.size();
-        const std::vector< internal::IComponentWrapper * >& vecC1 = m_mapCompTypeToVecComp.at( typeid(C1) );
-        const std::vector< internal::IComponentWrapper * >& vecC2 = m_mapCompTypeToVecComp.at( typeid(C2) );
-
-        for (entityid_t i = 0; i < entCount; i++)
-        {
-            internal::SComponentWrapper<C1> *c1 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[i] );
-            internal::SComponentWrapper<C2> *c2 = static_cast< internal::SComponentWrapper<C2>* >( vecC2[i] );
-            func( m_vecEntityIDs[i], c1->data, c2->data );
-        }
-    }
-
-    template< class C1, class C2, class C3 >
-    void CEntityQuery::forEachEntityWith( std::function< void( entityid_t, C1&, C2&, C3& ) > func ) const
-    {
-        if( m_vecEntityIDs.empty() )
-        {
-            return;
-        }
-
-        const entityid_t entCount = m_vecEntityIDs.size();
-        const std::vector< internal::IComponentWrapper * >& vecC1 = m_mapCompTypeToVecComp.at( typeid(C1) );
-        const std::vector< internal::IComponentWrapper * >& vecC2 = m_mapCompTypeToVecComp.at( typeid(C2) );
-        const std::vector< internal::IComponentWrapper * >& vecC3 = m_mapCompTypeToVecComp.at( typeid(C3) );
-
-        for (entityid_t i = 0; i < entCount; i++)
-        {
-            internal::SComponentWrapper<C1> *c1 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[i] );
-            internal::SComponentWrapper<C2> *c2 = static_cast< internal::SComponentWrapper<C2>* >( vecC2[i] );
-            internal::SComponentWrapper<C3> *c3 = static_cast< internal::SComponentWrapper<C3>* >( vecC3[i] );
-            func( m_vecEntityIDs[i], c1->data, c2->data, c3->data );
-        }
-    }
-
-    template< class C1, class C2, class C3, class C4 >
-    void CEntityQuery::forEachEntityWith( std::function< void( entityid_t, C1&, C2&, C3&, C4& ) > func ) const
-    {
-        if( m_vecEntityIDs.empty() )
-        {
-            return;
-        }
-
-        const entityid_t entCount = m_vecEntityIDs.size();
-        const std::vector< internal::IComponentWrapper * >& vecC1 = m_mapCompTypeToVecComp.at( typeid(C1) );
-        const std::vector< internal::IComponentWrapper * >& vecC2 = m_mapCompTypeToVecComp.at( typeid(C2) );
-        const std::vector< internal::IComponentWrapper * >& vecC3 = m_mapCompTypeToVecComp.at( typeid(C3) );
-        const std::vector< internal::IComponentWrapper * >& vecC4 = m_mapCompTypeToVecComp.at( typeid(C4) );
-
-        for (entityid_t i = 0; i < entCount; i++)
-        {
-            internal::SComponentWrapper<C1> *c1 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[i] );
-            internal::SComponentWrapper<C2> *c2 = static_cast< internal::SComponentWrapper<C2>* >( vecC2[i] );
-            internal::SComponentWrapper<C3> *c3 = static_cast< internal::SComponentWrapper<C3>* >( vecC3[i] );
-            internal::SComponentWrapper<C4> *c4 = static_cast< internal::SComponentWrapper<C4>* >( vecC4[i] );
-            func( m_vecEntityIDs[i], c1->data, c2->data, c3->data, c4->data );
-        }
-    }
-
-
-
-
-
-
-    template<class C1>
-    void CEntityQuery::forEachEntityPairWith( std::function< void( C1&, C1& ) > func ) const
-    {
-        if( m_vecEntityIDs.empty() )
-        {
-            return;
-        }
-
-        const entityid_t entCount = m_vecEntityIDs.size();
-        const std::vector< internal::IComponentWrapper * >& vecC1 = m_mapCompTypeToVecComp.at( typeid(C1) );
-
-        for (entityid_t i = 0; i < entCount; i++)
-        {
-            for (entityid_t j = i; j < entCount; j++)
-            {
-                internal::SComponentWrapper<C1> *c11 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[i] );
-                internal::SComponentWrapper<C1> *c12 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[j] );
-                
-                func( c11->data, c12->data );
-            }
-        }
-    }
-
-    template<class C1, class C2>
-    void CEntityQuery::forEachEntityPairWith( std::function< void( C1&, C2&, C1&, C2& ) > func ) const
-    {
-        if( m_vecEntityIDs.empty() )
-        {
-            return;
-        }
-
-        const entityid_t entCount = m_vecEntityIDs.size();
-        const std::vector< internal::IComponentWrapper * >& vecC1 = m_mapCompTypeToVecComp.at( typeid(C1) );
-        const std::vector< internal::IComponentWrapper * >& vecC2 = m_mapCompTypeToVecComp.at( typeid(C2) );
-
-        for (entityid_t i = 0; i < entCount; i++)
-        {
-            for (entityid_t j = i; j < entCount; j++)
-            {
-                internal::SComponentWrapper<C1> *c11 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[i] );
-                internal::SComponentWrapper<C2> *c21 = static_cast< internal::SComponentWrapper<C2>* >( vecC2[i] );
-                internal::SComponentWrapper<C1> *c12 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[j] );
-                internal::SComponentWrapper<C2> *c22 = static_cast< internal::SComponentWrapper<C2>* >( vecC2[j] );
-                
-                func( c11->data, c21->data, c12->data, c22->data );
-            }
-        }
-    }
-
-    template<class C1, class C2, class C3>
-    void CEntityQuery::forEachEntityPairWith( std::function< void( C1&, C2&, C3&, C1&, C2&, C3& ) > func ) const
-    {
-        if( m_vecEntityIDs.empty() )
-        {
-            return;
-        }
-
-        const entityid_t entCount = m_vecEntityIDs.size();
-        const std::vector< internal::IComponentWrapper * >& vecC1 = m_mapCompTypeToVecComp.at( typeid(C1) );
-        const std::vector< internal::IComponentWrapper * >& vecC2 = m_mapCompTypeToVecComp.at( typeid(C2) );
-        const std::vector< internal::IComponentWrapper * >& vecC3 = m_mapCompTypeToVecComp.at( typeid(C3) );
-
-        for (entityid_t i = 0; i < entCount; i++)
-        {
-            for (entityid_t j = i; j < entCount; j++)
-            {
-                internal::SComponentWrapper<C1> *c11 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[i] );
-                internal::SComponentWrapper<C2> *c21 = static_cast< internal::SComponentWrapper<C2>* >( vecC2[i] );
-                internal::SComponentWrapper<C3> *c31 = static_cast< internal::SComponentWrapper<C3>* >( vecC3[i] );
-                internal::SComponentWrapper<C1> *c12 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[j] );
-                internal::SComponentWrapper<C2> *c22 = static_cast< internal::SComponentWrapper<C2>* >( vecC2[j] );
-                internal::SComponentWrapper<C3> *c32 = static_cast< internal::SComponentWrapper<C3>* >( vecC3[j] );
-                
-                func( c11->data, c21->data, c31->data, c12->data, c22->data, c32->data );
-            }
-        }
-    }
-
-    template<class C1, class C2, class C3, class C4>
-    void CEntityQuery::forEachEntityPairWith( std::function< void( C1&, C2&, C3&, C4&, C1&, C2&, C3&, C4& ) > func ) const
-    {
-        if( m_vecEntityIDs.empty() )
-        {
-            return;
-        }
-
-        const entityid_t entCount = m_vecEntityIDs.size();
-        const std::vector< internal::IComponentWrapper * >& vecC1 = m_mapCompTypeToVecComp.at( typeid(C1) );
-        const std::vector< internal::IComponentWrapper * >& vecC2 = m_mapCompTypeToVecComp.at( typeid(C2) );
-        const std::vector< internal::IComponentWrapper * >& vecC3 = m_mapCompTypeToVecComp.at( typeid(C3) );
-        const std::vector< internal::IComponentWrapper * >& vecC4 = m_mapCompTypeToVecComp.at( typeid(C4) );
-
-        for (entityid_t i = 0; i < entCount; i++)
-        {
-            for (entityid_t j = i; j < entCount; j++)
-            {
-                internal::SComponentWrapper<C1> *c11 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[i] );
-                internal::SComponentWrapper<C2> *c21 = static_cast< internal::SComponentWrapper<C2>* >( vecC2[i] );
-                internal::SComponentWrapper<C3> *c31 = static_cast< internal::SComponentWrapper<C3>* >( vecC3[i] );
-                internal::SComponentWrapper<C4> *c41 = static_cast< internal::SComponentWrapper<C4>* >( vecC4[i] );
-                internal::SComponentWrapper<C1> *c12 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[j] );
-                internal::SComponentWrapper<C2> *c22 = static_cast< internal::SComponentWrapper<C2>* >( vecC2[j] );
-                internal::SComponentWrapper<C3> *c32 = static_cast< internal::SComponentWrapper<C3>* >( vecC3[j] );
-                internal::SComponentWrapper<C4> *c42 = static_cast< internal::SComponentWrapper<C4>* >( vecC4[j] );
-                
-                func( c11->data, c21->data, c31->data, c41->data, c12->data, c22->data, c32->data, c42->data );
-            }
-        }
-    }
-
-
-
-
-
-
-    template<class C1>
-    void CEntityQuery::forEachEntityPairWith( std::function< void( entityid_t, C1&, entityid_t, C1& ) > func) const
-    {
-        if( m_vecEntityIDs.empty() )
-        {
-            return;
-        }
-
-        const entityid_t entCount = m_vecEntityIDs.size();
-        const std::vector< internal::IComponentWrapper * >& vecC1 = m_mapCompTypeToVecComp.at( typeid(C1) );
-
-        for (entityid_t i = 0; i < entCount; i++)
-        {
-            for (entityid_t j = i; j < entCount; j++)
-            {
-                internal::SComponentWrapper<C1> *c11 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[i] );
-                internal::SComponentWrapper<C1> *c12 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[j] );
-                
-                func( m_vecEntityIDs[i], c11->data, m_vecEntityIDs[j], c12->data );
-            }
-        }
-    }
-
-    template<class C1, class C2>
-    void CEntityQuery::forEachEntityPairWith( std::function< void( entityid_t, C1&, C2&, entityid_t, C1&, C2& ) > func) const
-    {
-        if( m_vecEntityIDs.empty() )
-        {
-            return;
-        }
-
-        const entityid_t entCount = m_vecEntityIDs.size();
-        const std::vector< internal::IComponentWrapper * >& vecC1 = m_mapCompTypeToVecComp.at( typeid(C1) );
-        const std::vector< internal::IComponentWrapper * >& vecC2 = m_mapCompTypeToVecComp.at( typeid(C2) );
-
-        for (entityid_t i = 0; i < entCount; i++)
-        {
-            for (entityid_t j = i; j < entCount; j++)
-            {
-                internal::SComponentWrapper<C1> *c11 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[i] );
-                internal::SComponentWrapper<C2> *c21 = static_cast< internal::SComponentWrapper<C2>* >( vecC2[i] );
-                internal::SComponentWrapper<C1> *c12 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[j] );
-                internal::SComponentWrapper<C2> *c22 = static_cast< internal::SComponentWrapper<C2>* >( vecC2[j] );
-                
-                func( m_vecEntityIDs[i], c11->data, c21->data, m_vecEntityIDs[j], c12->data, c22->data );
-            }
-        }
-    }
-
-    template<class C1, class C2, class C3>
-    void CEntityQuery::forEachEntityPairWith( std::function< void( entityid_t, C1&, C2&, C3&, entityid_t, C1&, C2&, C3& ) > func) const
-    {
-        if( m_vecEntityIDs.empty() )
-        {
-            return;
-        }
-
-        const entityid_t entCount = m_vecEntityIDs.size();
-        const std::vector< internal::IComponentWrapper * >& vecC1 = m_mapCompTypeToVecComp.at( typeid(C1) );
-        const std::vector< internal::IComponentWrapper * >& vecC2 = m_mapCompTypeToVecComp.at( typeid(C2) );
-        const std::vector< internal::IComponentWrapper * >& vecC3 = m_mapCompTypeToVecComp.at( typeid(C3) );
-
-        for (entityid_t i = 0; i < entCount; i++)
-        {
-            for (entityid_t j = i; j < entCount; j++)
-            {
-                internal::SComponentWrapper<C1> *c11 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[i] );
-                internal::SComponentWrapper<C2> *c21 = static_cast< internal::SComponentWrapper<C2>* >( vecC2[i] );
-                internal::SComponentWrapper<C3> *c31 = static_cast< internal::SComponentWrapper<C3>* >( vecC3[i] );
-                internal::SComponentWrapper<C1> *c12 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[j] );
-                internal::SComponentWrapper<C2> *c22 = static_cast< internal::SComponentWrapper<C2>* >( vecC2[j] );
-                internal::SComponentWrapper<C3> *c32 = static_cast< internal::SComponentWrapper<C3>* >( vecC3[j] );
-                
-                func( m_vecEntityIDs[i], c11->data, c21->data, c31->data, m_vecEntityIDs[j], c12->data, c22->data, c32->data );
-            }
-        }
-    }
-
-    template<class C1, class C2, class C3, class C4>
-    void CEntityQuery::forEachEntityPairWith( std::function< void( entityid_t, C1&, C2&, C3&, C4&, entityid_t, C1&, C2&, C3&, C4& ) > func) const
-    {
-        if( m_vecEntityIDs.empty() )
-        {
-            return;
-        }
-
-        const entityid_t entCount = m_vecEntityIDs.size();
-        const std::vector< internal::IComponentWrapper * >& vecC1 = m_mapCompTypeToVecComp.at( typeid(C1) );
-        const std::vector< internal::IComponentWrapper * >& vecC2 = m_mapCompTypeToVecComp.at( typeid(C2) );
-        const std::vector< internal::IComponentWrapper * >& vecC3 = m_mapCompTypeToVecComp.at( typeid(C3) );
-        const std::vector< internal::IComponentWrapper * >& vecC4 = m_mapCompTypeToVecComp.at( typeid(C4) );
-
-        for (entityid_t i = 0; i < entCount; i++)
-        {
-            for (entityid_t j = i; j < entCount; j++)
-            {
-                internal::SComponentWrapper<C1> *c11 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[i] );
-                internal::SComponentWrapper<C2> *c21 = static_cast< internal::SComponentWrapper<C2>* >( vecC2[i] );
-                internal::SComponentWrapper<C3> *c31 = static_cast< internal::SComponentWrapper<C3>* >( vecC3[i] );
-                internal::SComponentWrapper<C4> *c41 = static_cast< internal::SComponentWrapper<C4>* >( vecC4[i] );
-                internal::SComponentWrapper<C1> *c12 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[j] );
-                internal::SComponentWrapper<C2> *c22 = static_cast< internal::SComponentWrapper<C2>* >( vecC2[j] );
-                internal::SComponentWrapper<C3> *c32 = static_cast< internal::SComponentWrapper<C3>* >( vecC3[j] );
-                internal::SComponentWrapper<C4> *c42 = static_cast< internal::SComponentWrapper<C4>* >( vecC4[j] );
-                
-                func( m_vecEntityIDs[i], c11->data, c21->data, c31->data, c41->data, m_vecEntityIDs[j], c12->data, c22->data, c32->data, c42->data );
-            }
-        }
-    }
-
-
-
-
-
-    
-    template<class C1>
-    void CEntityQuery::sort( std::function< bool( const C1&, const C1& )> compare ) 
-    {
-        entitysize_t entCount = getEntityCount();
-        if( entCount <= 1 )
-        {
-            return;
-        }
-
-        const std::vector< internal::IComponentWrapper * >& vecC1 = m_mapCompTypeToVecComp.at( typeid(C1) );
-
-        m_sort_orderedIndices.clear();
-        m_sort_orderedIndices.resize( entCount );
-
-        // fill array with indices
-        std::iota( m_sort_orderedIndices.begin(), m_sort_orderedIndices.end(), 0 );
-
-        // now sort these indices 
-        std::stable_sort( m_sort_orderedIndices.begin(), m_sort_orderedIndices.end(), 
-        [&vecC1, &compare]( entityid_t i1, entityid_t i2 ) -> bool
-        {
-            internal::SComponentWrapper<C1>* c11 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[i1] );
-            internal::SComponentWrapper<C1>* c12 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[i2] );
-
-            return compare( c11->data, c12->data );
-        });
-
-        reorderData();
-    }
-
-    template<class C1, class C2>
-    void CEntityQuery::sort( std::function< bool( const C1&, const C2&, const C1&, const C2& )> compare ) 
-    {
-        entitysize_t entCount = getEntityCount();
-        if( entCount <= 1 )
-        {
-            return;
-        }
-
-        const std::vector< internal::IComponentWrapper * >& vecC1 = m_mapCompTypeToVecComp.at( typeid(C1) );
-        const std::vector< internal::IComponentWrapper * >& vecC2 = m_mapCompTypeToVecComp.at( typeid(C2) );
-
-        m_sort_orderedIndices.clear();
-        m_sort_orderedIndices.resize( entCount );
-
-        // fill array with indices
-        std::iota( m_sort_orderedIndices.begin(), m_sort_orderedIndices.end(), 0 );
-
-        // now sort these indices 
-        std::stable_sort( m_sort_orderedIndices.begin(), m_sort_orderedIndices.end(), 
-        [&vecC1, &vecC2, &compare]( entityid_t i1, entityid_t i2 ) -> bool
-        {
-            internal::SComponentWrapper<C1>* c11 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[i1] );
-            internal::SComponentWrapper<C2>* c21 = static_cast< internal::SComponentWrapper<C2>* >( vecC2[i1] );
-            internal::SComponentWrapper<C1>* c12 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[i2] );
-            internal::SComponentWrapper<C2>* c22 = static_cast< internal::SComponentWrapper<C2>* >( vecC2[i2] );
-
-            return compare( c11->data, c21->data, c12->data, c22->data );
-        });
-
-        reorderData();
-    }
-
-    template<class C1, class C2, class C3>
-    void CEntityQuery::sort( std::function< bool( const C1&, const C2&, const C3&, const C1&, const C2&, const C3& )> compare ) 
-    {
-        entitysize_t entCount = getEntityCount();
-        if( entCount <= 1 )
-        {
-            return;
-        }
-
-        const std::vector< internal::IComponentWrapper * >& vecC1 = m_mapCompTypeToVecComp.at( typeid(C1) );
-        const std::vector< internal::IComponentWrapper * >& vecC2 = m_mapCompTypeToVecComp.at( typeid(C2) );
-        const std::vector< internal::IComponentWrapper * >& vecC3 = m_mapCompTypeToVecComp.at( typeid(C3) );
-
-        m_sort_orderedIndices.clear();
-        m_sort_orderedIndices.resize( entCount );
-
-        // fill array with indices
-        std::iota( m_sort_orderedIndices.begin(), m_sort_orderedIndices.end(), 0 );
-
-        // now sort these indices 
-        std::stable_sort( m_sort_orderedIndices.begin(), m_sort_orderedIndices.end(), 
-        [&vecC1, &vecC2, &vecC3, &compare]( entityid_t i1, entityid_t i2 ) -> bool
-        {
-            internal::SComponentWrapper<C1>* c11 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[i1] );
-            internal::SComponentWrapper<C2>* c21 = static_cast< internal::SComponentWrapper<C2>* >( vecC2[i1] );
-            internal::SComponentWrapper<C3>* c31 = static_cast< internal::SComponentWrapper<C3>* >( vecC3[i1] );
-            internal::SComponentWrapper<C1>* c12 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[i2] );
-            internal::SComponentWrapper<C2>* c22 = static_cast< internal::SComponentWrapper<C2>* >( vecC2[i2] );
-            internal::SComponentWrapper<C3>* c32 = static_cast< internal::SComponentWrapper<C3>* >( vecC3[i2] );
-
-            return compare( c11->data, c21->data, c31->data, c12->data, c22->data, c32->data );
-        });
-
-        reorderData();
-    }
-
-    template<class C1, class C2, class C3, class C4>
-    void CEntityQuery::sort( std::function< bool( const C1&, const C2&, const C3&, const C4&, const C1&, const C2&, const C3&, const C4& )> compare ) 
-    {
-        entitysize_t entCount = getEntityCount();
-        if( entCount <= 1 )
-        {
-            return;
-        }
-
-        const std::vector< internal::IComponentWrapper * >& vecC1 = m_mapCompTypeToVecComp.at( typeid(C1) );
-        const std::vector< internal::IComponentWrapper * >& vecC2 = m_mapCompTypeToVecComp.at( typeid(C2) );
-        const std::vector< internal::IComponentWrapper * >& vecC3 = m_mapCompTypeToVecComp.at( typeid(C3) );
-        const std::vector< internal::IComponentWrapper * >& vecC4 = m_mapCompTypeToVecComp.at( typeid(C4) );
-
-        m_sort_orderedIndices.clear();
-        m_sort_orderedIndices.resize( entCount );
-
-        // fill array with indices
-        std::iota( m_sort_orderedIndices.begin(), m_sort_orderedIndices.end(), 0 );
-
-        // now sort these indices 
-        std::stable_sort( m_sort_orderedIndices.begin(), m_sort_orderedIndices.end(), 
-        [&vecC1, &vecC2, &vecC3, &vecC4, &compare]( entityid_t i1, entityid_t i2 ) -> bool
-        {
-            internal::SComponentWrapper<C1>* c11 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[i1] );
-            internal::SComponentWrapper<C2>* c21 = static_cast< internal::SComponentWrapper<C2>* >( vecC2[i1] );
-            internal::SComponentWrapper<C3>* c31 = static_cast< internal::SComponentWrapper<C3>* >( vecC3[i1] );
-            internal::SComponentWrapper<C4>* c41 = static_cast< internal::SComponentWrapper<C4>* >( vecC4[i1] );
-            internal::SComponentWrapper<C1>* c12 = static_cast< internal::SComponentWrapper<C1>* >( vecC1[i2] );
-            internal::SComponentWrapper<C2>* c22 = static_cast< internal::SComponentWrapper<C2>* >( vecC2[i2] );
-            internal::SComponentWrapper<C3>* c32 = static_cast< internal::SComponentWrapper<C3>* >( vecC3[i2] );
-            internal::SComponentWrapper<C4>* c42 = static_cast< internal::SComponentWrapper<C4>* >( vecC4[i2] );
-
-            return compare( c11->data, c21->data, c31->data, c41->data, c12->data, c22->data, c32->data, c42->data );
-        });
-
-        reorderData();
-    }
-
+    return sortedQuery;
+}
 
 } // namespace chestnut::ecs
