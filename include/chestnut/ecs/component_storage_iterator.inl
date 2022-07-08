@@ -1,17 +1,20 @@
 namespace chestnut::ecs::internal
 {
-    class CComponentStorage::CIterator
+    struct CComponentStorage::Iterator
     {
-    private:
         CComponentStorage *m_storage;
         entityid_t m_currentId;
 
 
-    public:
-        CIterator(CComponentStorage *storage, entityid_t id) noexcept
+        Iterator(CComponentStorage *storage, entityid_t id) noexcept
         : m_storage(storage), m_currentId(id)
         {
             
+        }
+
+        entityid_t id() const noexcept
+        {
+            return m_currentId;
         }
 
         template<typename T>
@@ -40,38 +43,38 @@ namespace chestnut::ecs::internal
 
 
 
-        CIterator& operator++() noexcept
+        Iterator& operator++() noexcept
         {
             m_currentId++;
             return *this;
         }
 
-        CIterator operator++(int) noexcept
+        Iterator operator++(int) noexcept
         {
-            CIterator tmp(*this);
+            Iterator tmp(*this);
             ++(*this);
             return tmp;
         }
 
-        CIterator& operator--() noexcept
+        Iterator& operator--() noexcept
         {
             m_currentId--;
             return *this;
         }
 
-        CIterator operator--(int) noexcept
+        Iterator operator--(int) noexcept
         {
-            CIterator tmp(*this);
+            Iterator tmp(*this);
             --(*this);
             return tmp;
         }
 
-        bool operator==(const CIterator& other) const noexcept
+        bool operator==(const Iterator& other) const noexcept
         {
             return m_storage == other.m_storage && m_currentId == other.m_currentId;
         }
 
-        bool operator!=(const CIterator& other) const noexcept
+        bool operator!=(const Iterator& other) const noexcept
         {
             return !(*this == other);
         }
@@ -80,18 +83,21 @@ namespace chestnut::ecs::internal
 
 
 
-    class CComponentStorage::CConstIterator
+    struct CComponentStorage::ConstIterator
     {
-    private:
         const CComponentStorage *m_storage;
         entityid_t m_currentId;
 
 
-    public:
-        CConstIterator(const CComponentStorage *storage, entityid_t id) noexcept
+        ConstIterator(const CComponentStorage *storage, entityid_t id) noexcept
         : m_storage(storage), m_currentId(id)
         {
             
+        }
+
+        entityid_t id() const noexcept
+        {
+            return m_currentId;
         }
 
         template<typename T>
@@ -108,38 +114,38 @@ namespace chestnut::ecs::internal
 
 
 
-        CConstIterator& operator++() noexcept
+        ConstIterator& operator++() noexcept
         {
             m_currentId++;
             return *this;
         }
 
-        CConstIterator operator++(int) noexcept
+        ConstIterator operator++(int) noexcept
         {
-            CConstIterator tmp(*this);
+            ConstIterator tmp(*this);
             ++(*this);
             return tmp;
         }
 
-        CConstIterator& operator--() noexcept
+        ConstIterator& operator--() noexcept
         {
             m_currentId--;
             return *this;
         }
 
-        CConstIterator operator--(int) noexcept
+        ConstIterator operator--(int) noexcept
         {
-            CConstIterator tmp(*this);
+            ConstIterator tmp(*this);
             --(*this);
             return tmp;
         }
 
-        bool operator==(const CConstIterator& other) const noexcept
+        bool operator==(const ConstIterator& other) const noexcept
         {
             return m_storage == other.m_storage && m_currentId == other.m_currentId;
         }
 
-        bool operator!=(const CConstIterator& other) const noexcept
+        bool operator!=(const ConstIterator& other) const noexcept
         {
             return !(*this == other);
         }

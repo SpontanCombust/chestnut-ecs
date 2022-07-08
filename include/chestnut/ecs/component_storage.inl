@@ -95,24 +95,24 @@ CSparseSet<T>& CComponentStorage::getSparseSet() const noexcept
 
 
 
-inline CComponentStorage::CIterator CComponentStorage::begin() noexcept
+inline CComponentStorage::Iterator CComponentStorage::begin() noexcept
 {
-    return CComponentStorage::CIterator(this, ENTITY_ID_MINIMAL);
+    return CComponentStorage::Iterator(this, ENTITY_ID_MINIMAL);
 }
 
-inline CComponentStorage::CIterator CComponentStorage::end() noexcept
+inline CComponentStorage::Iterator CComponentStorage::end() noexcept
 {
-    return CComponentStorage::CIterator(this, m_highestId + 1);
+    return CComponentStorage::Iterator(this, m_highestId + 1);
 }
 
-inline CComponentStorage::CConstIterator CComponentStorage::cbegin() const noexcept
+inline CComponentStorage::ConstIterator CComponentStorage::cbegin() const noexcept
 {
-    return CComponentStorage::CConstIterator(this, ENTITY_ID_MINIMAL);
+    return CComponentStorage::ConstIterator(this, ENTITY_ID_MINIMAL);
 }
 
-inline CComponentStorage::CConstIterator CComponentStorage::cend() const noexcept
+inline CComponentStorage::ConstIterator CComponentStorage::cend() const noexcept
 {
-    return CComponentStorage::CConstIterator(this, m_highestId + 1);
+    return CComponentStorage::ConstIterator(this, m_highestId + 1);
 }
 
 } // namespace chestnut::ecs::internal

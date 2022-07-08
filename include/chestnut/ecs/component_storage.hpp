@@ -11,8 +11,8 @@ namespace chestnut::ecs::internal
     class CComponentStorage
     {
     public:
-        class CIterator; friend CIterator;
-        class CConstIterator; friend CConstIterator;
+        struct Iterator; friend Iterator;
+        struct ConstIterator; friend ConstIterator;
 
     private:
         mutable std::unordered_map<std::type_index, void *> m_mapTypeToSparseSet;
@@ -57,10 +57,10 @@ namespace chestnut::ecs::internal
         void erase(entityid_t id) noexcept;
 
 
-        CIterator begin() noexcept;
-        CIterator end() noexcept;
-        CConstIterator cbegin() const noexcept;
-        CConstIterator cend() const noexcept;
+        Iterator begin() noexcept;
+        Iterator end() noexcept;
+        ConstIterator cbegin() const noexcept;
+        ConstIterator cend() const noexcept;
 
     private:
         template<typename T>
