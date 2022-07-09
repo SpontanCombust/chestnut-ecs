@@ -1,23 +1,16 @@
-#include <exception> // invalid_argument
+#include "constants.hpp"
+
+#include <algorithm>
 
 namespace chestnut::ecs::internal
 {
-    inline entityid_t CEntityRegistry::entityIdFromIndex( entityid_t index ) const
+    inline CEntityRegistry::CEntityRegistry(const CComponentStorage *componentStorage) noexcept
+    : m_componentStoragePtr(componentStorage), m_entityIdCounter(ENTITY_ID_MINIMAL)
     {
-        return index + ENTITY_ID_MINIMAL;
+
     }
 
-    inline entityid_t CEntityRegistry::indexFromEntityId( entityid_t id ) const
-    {
-        return id - ENTITY_ID_MINIMAL;
-    }
-
-    inline CEntityRegistry::CEntityRegistry() 
-    {
-        m_entityIdCounter = ENTITY_ID_MINIMAL;
-    }
-
-    inline entityid_t CEntityRegistry::registerNewEntity( bool isTemplateEntity ) 
+    inline entityid_t CEntityRegistry::registerNewEntity() noexcept
     {
         entityid_t id;
 
@@ -25,203 +18,83 @@ namespace chestnut::ecs::internal
         {
             id = m_vecRecycledEntityIDs.back();
             m_vecRecycledEntityIDs.pop_back();
-
-            entityid_t idx = indexFromEntityId(id);
-            m_dequeEntityRecords[idx].isIdUsed = true;
-            m_dequeEntityRecords[idx].isTemplate = isTemplateEntity;
-            // signature remains default
         }
         else
         {
-            SEntityRegistryRecord record;
-            record.isIdUsed = true;
-            record.isTemplate = isTemplateEntity;
-            // signature remains default
-
-            m_dequeEntityRecords.push_back( record );
-
-            id = entityIdFromIndex( m_dequeEntityRecords.size() - 1 );
+            id = ++m_entityIdCounter;
         }
 
         return id;
     }
 
-    inline entityid_t CEntityRegistry::registerNewEntity( bool isTemplateEntity, const CEntitySignature& signature ) 
-    {
-        entityid_t id;
-        
-        if( !m_vecRecycledEntityIDs.empty() )
-        {
-            id = m_vecRecycledEntityIDs.back();
-            m_vecRecycledEntityIDs.pop_back();
-
-            entityid_t idx = indexFromEntityId(id);
-            m_dequeEntityRecords[idx].isIdUsed = true;
-            m_dequeEntityRecords[idx].isTemplate = isTemplateEntity;
-            m_dequeEntityRecords[idx].signature = signature;
-        }
-        else
-        {
-            SEntityRegistryRecord record;
-            record.isIdUsed = true;
-            record.isTemplate = isTemplateEntity;
-            record.signature = signature;
-
-            m_dequeEntityRecords.push_back( record );
-
-            id = entityIdFromIndex( m_dequeEntityRecords.size() - 1 );
-        }
-
-        return id;
-    }
-
-    inline void CEntityRegistry::updateEntity( entityid_t id, const CEntitySignature& newSignature ) 
-    {
-        if( hasEntity( id, CAN_BE_REGULAR_ENTITY | CAN_BE_TEMPLATE_ENTITY ) )
-        {
-            m_dequeEntityRecords[ indexFromEntityId(id) ].signature = newSignature;
-        }
-    }
-
-    inline bool flagEq( int val, int flags )
-    {
-        return ( val & flags ) == flags;
-    }
-
-    inline bool recordMatchesSearchFlags( const SEntityRegistryRecord& record, int flags )
-    {
-        bool result = false;
-
-        result |= flagEq( flags, CEntityRegistry::CAN_BE_REGULAR_ENTITY ) && !record.isTemplate;
-        result |= flagEq( flags, CEntityRegistry::CAN_BE_TEMPLATE_ENTITY ) && record.isTemplate;
-        
-        return result;
-    }
-
-    inline bool CEntityRegistry::hasEntity( entityid_t id, int searchFlags ) const
+    inline bool CEntityRegistry::isEntityRegistered(entityid_t id) const noexcept
     {
         if( id == ENTITY_ID_INVALID )
         {
             return false;
         }
-        
-        id = indexFromEntityId(id);
-
-        if( id < m_dequeEntityRecords.size() && m_dequeEntityRecords[id].isIdUsed )
+        if(id < m_entityIdCounter)
         {
-            return recordMatchesSearchFlags( m_dequeEntityRecords[id], searchFlags );
+            auto it = std::find_if(m_vecRecycledEntityIDs.begin(), m_vecRecycledEntityIDs.end(),
+                [id](entityid_t recycledId) {
+                    return id == recycledId;
+                }
+            );
+
+            if(it == m_vecRecycledEntityIDs.end())
+            {
+                return true;
+            }
         }
 
         return false;
     }
 
-    inline void CEntityRegistry::unregisterEntity( entityid_t id ) 
+    inline void CEntityRegistry::unregisterEntity(entityid_t id) noexcept
     {
-        if( id == ENTITY_ID_INVALID )
+        if(isEntityRegistered(id))
         {
-            return;
-        }
-
-        entityid_t idx = indexFromEntityId(id);
-
-        if( idx < m_dequeEntityRecords.size() )
-        {
-            m_dequeEntityRecords[idx].isIdUsed = false;
-            m_dequeEntityRecords[idx].isTemplate = false; 
-            m_dequeEntityRecords[idx].signature.clear();
-
             m_vecRecycledEntityIDs.push_back(id);
         }
     }
 
-    inline entitysize_t CEntityRegistry::getEntityCount( int searchFlags ) const
+    inline entitysize_t CEntityRegistry::getEntityCount() const noexcept
     {
-        if( flagEq( searchFlags, CAN_BE_REGULAR_ENTITY | CAN_BE_TEMPLATE_ENTITY ) )
-        {
-            return m_dequeEntityRecords.size() - m_vecRecycledEntityIDs.size();
-        }
-        else
-        {
-            const entitysize_t size = m_dequeEntityRecords.size();
-            entitysize_t count = 0;
-
-            for (entityid_t i = 0; i < size; i++)
-            {
-                const auto& record = m_dequeEntityRecords[i];
-                if( record.isIdUsed && recordMatchesSearchFlags( record, searchFlags ) )
-                {
-                    count++;
-                }
-            }
-
-            return count;
-        }
+        return m_entityIdCounter - ENTITY_ID_MINIMAL - m_vecRecycledEntityIDs.size();
     }
 
-    inline entitysize_t CEntityRegistry::getEntityCountOfExactSignature( const CEntitySignature& requiredSignature, int searchFlags ) const
+    inline entitysize_t CEntityRegistry::getEntityCountOfExactSignature(const CEntitySignature& requiredSignature) const noexcept
     {
-        const entitysize_t size = m_dequeEntityRecords.size();
-        
-        entitysize_t count = 0;
-        for (entityid_t i = 0; i < size; i++)
-        {
-            const auto& record = m_dequeEntityRecords[i];
-            if( record.isIdUsed && recordMatchesSearchFlags( record, searchFlags ) && record.signature == requiredSignature )
-            {
-                count++;
-            }
-        }
-        
-        return count;
+        auto ents = this->findEntities([&requiredSignature](const CEntitySignature& sign) -> bool {
+            return sign == requiredSignature;
+        });
+
+        return (entitysize_t)ents.size();
     }
 
-    inline entitysize_t CEntityRegistry::getEntityCountOfPartialSignature( const CEntitySignature& requiredSignaturePart, int searchFlags ) const
+    inline entitysize_t CEntityRegistry::getEntityCountOfPartialSignature(const CEntitySignature& requiredSignaturePart) const noexcept
     {
-        const entitysize_t size = m_dequeEntityRecords.size();
-        
-        entitysize_t count = 0;
-        for (entityid_t i = 0; i < size; i++)
-        {
-            const auto& record = m_dequeEntityRecords[i];
-            if( record.isIdUsed && recordMatchesSearchFlags( record, searchFlags ) && record.signature.hasAllFrom( requiredSignaturePart ) )
-            {
-                count++;
-            }
-        }
-        
-        return count;
+        auto ents = this->findEntities([&requiredSignaturePart](const CEntitySignature& sign) -> bool {
+            return sign.hasAllFrom(requiredSignaturePart);
+        });
+
+        return (entitysize_t)ents.size();
     }
 
-    inline const CEntitySignature* CEntityRegistry::getEntitySignature( entityid_t id ) const
+    inline CEntitySignature CEntityRegistry::getEntitySignature(entityid_t id) const noexcept
     {
-        if( id == ENTITY_ID_INVALID )
-        {
-            return nullptr;
-        }
-
-        id = indexFromEntityId(id);
-
-        if( id < m_dequeEntityRecords.size() && m_dequeEntityRecords[id].isIdUsed )
-        {
-            return &m_dequeEntityRecords[id].signature;
-        }
-        
-        return nullptr;
+        return m_componentStoragePtr->signature(id);
     }
     
-    inline std::vector<entityid_t> CEntityRegistry::findEntities( std::function< bool( const CEntitySignature& ) > pred, int searchFlags ) const
+    inline std::vector<entityid_t> CEntityRegistry::findEntities(std::function<bool(const CEntitySignature&)> predicate) const noexcept
     {
-        std::vector< entityid_t > ids;
+        std::vector<entityid_t> ids;
 
-        for (entityid_t i = 0; i < m_dequeEntityRecords.size(); i++)
+        for(auto it = m_componentStoragePtr->cbegin(); it != m_componentStoragePtr->cend(); it++)
         {
-            const auto& record = m_dequeEntityRecords[i];
-            if( record.isIdUsed && recordMatchesSearchFlags( record, searchFlags ) )   
+            if(predicate(it.signature()))
             {
-                if( pred( record.signature ) )
-                {
-                    ids.push_back( entityIdFromIndex(i) );
-                }
+                ids.push_back(it.id());
             }
         }
 
