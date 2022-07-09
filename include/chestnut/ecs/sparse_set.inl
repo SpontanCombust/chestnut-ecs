@@ -4,16 +4,68 @@
 namespace chestnut::ecs::internal
 {
 
+CSparseSetBase::CSparseSetBase(index_type initSparseSize) noexcept
+: m_sparse(initSparseSize, NIL_INDEX)
+{
+
+}
+
+CSparseSetBase::CSparseSetBase(const CSparseSetBase& other) noexcept
+: m_sparse(other.m_sparse)
+{
+
+}
+
+CSparseSetBase& CSparseSetBase::operator=(const CSparseSetBase& other) noexcept
+{
+    this->m_sparse = other.m_sparse;
+    return *this;
+}
+
+CSparseSetBase::CSparseSetBase(CSparseSetBase&& other) noexcept
+: m_sparse(std::move(other.m_sparse))
+{
+
+}
+
+CSparseSetBase& CSparseSetBase::operator=(CSparseSetBase&& other) noexcept
+{
+    this->m_sparse = std::move(other.m_sparse);
+    return *this;
+}
+
+const std::vector<int>& CSparseSetBase::sparse() const noexcept
+{
+    return m_sparse;
+}
+
+bool CSparseSetBase::contains(index_type idx) const noexcept
+{
+    if(idx >= m_sparse.size())
+    {
+        return false;
+    }
+
+    return m_sparse[idx] != NIL_INDEX;
+}
+
+
+
+
+
+
+
+
 template<typename T>
-CSparseSet<T>::CSparseSet(unsigned int initSparseSize) noexcept
-: m_sparse(initSparseSize, NIL_INDEX), m_dense()
+CSparseSet<T>::CSparseSet(index_type initSparseSize) noexcept
+: CSparseSetBase(initSparseSize), m_dense()
 {
 
 }
 
 template<typename T>
 CSparseSet<T>::CSparseSet(const CSparseSet<T>& other) noexcept
-: m_sparse(other.m_sparse), m_dense(other.m_dense)
+: CSparseSetBase(other), m_dense(other.m_dense)
 {
 
 }
@@ -21,14 +73,14 @@ CSparseSet<T>::CSparseSet(const CSparseSet<T>& other) noexcept
 template<typename T>
 CSparseSet<T>& CSparseSet<T>::operator=(const CSparseSet<T>& other) noexcept
 {   
-    this->m_sparse = other.m_sparse;
+    CSparseSetBase::operator=(other);
     this->m_dense = other.m_dense;
     return *this;
 }
 
 template<typename T>
 CSparseSet<T>::CSparseSet(CSparseSet<T>&& other) noexcept
-: m_sparse(std::move(other.m_sparse)), m_dense(std::move(other.m_dense))
+: CSparseSetBase(std::move(other)), m_dense(std::move(other.m_dense))
 {
 
 }
@@ -36,15 +88,9 @@ CSparseSet<T>::CSparseSet(CSparseSet<T>&& other) noexcept
 template<typename T>
 CSparseSet<T>& CSparseSet<T>::operator=(CSparseSet<T>&& other) noexcept
 {
-    this->m_sparse = std::move(other.m_sparse);
+    CSparseSetBase::operator=(std::move(other));
     this->m_dense = std::move(other.m_dense);
     return *this;
-}
-
-template<typename T>
-const std::vector<int>& CSparseSet<T>::sparse() const noexcept
-{
-    return this->m_sparse;
 }
 
 template<typename T>
@@ -54,7 +100,7 @@ const std::vector<T>& CSparseSet<T>::dense() const noexcept
 }
 
 template<typename T>
-T& CSparseSet<T>::at(unsigned int idx) 
+T& CSparseSet<T>::at(index_type idx) 
 {
     if(idx >= m_sparse.size() || m_sparse[idx] == NIL_INDEX)
     {
@@ -65,7 +111,7 @@ T& CSparseSet<T>::at(unsigned int idx)
 }
 
 template<typename T>
-const T& CSparseSet<T>::at(unsigned int idx) const
+const T& CSparseSet<T>::at(index_type idx) const
 {
     if(idx >= m_sparse.size() || m_sparse[idx] == NIL_INDEX)
     {
@@ -82,20 +128,9 @@ bool CSparseSet<T>::empty() const noexcept
 }
 
 template<typename T>
-unsigned int CSparseSet<T>::size() const noexcept
+CSparseSetBase::index_type CSparseSet<T>::size() const noexcept
 {
     return m_dense.size();
-}
-
-template<typename T>
-bool CSparseSet<T>::contains(unsigned int idx) const noexcept
-{
-    if(idx >= m_sparse.size())
-    {
-        return false;
-    }
-
-    return m_sparse[idx] != NIL_INDEX;
 }
 
 template<typename T>
@@ -107,7 +142,7 @@ void CSparseSet<T>::clear() noexcept
 }
 
 template<typename T>
-void CSparseSet<T>::insert(unsigned int idx, T&& arg) noexcept
+void CSparseSet<T>::insert(index_type idx, T&& arg) noexcept
 {
     m_sparse.resize(idx + 1, NIL_INDEX);
 
@@ -123,7 +158,7 @@ void CSparseSet<T>::insert(unsigned int idx, T&& arg) noexcept
 }
 
 template<typename T>
-void CSparseSet<T>::erase(unsigned int idx) noexcept
+void CSparseSet<T>::erase(index_type idx) noexcept
 {
     if(idx < m_sparse.size() && m_sparse[idx] != NIL_INDEX)
     {
