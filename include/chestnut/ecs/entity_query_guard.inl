@@ -1,7 +1,7 @@
 namespace chestnut::ecs::internal
 {    
     inline CEntityQueryGuard::CEntityQueryGuard(CComponentStorage *componentStorage, queryid_t id, const CEntitySignature& requireSignature, const CEntitySignature& rejectSignature)
-    : m_storagePtr(componentStorage), m_targetQuery(componentStorage, id, requireSignature, rejectSignature)
+    : m_targetQuery(componentStorage, id, requireSignature, rejectSignature)
     {
 
     }

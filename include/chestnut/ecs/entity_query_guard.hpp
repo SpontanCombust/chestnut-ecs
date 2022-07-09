@@ -18,8 +18,6 @@ namespace chestnut::ecs::internal
     class CEntityQueryGuard
     {
     private:
-        CComponentStorage *m_storagePtr;
-        
         std::unordered_set< entityid_t > m_pendingIn_setEntityIDs;
         std::unordered_set< entityid_t > m_pendingOut_setEntityIDs;
 
