@@ -2,6 +2,7 @@
 
 #include "sparse_set.hpp"
 #include "types.hpp"
+#include "entity_signature.hpp"
 
 #include <typeindex>
 #include <unordered_map>
@@ -15,12 +16,13 @@ namespace chestnut::ecs::internal
         struct ConstIterator; friend ConstIterator;
 
     private:
-        mutable std::unordered_map<std::type_index, void *> m_mapTypeToSparseSet;
+        mutable std::unordered_map<std::type_index, CSparseSetBase*> m_mapTypeToSparseSet;
         entityid_t m_highestId;
 
 
     public:
         CComponentStorage();
+        ~CComponentStorage();
 
 
         template<typename T>
@@ -57,6 +59,9 @@ namespace chestnut::ecs::internal
         void erase(entityid_t id) noexcept;
 
 
+        CEntitySignature signature(entityid_t id) const noexcept;
+
+
         Iterator begin() noexcept;
         Iterator end() noexcept;
         ConstIterator cbegin() const noexcept;
@@ -64,7 +69,7 @@ namespace chestnut::ecs::internal
 
     private:
         template<typename T>
-        CSparseSet<T> &getSparseSet() const noexcept;
+        CSparseSet<T>& getSparseSet() const noexcept;
     };
 
 } // namespace chestnut::ecs::internal

@@ -43,6 +43,13 @@ namespace chestnut::ecs::internal
 
 
 
+        CEntitySignature signature() const noexcept
+        {
+            return m_storage->signature(m_currentId);
+        }
+
+
+
         Iterator& operator++() noexcept
         {
             m_currentId++;
@@ -110,6 +117,13 @@ namespace chestnut::ecs::internal
         bool contains() const noexcept
         {
             return m_storage->contains<T>(m_currentId);
+        }
+
+
+
+        CEntitySignature signature() const noexcept
+        {
+            return m_storage->signature(m_currentId);
         }
 
 

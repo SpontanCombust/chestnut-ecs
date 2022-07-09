@@ -8,6 +8,14 @@ inline CComponentStorage::CComponentStorage()
     m_highestId = ENTITY_ID_MINIMAL;
 }
 
+CComponentStorage::~CComponentStorage() 
+{
+    for(auto& [typeIndex, sparseSetBase] : m_mapTypeToSparseSet)
+    {
+        delete sparseSetBase;
+    }
+}
+
 template<typename T>
 inline const std::vector<int>& CComponentStorage::sparse() const noexcept
 {
@@ -74,7 +82,7 @@ inline void CComponentStorage::erase(entityid_t id) noexcept
 }
 
 template<typename T>
-CSparseSet<T>& CComponentStorage::getSparseSet() const noexcept
+inline CSparseSet<T>& CComponentStorage::getSparseSet() const noexcept
 {
     const auto TYPE_INDEX = std::type_index(typeid(T));
 
@@ -82,7 +90,7 @@ CSparseSet<T>& CComponentStorage::getSparseSet() const noexcept
     if(m_mapTypeToSparseSet.find(TYPE_INDEX) == m_mapTypeToSparseSet.end())
     {
         sparseSetPtr = new CSparseSet<T>();
-        m_mapTypeToSparseSet[TYPE_INDEX] = static_cast<void *>(sparseSetPtr);
+        m_mapTypeToSparseSet[TYPE_INDEX] = sparseSetPtr;
     }
     else
     {
@@ -91,6 +99,25 @@ CSparseSet<T>& CComponentStorage::getSparseSet() const noexcept
 
     return *sparseSetPtr;
 }
+
+
+
+
+CEntitySignature CComponentStorage::signature(entityid_t id) const noexcept
+{
+    CEntitySignature sign;
+
+    for(const auto& [typeIndex, sparseSetBase] : m_mapTypeToSparseSet)
+    {
+        if(sparseSetBase->contains(id))
+        {
+            sign.add(typeIndex);
+        }
+    }
+
+    return sign;
+}
+
 
 
 
