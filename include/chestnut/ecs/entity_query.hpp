@@ -56,7 +56,7 @@ namespace chestnut::ecs
 
 
         template<typename ...Types>
-        CEntityQuery getSorted(std::function<bool(Iterator<Types...>, Iterator<Types...>)> comparator) noexcept;
+        CEntityQuery getSortedBy(std::function<bool(Iterator<Types...>, Iterator<Types...>)> comparator) noexcept;
     };
 
 } // namespace chestnut::ecs

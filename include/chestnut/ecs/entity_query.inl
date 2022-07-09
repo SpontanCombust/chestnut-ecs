@@ -57,7 +57,7 @@ CEntityQuery::Iterator<Types...> CEntityQuery::end() noexcept
 }
 
 template<typename ...Types>
-CEntityQuery CEntityQuery::getSorted(std::function<bool(CEntityQuery::Iterator<Types...>, CEntityQuery::Iterator<Types...>)> comparator) noexcept
+CEntityQuery CEntityQuery::getSortedBy(std::function<bool(CEntityQuery::Iterator<Types...>, CEntityQuery::Iterator<Types...>)> comparator) noexcept
 {
     std::vector<unsigned int> indices(m_vecEntityIDs.size());
     std::iota(indices.begin(), indices.end(), 0);
