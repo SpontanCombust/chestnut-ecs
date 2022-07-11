@@ -4,6 +4,7 @@
 #include "types.hpp"
 #include "entity_signature.hpp"
 
+#include <memory>
 #include <typeindex>
 #include <unordered_map>
 
@@ -16,7 +17,7 @@ namespace chestnut::ecs::internal
         struct ConstIterator; friend ConstIterator;
 
     private:
-        mutable std::unordered_map<std::type_index, CSparseSetBase*> m_mapTypeToSparseSet;
+        mutable std::unordered_map<std::type_index, std::unique_ptr<CSparseSetBase>> m_mapTypeToSparseSet;
         entityid_t m_highestId;
 
 
@@ -56,8 +57,13 @@ namespace chestnut::ecs::internal
         void insert(entityid_t id, T&& arg) noexcept;
 
         template<typename T>
+        void insert(entityid_t id) noexcept;
+
+        template<typename T>
         void erase(entityid_t id) noexcept;
 
+
+        void eraseAll(entityid_t id) noexcept;
 
         CEntitySignature signature(entityid_t id) const noexcept;
 

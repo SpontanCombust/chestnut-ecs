@@ -49,6 +49,14 @@ bool CSparseSetBase::contains(index_type idx) const noexcept
     return m_sparse[idx] != NIL_INDEX;
 }
 
+void CSparseSetBase::erase(index_type idx) noexcept
+{
+    if(idx < m_sparse.size())
+    {
+        m_sparse[idx] = NIL_INDEX;   
+    }
+}
+
 
 
 

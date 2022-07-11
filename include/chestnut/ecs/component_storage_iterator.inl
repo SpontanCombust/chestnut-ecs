@@ -43,6 +43,11 @@ namespace chestnut::ecs::internal
 
 
 
+        void eraseAll() noexcept
+        {
+            m_storage->eraseAll(m_currentId);
+        }
+
         CEntitySignature signature() const noexcept
         {
             return m_storage->signature(m_currentId);

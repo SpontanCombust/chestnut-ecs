@@ -33,6 +33,8 @@ namespace chestnut::ecs::internal
         const std::vector<int>& sparse() const noexcept;   
 
         bool contains(index_type idx) const noexcept;    
+
+        virtual void erase(index_type idx) noexcept;
     };
 
 
@@ -66,7 +68,7 @@ namespace chestnut::ecs::internal
 
         void clear() noexcept;
         void insert(index_type idx, T&& arg) noexcept;
-        void erase(index_type idx) noexcept;
+        void erase(index_type idx) noexcept override;
     };
     
 } // namespace chestnut::ecs::internal

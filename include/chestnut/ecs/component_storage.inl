@@ -10,10 +10,7 @@ inline CComponentStorage::CComponentStorage()
 
 CComponentStorage::~CComponentStorage() 
 {
-    for(auto& [typeIndex, sparseSetBase] : m_mapTypeToSparseSet)
-    {
-        delete sparseSetBase;
-    }
+    
 }
 
 template<typename T>
@@ -76,6 +73,12 @@ inline void CComponentStorage::insert(entityid_t id, T&& arg) noexcept
 }
 
 template<typename T>
+inline void CComponentStorage::insert(entityid_t id) noexcept
+{
+    this->insert(id, T());
+}
+
+template<typename T>
 inline void CComponentStorage::erase(entityid_t id) noexcept
 {
     getSparseSet<T>().erase(id);
@@ -94,7 +97,7 @@ inline CSparseSet<T>& CComponentStorage::getSparseSet() const noexcept
     }
     else
     {
-        sparseSetPtr = static_cast<CSparseSet<T> *>(m_mapTypeToSparseSet[TYPE_INDEX]);
+        sparseSetPtr = static_cast<CSparseSet<T> *>(m_mapTypeToSparseSet[TYPE_INDEX].get());
     }
 
     return *sparseSetPtr;
@@ -102,6 +105,14 @@ inline CSparseSet<T>& CComponentStorage::getSparseSet() const noexcept
 
 
 
+
+void CComponentStorage::eraseAll(entityid_t id) noexcept
+{
+    for(const auto& [typeIndex, sparseSetBase] : m_mapTypeToSparseSet)
+    {
+        sparseSetBase->erase(id);
+    }   
+}
 
 CEntitySignature CComponentStorage::signature(entityid_t id) const noexcept
 {
