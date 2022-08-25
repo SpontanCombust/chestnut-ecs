@@ -4,42 +4,42 @@
 namespace chestnut::ecs::internal
 {
 
-CSparseSetBase::CSparseSetBase(index_type initSparseSize) noexcept
+inline CSparseSetBase::CSparseSetBase(index_type initSparseSize) noexcept
 : m_sparse(initSparseSize, NIL_INDEX)
 {
 
 }
 
-CSparseSetBase::CSparseSetBase(const CSparseSetBase& other) noexcept
+inline CSparseSetBase::CSparseSetBase(const CSparseSetBase& other) noexcept
 : m_sparse(other.m_sparse)
 {
 
 }
 
-CSparseSetBase& CSparseSetBase::operator=(const CSparseSetBase& other) noexcept
+inline CSparseSetBase& CSparseSetBase::operator=(const CSparseSetBase& other) noexcept
 {
     this->m_sparse = other.m_sparse;
     return *this;
 }
 
-CSparseSetBase::CSparseSetBase(CSparseSetBase&& other) noexcept
+inline CSparseSetBase::CSparseSetBase(CSparseSetBase&& other) noexcept
 : m_sparse(std::move(other.m_sparse))
 {
 
 }
 
-CSparseSetBase& CSparseSetBase::operator=(CSparseSetBase&& other) noexcept
+inline CSparseSetBase& CSparseSetBase::operator=(CSparseSetBase&& other) noexcept
 {
     this->m_sparse = std::move(other.m_sparse);
     return *this;
 }
 
-const std::vector<int>& CSparseSetBase::sparse() const noexcept
+inline const std::vector<int>& CSparseSetBase::sparse() const noexcept
 {
     return m_sparse;
 }
 
-bool CSparseSetBase::contains(index_type idx) const noexcept
+inline bool CSparseSetBase::contains(index_type idx) const noexcept
 {
     if(idx >= m_sparse.size())
     {
@@ -49,7 +49,7 @@ bool CSparseSetBase::contains(index_type idx) const noexcept
     return m_sparse[idx] != NIL_INDEX;
 }
 
-void CSparseSetBase::erase(index_type idx) noexcept
+inline void CSparseSetBase::erase(index_type idx) noexcept
 {
     if(idx < m_sparse.size())
     {
@@ -152,15 +152,18 @@ void CSparseSet<T>::clear() noexcept
 template<typename T>
 void CSparseSet<T>::insert(index_type idx, T&& arg) noexcept
 {
-    m_sparse.resize(idx + 1, NIL_INDEX);
+    if(idx >= m_sparse.size())
+    {
+        m_sparse.resize(idx + 1, NIL_INDEX);
+    }
 
     if(m_sparse[idx] != NIL_INDEX)
     {
-        m_dense[m_sparse[idx]] = std::forward(arg);
+        m_dense[m_sparse[idx]] = std::forward<T>(arg);
     }
     else
     {
-        m_dense.push_back(std::forward(arg));
+        m_dense.push_back(std::forward<T>(arg));
         m_sparse[idx] = m_dense.size() - 1;
     }
 }
