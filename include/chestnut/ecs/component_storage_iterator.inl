@@ -26,7 +26,7 @@ namespace chestnut::ecs::internal
         template<typename T>
         void set(T&& arg) noexcept
         {
-            m_storage->insert<T>(m_currentId, std::forward(arg));
+            m_storage->insert<T>(m_currentId, std::forward<T>(arg));
         }
 
         template<typename T>

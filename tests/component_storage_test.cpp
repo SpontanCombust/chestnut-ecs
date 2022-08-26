@@ -5,288 +5,251 @@
 using namespace chestnut::ecs;
 using namespace chestnut::ecs::internal;
 
-class Foo
+struct FooComp
 {
-public:
     int i;
 };
 
+struct BarComp
+{
+    char c;
+};
+
+struct BazComp
+{
+    short s1;
+    short s2;
+};
+
+
 TEST_CASE( "Component storage test" )
 {
-    SECTION( "Initial state for initial capacity equal zero" )
-    {
-        CComponentStorage<Foo> storage = CComponentStorage<Foo>( 10, 0 );
+    CComponentStorage storage;
 
-        REQUIRE( storage.getSize() == 0 );
-        REQUIRE( storage.getCapacity() == 0 );
-        REQUIRE( storage.getEmptySegmentTotalSize() == 0 );
+    SECTION("Initial state")
+    {
+        REQUIRE(storage.empty<FooComp>());
+        REQUIRE(storage.size<FooComp>() == 0);
+        REQUIRE(storage.sparse<FooComp>().empty());
+        REQUIRE(storage.dense<FooComp>().empty());
+
+        REQUIRE(storage.empty<BarComp>());
+        REQUIRE(storage.size<BarComp>() == 0);
+        REQUIRE(storage.sparse<BarComp>().empty());
+        REQUIRE(storage.dense<BarComp>().empty());
+
+        REQUIRE(storage.empty<BazComp>());
+        REQUIRE(storage.size<BazComp>() == 0);
+        REQUIRE(storage.sparse<BazComp>().empty());
+        REQUIRE(storage.dense<BazComp>().empty());
     }
 
-    SECTION( "Initial state for initial capacity lesser than segment size" )
+    SECTION("Insertion")
     {
-        CComponentStorage<Foo> storage = CComponentStorage<Foo>( 10, 9 );
+        REQUIRE_FALSE(storage.contains<FooComp>(0));
+        REQUIRE_FALSE(storage.contains<FooComp>(1));
+        REQUIRE_FALSE(storage.contains<BarComp>(1));
+        REQUIRE_FALSE(storage.contains<BarComp>(2));
+        REQUIRE_FALSE(storage.contains<BazComp>(3));
 
-        REQUIRE( storage.getSize() == 0 );
-        REQUIRE( storage.getCapacity() == 10 );
-        REQUIRE( storage.getEmptySegmentTotalSize() == 10 );
+        storage.insert<FooComp>(0, {0});
+        storage.insert<FooComp>(1);
+        storage.insert<FooComp>(1, {1});
+        storage.insert<BarComp>(1);
+        storage.insert<BarComp>(2, {2});
+        storage.insert<BazComp>(3, {3, 3});
+
+        REQUIRE(storage.contains<FooComp>(0));
+        REQUIRE(storage.contains<FooComp>(1));
+        REQUIRE(storage.contains<BarComp>(1));
+        REQUIRE(storage.contains<BarComp>(2));
+        REQUIRE(storage.contains<BazComp>(3));
+
+
+        REQUIRE(storage.size<FooComp>() == 2);
+        REQUIRE(storage.sparse<FooComp>().size() == 2);
+        REQUIRE(storage.dense<FooComp>().size() == 2);
+
+        REQUIRE(storage.size<BarComp>() == 2);
+        REQUIRE(storage.sparse<BarComp>().size() == 3);
+        REQUIRE(storage.dense<BarComp>().size() == 2);
+
+        REQUIRE(storage.size<BazComp>() == 1);
+        REQUIRE(storage.sparse<BazComp>().size() == 4);
+        REQUIRE(storage.dense<BazComp>().size() == 1);        
     }
 
-    SECTION( "Initial state for initial capacity greater than segment size" )
+    SECTION("Lookup")
     {
-        CComponentStorage<Foo> storage = CComponentStorage<Foo>( 10, 21 );
+        storage.insert<FooComp>(0, {0});
+        storage.insert<FooComp>(1);
+        storage.insert<FooComp>(1, {1});
+        storage.insert<BarComp>(1);
+        storage.insert<BarComp>(2, {2});
+        storage.insert<BazComp>(3, {3, 3});
 
-        REQUIRE( storage.getSize() == 0 );
-        REQUIRE( storage.getCapacity() == 30 );
-        REQUIRE( storage.getEmptySegmentTotalSize() == 30 );
-    }
-    
-
-
-    CComponentStorage<Foo> storage = CComponentStorage<Foo>( 5, 10 );
-
-    REQUIRE( storage.getSize() == 0 );
-    REQUIRE( storage.getCapacity() == 10 );
-    REQUIRE( storage.getEmptySegmentTotalSize() == 10 );
-
-    SECTION( "Creating components and checking storage size" )
-    {
-        REQUIRE( storage.getSize() == 0 );
-        REQUIRE( storage.getCapacity() == 10 );
-        REQUIRE( storage.getEmptySegmentTotalSize() == 10 );
-
-
-        // filling up 1st segment
-        for (entityid_t i = ENTITY_ID_MINIMAL; i < ENTITY_ID_MINIMAL + 5; i++)
-        {
-            storage.storeComponent(i);
-        }
-
-        REQUIRE( storage.getSize() == 5 );
-        REQUIRE( storage.getCapacity() == 10 );
-        REQUIRE( storage.getEmptySegmentTotalSize() == 5 );
-
-        // filling up 2nd segment
-        for (entityid_t i = ENTITY_ID_MINIMAL + 5; i < ENTITY_ID_MINIMAL + 10; i++)
-        {
-            storage.storeComponent(i);
-        }
-
-        REQUIRE( storage.getSize() == 10 );
-        REQUIRE( storage.getCapacity() == 10 );
-        REQUIRE( storage.getEmptySegmentTotalSize() == 0 );
-
-        // creating 2 new segments
-        // filling 1st one fully and 2nd one partially
-        for (entityid_t i = ENTITY_ID_MINIMAL + 10; i < ENTITY_ID_MINIMAL + 18; i++)
-        {
-            storage.storeComponent(i);
-        }
-
-        REQUIRE( storage.getSize() == 18 );
-        REQUIRE( storage.getCapacity() == 20 );
-        REQUIRE( storage.getEmptySegmentTotalSize() == 0 );
-
-        // try creating components with previously used IDs
-        // should change nothing
-        for (entityid_t i = ENTITY_ID_MINIMAL; i < ENTITY_ID_MINIMAL + 5; i++)
-        {
-            storage.storeComponent(i);
-        }
-
-        REQUIRE( storage.getSize() == 18 );
-        REQUIRE( storage.getCapacity() == 20 );
-        REQUIRE( storage.getEmptySegmentTotalSize() == 0 );
+        REQUIRE(storage.at<FooComp>(0).i == 0);
+        REQUIRE(storage.at<FooComp>(1).i == 1);
+        REQUIRE(storage.at<BarComp>(1).c == BarComp{}.c);
+        REQUIRE(storage.at<BarComp>(2).c == 2);
+        REQUIRE_THROWS(storage.at<BazComp>(2));
+        REQUIRE((storage.at<BazComp>(3).s1 == 3 && storage.at<BazComp>(3).s2 == 3));
     }
 
-    SECTION( "Checking and fetching components" )
+    SECTION("Erase and clear")
     {
-        SComponentWrapper<Foo> *foo;
-        for (entityid_t i = ENTITY_ID_MINIMAL; i < ENTITY_ID_MINIMAL + 6; i++)
-        {
-            foo = (SComponentWrapper<Foo> *)storage.storeComponent(i);
-            foo->data.i = i;
+        storage.insert<FooComp>(0, {0});
+        storage.insert<FooComp>(1);
+        storage.insert<FooComp>(1, {1});
+        storage.insert<BarComp>(1);
+        storage.insert<BarComp>(2, {2});
+        storage.insert<BazComp>(3, {3, 3});
 
-            REQUIRE( storage.hasComponent(i) );
+        storage.erase<FooComp>(1);
+        storage.erase<BarComp>(1);
+        storage.erase<BarComp>(2);
 
-            foo = (SComponentWrapper<Foo> *)storage.getComponent(i);
-            REQUIRE( foo != nullptr );
-            REQUIRE( foo->data.i == i );
+        REQUIRE(storage.contains<FooComp>(0));
+        REQUIRE_FALSE(storage.contains<FooComp>(1));
+        REQUIRE_FALSE(storage.contains<BarComp>(1));
+        REQUIRE_FALSE(storage.contains<BarComp>(2));
+        REQUIRE(storage.contains<BazComp>(3));
 
-            foo = (SComponentWrapper<Foo> *)storage.storeComponent(i);
-            REQUIRE( foo->data.i == i );
-        }
 
-        REQUIRE_FALSE( storage.hasComponent( ENTITY_ID_MINIMAL - 1 ) );
-        REQUIRE_FALSE( storage.hasComponent( ENTITY_ID_MINIMAL + 6 ) );
+        storage.clear<BazComp>();
+        REQUIRE_FALSE(storage.contains<BazComp>(3));
     }
 
-    SECTION( "Erasing components" )
+    SECTION("EraseAll")
     {
-        // fill storage with 20 components (ids 1-20)
+        storage.insert<FooComp>(0, {0});
+        storage.insert<FooComp>(1);
+        storage.insert<FooComp>(1, {1});
+        storage.insert<BarComp>(1);
+        storage.insert<BarComp>(2, {2});
+        storage.insert<BazComp>(3, {3, 3});
 
-        for (entityid_t i = ENTITY_ID_MINIMAL; i < ENTITY_ID_MINIMAL + 20; i++)
-        {
-            storage.storeComponent(i);
-        }
+        storage.eraseAll(0);
+        storage.eraseAll(1);
 
-        REQUIRE( storage.getSize() == 20 );
-        REQUIRE( storage.getCapacity() == 20 );
-        REQUIRE( storage.getEmptySegmentTotalSize() == 0 );
-        
-
-        // erase 5 components from the same segment (ids 6-10)
-
-        for (size_t i = ENTITY_ID_MINIMAL + 5; i < ENTITY_ID_MINIMAL + 10; i++)
-        {
-            storage.eraseComponent(i);
-
-            REQUIRE_FALSE( storage.hasComponent(i) );
-        }
-        
-        REQUIRE( storage.getSize() == 15 );
-        REQUIRE( storage.getCapacity() == 20 );
-        REQUIRE( storage.getEmptySegmentTotalSize() == 5 );
-
-
-        // erase another 5 components, but from different segments (ids 3-5 and 11-12)
-
-        for (entityid_t i = ENTITY_ID_MINIMAL + 2; i < ENTITY_ID_MINIMAL + 5; i++)
-        {
-            REQUIRE_NOTHROW( storage.eraseComponent(i) );
-
-            REQUIRE_FALSE( storage.hasComponent(i) );
-        }
-        for (entityid_t i = ENTITY_ID_MINIMAL + 10; i < ENTITY_ID_MINIMAL + 12; i++)
-        {
-            REQUIRE_NOTHROW( storage.eraseComponent(i) );
-
-            REQUIRE_FALSE( storage.hasComponent(i) );
-        }
-        
-        REQUIRE( storage.getSize() == 10 );
-        REQUIRE( storage.getCapacity() == 20 );
-        REQUIRE( storage.getEmptySegmentTotalSize() == 5 );
-
-
-        // try erasing already erased components
-
-        storage.eraseComponent(4);
-        storage.eraseComponent(7);
-        storage.eraseComponent(12);
-
-        REQUIRE( storage.getSize() == 10 );
-        REQUIRE( storage.getCapacity() == 20 );
-        REQUIRE( storage.getEmptySegmentTotalSize() == 5 );
-
-
-        // remove empty segments
-
-        storage.removeEmptySegments();
-
-        REQUIRE( storage.getSize() == 10 );
-        REQUIRE( storage.getCapacity() == 15 );
-        REQUIRE( storage.getEmptySegmentTotalSize() == 0 );
-
-
-        // clear storage completely
-
-        storage.clearComponents();
-
-        REQUIRE( storage.getSize() == 0 );
-        REQUIRE( storage.getCapacity() == 15 );
-        REQUIRE( storage.getEmptySegmentTotalSize() == 15 );
-
-
-        storage.removeEmptySegments();
-
-        REQUIRE( storage.getSize() == 0 );
-        REQUIRE( storage.getCapacity() == 0 );
-        REQUIRE( storage.getEmptySegmentTotalSize() == 0 );
+        REQUIRE_FALSE(storage.contains<FooComp>(0));
+        REQUIRE_FALSE(storage.contains<FooComp>(1));
+        REQUIRE_FALSE(storage.contains<BarComp>(1));
+        REQUIRE(storage.contains<BarComp>(2));
+        REQUIRE(storage.contains<BazComp>(3));
     }
 
-    SECTION( "Modifying capacity" )
+    SECTION("Signature")
     {
-        // first check if it won't change anything if totalSize is smaller than current capacity
+        storage.insert<FooComp>(0, {0});
+        storage.insert<FooComp>(1);
+        storage.insert<FooComp>(1, {1});
+        storage.insert<BarComp>(1);
+        storage.insert<BarComp>(2, {2});
+        storage.insert<BazComp>(3, {3, 3});
 
-        storage.reserve(8);
+        auto sign0 = storage.signature(0);
+        REQUIRE((sign0.has<FooComp>() && !sign0.has<BarComp, BazComp>()));
 
-        REQUIRE( storage.getSize() == 0 );
-        REQUIRE( storage.getCapacity() == 10 );
-        REQUIRE( storage.getEmptySegmentTotalSize() == 10 );
+        auto sign1 = storage.signature(1);
+        REQUIRE((sign1.has<FooComp, BarComp>() && !sign1.has<BazComp>()));
 
+        auto sign2 = storage.signature(2);
+        REQUIRE((sign2.has<BarComp>() && !sign2.has<FooComp, BazComp>()));
 
-        // now increase capacity
+        auto sign3 = storage.signature(3);
+        REQUIRE((sign3.has<BazComp>() && !sign3.has<FooComp, BarComp>()));
+    }
 
-        storage.reserve(14);
+    SECTION("Iterator")
+    {
+        storage.insert<FooComp>(0, {0});
+        storage.insert<FooComp>(1);
+        storage.insert<FooComp>(1, {1});
+        storage.insert<BarComp>(1);
+        storage.insert<BarComp>(2, {2});
+        storage.insert<BazComp>(3, {3, 3});
 
-        REQUIRE( storage.getSize() == 0 );
-        REQUIRE( storage.getCapacity() == 15 );
-        REQUIRE( storage.getEmptySegmentTotalSize() == 15 );
+        auto it = storage.begin();
+        REQUIRE(it != storage.end());
+        REQUIRE(it.id() == 0);
+        REQUIRE(it.contains<FooComp>());
+        REQUIRE(it.get<FooComp>().i == 0);
 
-
-        storage.reserveAdditional(1);
-
-        REQUIRE( storage.getSize() == 0 );
-        REQUIRE( storage.getCapacity() == 20 );
-        REQUIRE( storage.getEmptySegmentTotalSize() == 20 );
-
-
-        // resize to bigger size
-
-        storage.resize(25);
-
-        REQUIRE( storage.getSize() == 0 );
-        REQUIRE( storage.getCapacity() == 25 );
-        REQUIRE( storage.getEmptySegmentTotalSize() == 25 );
-
-
-        // try to resize again to the same capacity
-
-        storage.resize(24);
-
-        REQUIRE( storage.getSize() == 0 );
-        REQUIRE( storage.getCapacity() == 25 );
-        REQUIRE( storage.getEmptySegmentTotalSize() == 25 );
-
-
-        // resize to smaller size
-
-        storage.resize(11);
-
-        REQUIRE( storage.getSize() == 0 );
-        REQUIRE( storage.getCapacity() == 15 );
-        REQUIRE( storage.getEmptySegmentTotalSize() == 15 );
-
-
-        // try downsizing when there are components in segments
-
-        for (entityid_t i = ENTITY_ID_MINIMAL; i < ENTITY_ID_MINIMAL + 15; i++)
+        it++;
+        REQUIRE(it.id() == 1);
+        REQUIRE(it.contains<FooComp>());
+        REQUIRE(it.contains<BarComp>());
         {
-            storage.storeComponent(i);
+            auto sign = it.signature();
+            REQUIRE(sign.has<FooComp, BarComp>());
         }
-        storage.eraseComponent(1);
-        storage.eraseComponent(2);
-        storage.eraseComponent(3);
-        storage.eraseComponent(4);
+        REQUIRE(it.get<FooComp>().i == 1);
+        REQUIRE(it.get<BarComp>().c == BarComp{}.c);
+        it.set<BarComp>({1});
+        REQUIRE(it.get<BarComp>().c == 1);
 
-        storage.eraseComponent(7);
-        storage.eraseComponent(8);
-        storage.eraseComponent(9);
-        storage.eraseComponent(10);
+        ++it;
+        REQUIRE(it.id() == 2);
+        REQUIRE(it.contains<BarComp>());
+        it.eraseAll();
+        REQUIRE(!it.contains<BarComp>());
 
-        storage.eraseComponent(11);
-        storage.eraseComponent(12);
-        storage.eraseComponent(13);
-        storage.eraseComponent(14);
-        storage.eraseComponent(15);
+        ++it;
+        REQUIRE(it.id() == 3);
+        REQUIRE(it.contains<BazComp>());
+        REQUIRE_THROWS(it.get<BarComp>());
 
-        // only one segment left empty
-        // first 2 segments have 1 component in each of them
+        it++;
+        REQUIRE(it == storage.end());
 
-        storage.resize(5);
+        it--;
+        REQUIRE(it.id() == 3);
+        REQUIRE(it.contains<BazComp>());
+        REQUIRE_THROWS(it.get<BarComp>());
+    }
 
-        REQUIRE( storage.getSize() == 2 );
-        REQUIRE( storage.getCapacity() == 10 );
-        REQUIRE( storage.getEmptySegmentTotalSize() == 0 );
+    SECTION("ConstIterator")
+    {
+        storage.insert<FooComp>(0, {0});
+        storage.insert<FooComp>(1);
+        storage.insert<FooComp>(1, {1});
+        storage.insert<BarComp>(1);
+        storage.insert<BarComp>(2, {2});
+        storage.insert<BazComp>(3, {3, 3});
+
+        auto it = storage.cbegin();
+        REQUIRE(it != storage.cend());
+        REQUIRE(it.id() == 0);
+        REQUIRE(it.contains<FooComp>());
+        REQUIRE(it.get<FooComp>().i == 0);
+
+        it++;
+        REQUIRE(it.id() == 1);
+        REQUIRE(it.contains<FooComp>());
+        REQUIRE(it.contains<BarComp>());
+        {
+            auto sign = it.signature();
+            REQUIRE(sign.has<FooComp, BarComp>());
+        }
+        REQUIRE(it.get<FooComp>().i == 1);
+        REQUIRE(it.get<BarComp>().c == BarComp{}.c);
+
+        ++it;
+        REQUIRE(it.id() == 2);
+        REQUIRE(it.contains<BarComp>());
+
+        ++it;
+        REQUIRE(it.id() == 3);
+        REQUIRE(it.contains<BazComp>());
+        REQUIRE_THROWS(it.get<BarComp>());
+
+        it++;
+        REQUIRE(it == storage.cend());
+
+        it--;
+        REQUIRE(it.id() == 3);
+        REQUIRE(it.contains<BazComp>());
+        REQUIRE_THROWS(it.get<BarComp>());
     }
 }

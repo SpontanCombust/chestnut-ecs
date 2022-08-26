@@ -8,7 +8,7 @@ inline CComponentStorage::CComponentStorage()
     m_highestId = ENTITY_ID_MINIMAL;
 }
 
-CComponentStorage::~CComponentStorage() 
+inline CComponentStorage::~CComponentStorage() 
 {
     
 }
@@ -93,7 +93,7 @@ inline CSparseSet<T>& CComponentStorage::getSparseSet() const noexcept
     if(m_mapTypeToSparseSet.find(TYPE_INDEX) == m_mapTypeToSparseSet.end())
     {
         sparseSetPtr = new CSparseSet<T>();
-        m_mapTypeToSparseSet[TYPE_INDEX] = sparseSetPtr;
+        m_mapTypeToSparseSet[TYPE_INDEX] = std::move(std::unique_ptr<CSparseSet<T>>(sparseSetPtr));
     }
     else
     {
@@ -106,7 +106,7 @@ inline CSparseSet<T>& CComponentStorage::getSparseSet() const noexcept
 
 
 
-void CComponentStorage::eraseAll(entityid_t id) noexcept
+inline void CComponentStorage::eraseAll(entityid_t id) noexcept
 {
     for(const auto& [typeIndex, sparseSetBase] : m_mapTypeToSparseSet)
     {
@@ -114,7 +114,7 @@ void CComponentStorage::eraseAll(entityid_t id) noexcept
     }   
 }
 
-CEntitySignature CComponentStorage::signature(entityid_t id) const noexcept
+inline CEntitySignature CComponentStorage::signature(entityid_t id) const noexcept
 {
     CEntitySignature sign;
 
