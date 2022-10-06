@@ -10,18 +10,18 @@ namespace chestnut::ecs::internal
 
     }
 
-    inline entityid_t CEntityRegistry::registerNewEntity() noexcept
+    inline entityid_t CEntityRegistry::registerNewEntity(bool canRecycleId) noexcept
     {
         entityid_t id;
 
-        if( !m_vecRecycledEntityIDs.empty() )
+        if( canRecycleId && !m_vecRecycledEntityIDs.empty() )
         {
             id = m_vecRecycledEntityIDs.back();
             m_vecRecycledEntityIDs.pop_back();
         }
         else
         {
-            id = ++m_entityIdCounter;
+            id = m_entityIdCounter++;
         }
 
         return id;
@@ -83,7 +83,12 @@ namespace chestnut::ecs::internal
 
     inline CEntitySignature CEntityRegistry::getEntitySignature(entityid_t id) const noexcept
     {
-        return m_componentStoragePtr->signature(id);
+        if(isEntityRegistered(id))
+        {
+            return m_componentStoragePtr->signature(id);
+        }
+
+        return CEntitySignature();
     }
     
     inline std::vector<entityid_t> CEntityRegistry::findEntities(std::function<bool(const CEntitySignature&)> predicate) const noexcept

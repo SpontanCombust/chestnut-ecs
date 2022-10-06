@@ -40,9 +40,11 @@ namespace chestnut::ecs::internal
         /**
          * @brief Create a record of a new entity and return its ID
          * 
+         * @param canRecycleId specifies whether the registry can reuse the ID of a previously unregistered entity
+         * 
          * @return registered entity ID
          */
-        entityid_t registerNewEntity() noexcept;
+        entityid_t registerNewEntity(bool canRecycleId = true) noexcept;
 
         /**
          * @brief Returns whether an entity with this id is registered
