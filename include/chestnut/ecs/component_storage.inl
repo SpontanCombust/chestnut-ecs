@@ -13,17 +13,8 @@ inline CComponentStorage::~CComponentStorage()
     
 }
 
-template<typename T>
-inline const std::vector<int>& CComponentStorage::sparse() const noexcept
-{
-    return getSparseSet<T>().sparse();
-}
 
-template<typename T>
-inline const std::vector<T>& CComponentStorage::dense() const noexcept
-{
-    return getSparseSet<T>().dense();
-}
+
 
 template<typename T>
 inline T& CComponentStorage::at(entityid_t id) 

@@ -50,9 +50,9 @@ TEST_CASE("Sparse set test")
         REQUIRE(testSet.sparse()[3] == 2);
 
         REQUIRE(testSet.dense().size() == 3);
-        REQUIRE(testSet.dense()[0] == 1);
-        REQUIRE(testSet.dense()[1] == 2);
-        REQUIRE(testSet.dense()[2] == 3);
+        REQUIRE(testSet.dense()[0].e == 1);
+        REQUIRE(testSet.dense()[1].e == 2);
+        REQUIRE(testSet.dense()[2].e == 3);
     }
 
     SECTION("Lookup")
@@ -74,8 +74,19 @@ TEST_CASE("Sparse set test")
         testSet.insert(2, 2);
         testSet.insert(3, 3);
 
+        // i: 0  1  2  3
+        // d: 0  1  2  3
+        // s: 0  1  2  3
+
         testSet.erase(1);
+        // i: 0  1  2  3
+        // d: 0  3  2
+        // s: 0 -1  2  1
+
         testSet.erase(2);
+        // i: 0  1  2  3
+        // d: 0  3
+        // s: 0 -1 -1  1
 
         REQUIRE(testSet.contains(0));
         REQUIRE_FALSE(testSet.contains(1));
@@ -86,12 +97,14 @@ TEST_CASE("Sparse set test")
         REQUIRE(testSet.sparse()[0] == 0);
         REQUIRE(testSet.sparse()[1] == CSparseSet<int>::NIL_INDEX);
         REQUIRE(testSet.sparse()[2] == CSparseSet<int>::NIL_INDEX);
-        REQUIRE(testSet.sparse()[3] == 3);
+        REQUIRE(testSet.sparse()[3] == 1);
 
         REQUIRE(testSet.dense().size() == 2);
-        REQUIRE(testSet.dense()[0] == 0);
-        REQUIRE(testSet.dense()[1] == 3);
+        REQUIRE(testSet.dense()[0].e == 0);
+        REQUIRE(testSet.dense()[1].e == 3);
     }
+
+
 
     SECTION("Clearing")
     {

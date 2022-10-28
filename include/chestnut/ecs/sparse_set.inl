@@ -102,7 +102,7 @@ CSparseSet<T>& CSparseSet<T>::operator=(CSparseSet<T>&& other) noexcept
 }
 
 template<typename T>
-const std::vector<T>& CSparseSet<T>::dense() const noexcept
+const std::vector<typename CSparseSet<T>::SDenseElement>& CSparseSet<T>::dense() const noexcept
 {
     return this->m_dense;
 }
@@ -115,7 +115,7 @@ T& CSparseSet<T>::at(index_type idx)
         throw std::runtime_error("no value at index found");
     }
 
-    return this->m_dense[m_sparse[idx]];
+    return this->m_dense[m_sparse[idx]].e;
 }
 
 template<typename T>
@@ -126,7 +126,7 @@ const T& CSparseSet<T>::at(index_type idx) const
         throw std::runtime_error("no value at index found");
     }
 
-    return this->m_dense[m_sparse[idx]];
+    return this->m_dense[m_sparse[idx]].e;
 }
 
 template<typename T>
@@ -159,11 +159,14 @@ void CSparseSet<T>::insert(index_type idx, T&& arg) noexcept
 
     if(m_sparse[idx] != NIL_INDEX)
     {
-        m_dense[m_sparse[idx]] = std::forward<T>(arg);
+        m_dense[m_sparse[idx]].e = std::forward<T>(arg);
     }
     else
     {
-        m_dense.push_back(std::forward<T>(arg));
+        m_dense.push_back({
+            std::forward<T>(arg),
+            idx
+        });
         m_sparse[idx] = m_dense.size() - 1;
     }
 }
@@ -173,6 +176,7 @@ void CSparseSet<T>::erase(index_type idx) noexcept
 {
     if(idx < m_sparse.size() && m_sparse[idx] != NIL_INDEX)
     {
+        m_sparse[m_dense.back().i] = m_sparse[idx];
         std::swap(m_dense[m_sparse[idx]], m_dense.back());
         m_dense.pop_back();
         m_sparse[idx] = NIL_INDEX;
