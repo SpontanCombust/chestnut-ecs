@@ -114,13 +114,9 @@ namespace chestnut::ecs
 
 
 
-    inline queryid_t CEntityWorld::createQuery(const CEntitySignature& requireSignature, const CEntitySignature& rejectSignature)
+    inline CEntityQuery *CEntityWorld::createQuery(const CEntitySignature& requireSignature, const CEntitySignature& rejectSignature)
     {
-        static queryid_t queryIDCounter = 0;
-
-        queryIDCounter++;
-
-        std::unique_ptr<internal::CEntityQueryGuard> guard = std::make_unique<internal::CEntityQueryGuard>(&m_componentStorage, queryIDCounter, requireSignature, rejectSignature);
+        std::unique_ptr<internal::CEntityQueryGuard> guard = std::make_unique<internal::CEntityQueryGuard>(&m_componentStorage, requireSignature, rejectSignature);
 
 
         std::vector< entityid_t > vecEntitiesToFetchFrom = m_entityRegistry.findEntities( 
@@ -135,26 +131,26 @@ namespace chestnut::ecs
         }
     
 
-        m_mapQueryIDToQueryGuard[queryIDCounter] = std::move(guard);
+        m_mapQueryIDToQueryGuard[&guard->getQuery()] = std::move(guard);
 
-        return queryIDCounter;
+        return &guard->getQuery();
     }
 
-    inline CEntityQuery* CEntityWorld::queryEntities( queryid_t id ) const
+    inline CEntityQuery* CEntityWorld::queryEntities( CEntityQuery *query ) const
     {
-        auto it = m_mapQueryIDToQueryGuard.find( id );
+        auto it = m_mapQueryIDToQueryGuard.find( query );
         if( it != m_mapQueryIDToQueryGuard.end() )
         {
             it->second->updateQuery();
-            return &it->second->getQuery();
+            return query;
         }
 
         return nullptr;
     }
 
-    inline void CEntityWorld::destroyQuery( queryid_t id )
+    inline void CEntityWorld::destroyQuery( CEntityQuery *query )
     {
-        auto it = m_mapQueryIDToQueryGuard.find( id );
+        auto it = m_mapQueryIDToQueryGuard.find( query );
         if( it != m_mapQueryIDToQueryGuard.end() )
         {
             m_mapQueryIDToQueryGuard.erase( it );

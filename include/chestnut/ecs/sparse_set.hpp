@@ -42,8 +42,15 @@ namespace chestnut::ecs::internal
     template<typename T>
     class CSparseSet : public CSparseSetBase
     {
+    public:
+        struct SDenseElement 
+        {
+            T e;
+            index_type i;
+        };
+
     private:
-        std::vector<T> m_dense;
+        std::vector<SDenseElement> m_dense;
 
 
     public:
@@ -57,7 +64,7 @@ namespace chestnut::ecs::internal
         CSparseSet& operator=(CSparseSet&& other) noexcept;
 
 
-        const std::vector<T>& dense() const noexcept;
+        const std::vector<SDenseElement>& dense() const noexcept;
 
 
         T& at(index_type idx);

@@ -27,13 +27,6 @@ namespace chestnut::ecs::internal
 
 
         template<typename T>
-        const std::vector<int>& sparse() const noexcept;
-
-        template<typename T>
-        const std::vector<T>& dense() const noexcept;
-
-
-        template<typename T>
         T& at(entityid_t id);
 
         template<typename T>

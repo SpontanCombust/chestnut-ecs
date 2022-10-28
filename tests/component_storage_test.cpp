@@ -30,18 +30,12 @@ TEST_CASE( "Component storage test" )
     {
         REQUIRE(storage.empty<FooComp>());
         REQUIRE(storage.size<FooComp>() == 0);
-        REQUIRE(storage.sparse<FooComp>().empty());
-        REQUIRE(storage.dense<FooComp>().empty());
 
         REQUIRE(storage.empty<BarComp>());
         REQUIRE(storage.size<BarComp>() == 0);
-        REQUIRE(storage.sparse<BarComp>().empty());
-        REQUIRE(storage.dense<BarComp>().empty());
 
         REQUIRE(storage.empty<BazComp>());
         REQUIRE(storage.size<BazComp>() == 0);
-        REQUIRE(storage.sparse<BazComp>().empty());
-        REQUIRE(storage.dense<BazComp>().empty());
     }
 
     SECTION("Insertion")
@@ -67,16 +61,8 @@ TEST_CASE( "Component storage test" )
 
 
         REQUIRE(storage.size<FooComp>() == 2);
-        REQUIRE(storage.sparse<FooComp>().size() == 2);
-        REQUIRE(storage.dense<FooComp>().size() == 2);
-
         REQUIRE(storage.size<BarComp>() == 2);
-        REQUIRE(storage.sparse<BarComp>().size() == 3);
-        REQUIRE(storage.dense<BarComp>().size() == 2);
-
-        REQUIRE(storage.size<BazComp>() == 1);
-        REQUIRE(storage.sparse<BazComp>().size() == 4);
-        REQUIRE(storage.dense<BazComp>().size() == 1);        
+        REQUIRE(storage.size<BazComp>() == 1);       
     }
 
     SECTION("Lookup")

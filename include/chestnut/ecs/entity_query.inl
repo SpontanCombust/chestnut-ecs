@@ -5,15 +5,10 @@
 namespace chestnut::ecs
 {
 
-inline CEntityQuery::CEntityQuery(internal::CComponentStorage *storagePtr, queryid_t id, CEntitySignature requireSignature, CEntitySignature rejectSignature) noexcept
-: m_storagePtr(storagePtr), m_id(id), m_requireSignature(requireSignature), m_rejectSignature(rejectSignature)
+inline CEntityQuery::CEntityQuery(internal::CComponentStorage *storagePtr, CEntitySignature requireSignature, CEntitySignature rejectSignature) noexcept
+: m_storagePtr(storagePtr), m_requireSignature(requireSignature), m_rejectSignature(rejectSignature)
 {
 
-}
-
-inline queryid_t CEntityQuery::getID() const noexcept
-{
-    return m_id;
 }
 
 inline const CEntitySignature& CEntityQuery::getRejectSignature() const noexcept
@@ -28,7 +23,7 @@ inline const CEntitySignature& CEntityQuery::getRequireSignature() const noexcep
 
 inline entitysize_t CEntityQuery::getEntityCount() const noexcept
 {
-    return m_vecEntityIDs.size();
+    return (entitysize_t)m_vecEntityIDs.size();
 }
 
 

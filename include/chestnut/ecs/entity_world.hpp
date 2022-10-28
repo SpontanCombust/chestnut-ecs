@@ -47,7 +47,7 @@ namespace chestnut::ecs
          * Query guards are mutable, because we cache pending components inside them and want to update them when calling update on query.
          * This action doesn't affect World itself.
          */
-        mutable std::unordered_map<queryid_t, std::unique_ptr<internal::CEntityQueryGuard>> m_mapQueryIDToQueryGuard;
+        mutable std::unordered_map<CEntityQuery *, std::unique_ptr<internal::CEntityQueryGuard>> m_mapQueryIDToQueryGuard;
 
         /**
          * @brief Shared mutex that can be used for synchronizing actions on the world between threads
@@ -120,12 +120,12 @@ namespace chestnut::ecs
         
 
 
-        queryid_t createQuery( const CEntitySignature& requireSignature, const CEntitySignature& rejectSignature );
+        CEntityQuery *createQuery( const CEntitySignature& requireSignature, const CEntitySignature& rejectSignature );
 
-        // Returns null if no query with this ID exists
-        CEntityQuery* queryEntities( queryid_t id ) const;
+        // Returns null if given query has been destroyed
+        CEntityQuery* queryEntities(CEntityQuery *query) const;
 
-        void destroyQuery( queryid_t id );
+        void destroyQuery(CEntityQuery *query);
 
 
 

@@ -60,7 +60,7 @@ namespace chestnut::ecs::internal
 
     inline entitysize_t CEntityRegistry::getEntityCount() const noexcept
     {
-        return m_entityIdCounter - ENTITY_ID_MINIMAL - m_vecRecycledEntityIDs.size();
+        return (entitysize_t)(m_entityIdCounter - ENTITY_ID_MINIMAL - m_vecRecycledEntityIDs.size());
     }
 
     inline entitysize_t CEntityRegistry::getEntityCountOfExactSignature(const CEntitySignature& requiredSignature) const noexcept

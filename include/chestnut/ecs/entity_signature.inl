@@ -82,7 +82,7 @@ namespace chestnut::ecs
 
     inline int CEntitySignature::getSize() const
     {
-        return m_setComponentTypes.size();
+        return (int)m_setComponentTypes.size();
     }
 
     inline CEntitySignature& CEntitySignature::operator+=( const CEntitySignature& other ) 

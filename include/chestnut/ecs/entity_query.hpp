@@ -30,7 +30,6 @@ namespace chestnut::ecs
     private:
         internal::CComponentStorage *m_storagePtr;
 
-        queryid_t m_id;
         CEntitySignature m_requireSignature;
         CEntitySignature m_rejectSignature;
 
@@ -38,10 +37,9 @@ namespace chestnut::ecs
 
 
     public:
-        CEntityQuery(internal::CComponentStorage *storagePtr, queryid_t id, CEntitySignature requireSignature, CEntitySignature rejectSignature ) noexcept;
+        CEntityQuery(internal::CComponentStorage *storagePtr, CEntitySignature requireSignature, CEntitySignature rejectSignature ) noexcept;
 
 
-        queryid_t getID() const noexcept;
         const CEntitySignature& getRequireSignature() const noexcept;
         const CEntitySignature& getRejectSignature() const noexcept;
         entitysize_t getEntityCount() const noexcept;
