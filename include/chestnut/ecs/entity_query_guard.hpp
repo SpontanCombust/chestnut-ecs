@@ -25,7 +25,7 @@ namespace chestnut::ecs::internal
 
 
     public:
-        CEntityQueryGuard(CComponentStorage *componentStorage, queryid_t id, const CEntitySignature& requireSignature, const CEntitySignature& rejectSignature);
+        CEntityQueryGuard(CComponentStorage *componentStorage, const CEntitySignature& requireSignature, const CEntitySignature& rejectSignature);
 
 
         // Doesn't check for duplicates
