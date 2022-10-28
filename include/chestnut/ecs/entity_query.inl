@@ -23,7 +23,7 @@ inline const CEntitySignature& CEntityQuery::getRequireSignature() const noexcep
 
 inline entitysize_t CEntityQuery::getEntityCount() const noexcept
 {
-    return m_vecEntityIDs.size();
+    return (entitysize_t)m_vecEntityIDs.size();
 }
 
 

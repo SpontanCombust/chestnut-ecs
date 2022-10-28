@@ -138,7 +138,7 @@ bool CSparseSet<T>::empty() const noexcept
 template<typename T>
 CSparseSetBase::index_type CSparseSet<T>::size() const noexcept
 {
-    return m_dense.size();
+    return (CSparseSetBase::index_type)m_dense.size();
 }
 
 template<typename T>
@@ -167,7 +167,7 @@ void CSparseSet<T>::insert(index_type idx, T&& arg) noexcept
             std::forward<T>(arg),
             idx
         });
-        m_sparse[idx] = m_dense.size() - 1;
+        m_sparse[idx] = (CSparseSetBase::index_type)(m_dense.size() - 1);
     }
 }
 
