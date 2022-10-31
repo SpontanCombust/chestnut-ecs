@@ -132,10 +132,10 @@ namespace chestnut::ecs
             guard->enqueueEntity(vecEntitiesToFetchFrom[i]);
         }
     
+        CEntityQuery *query = &guard->getQuery();
+        m_mapQueryIDToQueryGuard[query] = std::move(guard);
 
-        m_mapQueryIDToQueryGuard[&guard->getQuery()] = std::move(guard);
-
-        return &guard->getQuery();
+        return query;
     }
 
     inline CEntityQuery* CEntityWorld::queryEntities( CEntityQuery *query ) const

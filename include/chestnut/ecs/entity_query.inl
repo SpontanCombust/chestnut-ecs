@@ -35,9 +35,9 @@ CEntityQuery::Iterator<Types...> CEntityQuery::begin() noexcept
     assert(m_requireSignature.has<Types...>() && "All types supplied must be in query's 'require' signature");
 
     CEntitySignature sign = makeEntitySignature<Types...>();
-    assert(m_rejectSignature.hasAnyFrom(sign) && "None of the supplied types should be in query's 'reject' signature");
+    assert(!m_rejectSignature.hasAnyFrom(sign) && "None of the supplied types should be in query's 'reject' signature");
 
-    return Iterator(this, 0);
+    return Iterator<Types...>(this, 0);
 }
 
 template<typename ...Types>
@@ -46,9 +46,9 @@ CEntityQuery::Iterator<Types...> CEntityQuery::end() noexcept
     assert(m_requireSignature.has<Types...>() && "All types supplied must be in query's 'require' signature");
 
     CEntitySignature sign = makeEntitySignature<Types...>();
-    assert(m_rejectSignature.hasAnyFrom(sign) && "None of the supplied types should be in query's 'reject' signature");
+    assert(!m_rejectSignature.hasAnyFrom(sign) && "None of the supplied types should be in query's 'reject' signature");
 
-    return Iterator(this, m_vecEntityIDs.size());
+    return Iterator<Types...>(this, m_vecEntityIDs.size());
 }
 
 

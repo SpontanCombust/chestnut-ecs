@@ -24,13 +24,13 @@ namespace chestnut::ecs
 
 
 
-        std::tuple<Types...> operator*()
+        std::tuple<Types&...> operator*()
         {
             using TL = tl::type_list<Types...>;
 
-            return TL::template for_each_and_collect<std::tuple>([&](auto t) {
+            return TL::template for_each_and_collect<std::tuple>([&](auto t) -> typename decltype(t)::type& {
                 using T = typename decltype(t)::type;
-                return m_query->m_storagePtr->at<T>(m_currentQueryIdx);
+                return m_query->m_storagePtr->at<T>(m_query->m_vecEntityIDs[m_currentQueryIdx]);
             });
         }
 
