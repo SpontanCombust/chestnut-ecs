@@ -32,7 +32,7 @@ namespace chestnut::ecs
         /**
          * @brief Storage object for the components
          */
-        internal::CComponentStorage m_componentStorage;
+        mutable internal::CComponentStorage m_componentStorage;
 
         /**
          * @brief Object that distributes entity IDs and provides helper lookup functions into storage

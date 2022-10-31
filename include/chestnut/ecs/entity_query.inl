@@ -51,6 +51,9 @@ CEntityQuery::Iterator<Types...> CEntityQuery::end() noexcept
     return Iterator(this, m_vecEntityIDs.size());
 }
 
+
+
+
 template<typename ...Types>
 CEntityQuery CEntityQuery::getSortedBy(std::function<bool(CEntityQuery::Iterator<Types...>, CEntityQuery::Iterator<Types...>)> comparator) noexcept
 {
@@ -66,7 +69,7 @@ CEntityQuery CEntityQuery::getSortedBy(std::function<bool(CEntityQuery::Iterator
         }
     );
 
-    CEntityQuery sortedQuery(this->m_storagePtr, this->m_id, this->m_requireSignature, this->m_rejectSignature);
+    CEntityQuery sortedQuery(this->m_storagePtr, this->m_requireSignature, this->m_rejectSignature);
     for (unsigned int i = 0; i < m_vecEntityIDs.size(); i++)
     {
         sortedQuery.m_vecEntityIDs[i] = this->m_vecEntityIDs[indices[i]];

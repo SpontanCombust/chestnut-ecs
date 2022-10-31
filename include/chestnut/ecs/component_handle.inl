@@ -13,7 +13,7 @@ namespace chestnut::ecs
     CComponentHandle<C>::CComponentHandle( entityid_t owner, internal::CComponentStorage *storage) noexcept
     {
         this->owner = owner;
-        this->m_componentWrapper = storage;
+        this->m_componentStorage = storage;
     }
 
     template<typename C>
@@ -24,7 +24,7 @@ namespace chestnut::ecs
             throw BadComponentAccessException();
         }
 
-        return m_componentStorage->at(this->owner);
+        return m_componentStorage->at<C>(this->owner);
     }
 
     template<typename C>
@@ -35,7 +35,7 @@ namespace chestnut::ecs
             throw BadComponentAccessException();
         }
 
-        return m_componentStorage->at(this->owner);
+        return m_componentStorage->at<C>(this->owner);
     }
 
     template<typename C>

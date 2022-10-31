@@ -91,6 +91,8 @@ namespace chestnut::ecs
         {
             return CComponentHandle<C>(entityID, &m_componentStorage);
         }
+
+        return CComponentHandle<C>();
     }
 
     template< typename C >
