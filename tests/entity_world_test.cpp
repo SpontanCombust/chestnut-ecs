@@ -151,24 +151,29 @@ TEST_CASE( "Entity world test - general" )
 
 
         foo = world.getComponent<Foo>( ent1 );
+        REQUIRE( foo );
         REQUIRE( foo->x == 1 );
         bar = world.getComponent<Bar>( ent1 );
         REQUIRE_FALSE( bar );
         baz = world.getComponent<Baz>( ent1 );
 
         foo = world.getComponent<Foo>( ent2 );
+        REQUIRE( foo );
         REQUIRE( foo->x == 2 );
         bar = world.getComponent<Bar>( ent2 );
         REQUIRE_FALSE( bar );
         baz = world.getComponent<Baz>( ent2 );
+        REQUIRE( baz );
         REQUIRE( baz->z == 3 );
         REQUIRE( baz->w == 4 );
 
         foo = world.getComponent<Foo>( ent3 );
         REQUIRE_FALSE( foo );
         bar = world.getComponent<Bar>( ent3 );
+        REQUIRE( bar );
         REQUIRE( bar->y == 5 );
         baz = world.getComponent<Baz>( ent3 );
+        REQUIRE( baz );
         REQUIRE( baz->z == 6 );
         REQUIRE( baz->w == 7 );
     }
