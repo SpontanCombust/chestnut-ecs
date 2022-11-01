@@ -21,6 +21,11 @@ inline const CEntitySignature& CEntityQuery::getRequireSignature() const noexcep
     return m_requireSignature;
 }
 
+inline const std::vector<entityid_t> CEntityQuery::getEntities() const
+{
+    return m_vecEntityIDs;
+}
+
 inline entitysize_t CEntityQuery::getEntityCount() const noexcept
 {
     return (entitysize_t)m_vecEntityIDs.size();

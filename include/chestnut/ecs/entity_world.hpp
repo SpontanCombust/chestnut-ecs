@@ -129,6 +129,8 @@ namespace chestnut::ecs
 
 
 
+        CEntitySignature getEntitySignature(entityid_t entityID) const;
+
         // Simpler form of querying for entities, where you only get their IDs when
         // Use this only when you'll be looking for entities non-frequently. Otherwise use regular queries
         std::vector< entityid_t > findEntities( std::function< bool( const CEntitySignature& ) > predicate ) const;

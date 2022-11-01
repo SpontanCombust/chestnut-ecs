@@ -164,6 +164,14 @@ namespace chestnut::ecs
         }
     }
 
+
+
+
+    inline CEntitySignature CEntityWorld::getEntitySignature(entityid_t entityID) const
+    {
+        return m_entityRegistry.getEntitySignature(entityID);
+    }
+
     inline std::vector< entityid_t > CEntityWorld::findEntities(std::function< bool( const CEntitySignature& ) > pred ) const
     {
         return m_entityRegistry.findEntities(pred);

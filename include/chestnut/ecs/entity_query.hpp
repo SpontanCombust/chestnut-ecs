@@ -41,6 +41,7 @@ namespace chestnut::ecs
 
         const CEntitySignature& getRequireSignature() const noexcept;
         const CEntitySignature& getRejectSignature() const noexcept;
+        const std::vector<entityid_t> getEntities() const;
         entitysize_t getEntityCount() const noexcept;
 
         
