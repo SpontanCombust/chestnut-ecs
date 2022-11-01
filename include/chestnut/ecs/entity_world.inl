@@ -138,6 +138,11 @@ namespace chestnut::ecs
         return query;
     }
 
+    inline CEntityQuery *CEntityWorld::createQuery(const CEntitySignature& requireSignature)
+    {
+        return this->createQuery(requireSignature, makeEntitySignature<>());
+    }
+
     inline CEntityQuery* CEntityWorld::queryEntities( CEntityQuery *query ) const
     {
         auto it = m_mapQueryIDToQueryGuard.find( query );

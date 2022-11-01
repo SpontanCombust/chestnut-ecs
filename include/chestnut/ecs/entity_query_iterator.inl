@@ -1,6 +1,6 @@
 #include <typelist.hpp>
 
-#include <utility>
+#include <tuple>
 
 namespace chestnut::ecs
 {
@@ -47,6 +47,13 @@ namespace chestnut::ecs
             return tmp;
         }
 
+        Iterator operator+(unsigned int n) noexcept
+        {
+            Iterator tmp(*this);
+            tmp.m_currentQueryIdx += n;
+            return tmp;
+        }
+
         Iterator& operator--() noexcept
         {
             m_currentQueryIdx--;
@@ -57,6 +64,13 @@ namespace chestnut::ecs
         {
             Iterator tmp(*this);
             --(*this);
+            return tmp;
+        }
+
+        Iterator operator-(unsigned int n) noexcept
+        {
+            Iterator tmp(*this);
+            tmp.m_currentQueryIdx -= n;
             return tmp;
         }
 

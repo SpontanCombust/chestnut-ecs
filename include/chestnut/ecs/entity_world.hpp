@@ -120,7 +120,8 @@ namespace chestnut::ecs
         
 
 
-        CEntityQuery *createQuery( const CEntitySignature& requireSignature, const CEntitySignature& rejectSignature );
+        CEntityQuery *createQuery(const CEntitySignature& requireSignature, const CEntitySignature& rejectSignature);
+        CEntityQuery *createQuery(const CEntitySignature& requireSignature);
 
         // Returns null if given query has been destroyed
         CEntityQuery* queryEntities(CEntityQuery *query) const;

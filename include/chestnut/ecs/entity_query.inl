@@ -53,9 +53,19 @@ CEntityQuery::Iterator<Types...> CEntityQuery::end() noexcept
 
 
 
+template<typename ...Types>
+void CEntityQuery::forEach(const std::function<void(Types&...)>& handler )
+{
+    for(auto it = this->begin<Types...>(); it != this->end<Types...>(); it++)
+    {
+        std::apply(handler, *it);
+    }
+}
+
+
 
 template<typename ...Types>
-CEntityQuery CEntityQuery::getSortedBy(std::function<bool(CEntityQuery::Iterator<Types...>, CEntityQuery::Iterator<Types...>)> comparator) noexcept
+void CEntityQuery::sort(std::function<bool(CEntityQuery::Iterator<Types...>, CEntityQuery::Iterator<Types...>)> comparator) noexcept
 {
     std::vector<unsigned int> indices(m_vecEntityIDs.size());
     std::iota(indices.begin(), indices.end(), 0);
@@ -69,13 +79,14 @@ CEntityQuery CEntityQuery::getSortedBy(std::function<bool(CEntityQuery::Iterator
         }
     );
 
-    CEntityQuery sortedQuery(this->m_storagePtr, this->m_requireSignature, this->m_rejectSignature);
+    std::vector<entityid_t> sortedEnts(m_vecEntityIDs.size());
+
     for (unsigned int i = 0; i < m_vecEntityIDs.size(); i++)
     {
-        sortedQuery.m_vecEntityIDs[i] = this->m_vecEntityIDs[indices[i]];
+        sortedEnts[i] = this->m_vecEntityIDs[indices[i]];
     }
-    
-    return sortedQuery;
+
+    this->m_vecEntityIDs = std::move(sortedEnts);
 }
 
 } // namespace chestnut::ecs

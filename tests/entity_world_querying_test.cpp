@@ -162,4 +162,58 @@ TEST_CASE( "Entity world test - querying" )
 
         world.destroyQuery(q);
     }
+
+    SECTION( "Use forEach" )
+    {
+        auto q = world.createQuery( makeEntitySignature<Bar>() );
+        world.queryEntities(q);
+
+        REQUIRE( q->getEntityCount() == 30 );  
+
+        q->forEach<Bar>(std::function(
+            [](Bar& bar) {
+                REQUIRE(((bar.y >= 10 && bar.y < 30) || bar.y > 40));
+            }
+        ));
+
+        world.destroyQuery(q); 
+    }
+
+    SECTION( "Sort the query" ) 
+    {
+        auto q = world.createQuery( makeEntitySignature<Foo>() );
+        world.queryEntities(q);
+
+        REQUIRE( q->getEntityCount() == 40 );
+
+        using Iterator = CEntityQuery::Iterator<Foo>;
+        q->sort<Foo>(std::function(
+            [](Iterator it1, Iterator it2) -> bool {
+                // sort by entity ID descending
+                return it1.entityId() > it2.entityId();
+            }
+        ));
+
+        for(auto it = q->begin<Foo>(); it != q->end<Foo>() - 1; it++)
+        {
+            auto next = it + 1;
+            REQUIRE(it.entityId() > next.entityId());
+        }
+
+
+        q->sort<Foo>(std::function(
+            [](Iterator it1, Iterator it2) -> bool {
+                // now ascending
+                return it1.entityId() < it2.entityId();
+            }
+        ));
+
+        for(auto it = q->begin<Foo>(); it != q->end<Foo>() - 1; it++)
+        {
+            auto next = it + 1;
+            REQUIRE(it.entityId() < next.entityId());
+        }
+
+        world.destroyQuery(q);
+    }
 }
