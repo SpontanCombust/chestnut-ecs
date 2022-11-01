@@ -18,7 +18,6 @@
 #include "entity_query_guard.hpp"
 #include "entity_query.hpp"
 #include "component_handle.hpp"
-#include "component_wrapper.hpp"
 
 #include <memory>
 #include <shared_mutex>

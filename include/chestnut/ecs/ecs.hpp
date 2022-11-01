@@ -1,6 +1,7 @@
+#pragma once
+
 #include "component_handle.hpp"
 #include "component_storage.hpp"
-#include "component_wrapper.hpp"
 #include "constants.hpp"
 #include "entity_query_guard.hpp"
 #include "entity_query.hpp"

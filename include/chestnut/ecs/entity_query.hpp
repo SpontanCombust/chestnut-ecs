@@ -1,7 +1,6 @@
 #pragma once
 
 #include "types.hpp"
-#include "component_wrapper.hpp"
 #include "component_storage.hpp"
 #include "entity_signature.hpp"
 

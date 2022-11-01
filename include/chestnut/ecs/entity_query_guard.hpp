@@ -1,6 +1,5 @@
 #pragma once
 
-#include "component_wrapper.hpp"
 #include "component_storage.hpp"
 #include "entity_query.hpp"
 
