@@ -258,6 +258,136 @@ TEST_CASE( "Entity world test - general" )
 
 
 
+TEST_CASE("Entity iterator test")
+{
+    CEntityWorld world;
+
+    std::vector<entityid_t> vecEntsFoo;
+    for (size_t i = 0; i < 4; i++)
+    {
+        auto ent = world.createEntity();
+        world.createComponent<Foo>(ent);
+        vecEntsFoo.push_back(ent);
+    }
+
+    std::vector<entityid_t> vecEntsBarBaz;
+    for (size_t i = 0; i < 4; i++)
+    {
+        auto ent = world.createEntity();
+        world.createComponent<Bar>(ent);
+        world.createComponent<Baz>(ent);
+        vecEntsBarBaz.push_back(ent);
+    }
+
+    world.destroyEntity(vecEntsFoo[0]);
+    world.destroyEntity(vecEntsFoo[3]);
+    world.destroyEntity(vecEntsBarBaz[1]);
+    world.destroyEntity(vecEntsBarBaz[2]);
+
+    SECTION("CEntityIterator")
+    {
+        auto begin = world.entityIterator.begin();
+        auto end = world.entityIterator.end();
+
+        auto it = begin;
+        REQUIRE(it.id() == vecEntsFoo[1]);
+        REQUIRE(it.contains<Foo>());
+        REQUIRE(it.signature() == makeEntitySignature<Foo>());
+        REQUIRE_NOTHROW(it.get<Foo>());
+
+        it++;
+        REQUIRE(it.id() == vecEntsFoo[2]);
+        REQUIRE(it.contains<Foo>());
+        REQUIRE(it.signature() == makeEntitySignature<Foo>());
+        REQUIRE_NOTHROW(it.get<Foo>());
+
+        it++;
+        REQUIRE(it.id() == vecEntsBarBaz[0]);
+        REQUIRE(it.contains<Bar>());
+        REQUIRE(it.contains<Baz>());
+        REQUIRE(it.signature() == makeEntitySignature<Bar, Baz>());
+        REQUIRE_NOTHROW(it.get<Bar>());
+        REQUIRE_NOTHROW(it.get<Baz>());
+
+        it++;
+        REQUIRE(it.id() == vecEntsBarBaz[3]);
+        REQUIRE(it.contains<Bar>());
+        REQUIRE(it.contains<Baz>());
+        REQUIRE(it.signature() == makeEntitySignature<Bar, Baz>());
+        REQUIRE_NOTHROW(it.get<Bar>());
+        REQUIRE_NOTHROW(it.get<Baz>());
+
+        it++;
+        REQUIRE(it == end);
+
+        it--;
+        REQUIRE(it.id() == vecEntsBarBaz[3]);
+
+        it--;
+        REQUIRE(it.id() == vecEntsBarBaz[0]);
+
+        it--;
+        REQUIRE(it.id() == vecEntsFoo[2]);
+
+        it--;
+        REQUIRE(it.id() == vecEntsFoo[1]);
+        REQUIRE(it == begin);
+    }
+
+    SECTION("CEntityConstIterator")
+    {
+        auto begin = world.entityIterator.cbegin();
+        auto end = world.entityIterator.cend();
+
+        auto it = begin;
+        REQUIRE(it.id() == vecEntsFoo[1]);
+        REQUIRE(it.contains<Foo>());
+        REQUIRE(it.signature() == makeEntitySignature<Foo>());
+        REQUIRE_NOTHROW(it.get<Foo>());
+
+        it++;
+        REQUIRE(it.id() == vecEntsFoo[2]);
+        REQUIRE(it.contains<Foo>());
+        REQUIRE(it.signature() == makeEntitySignature<Foo>());
+        REQUIRE_NOTHROW(it.get<Foo>());
+
+        it++;
+        REQUIRE(it.id() == vecEntsBarBaz[0]);
+        REQUIRE(it.contains<Bar>());
+        REQUIRE(it.contains<Baz>());
+        REQUIRE(it.signature() == makeEntitySignature<Bar, Baz>());
+        REQUIRE_NOTHROW(it.get<Bar>());
+        REQUIRE_NOTHROW(it.get<Baz>());
+
+        it++;
+        REQUIRE(it.id() == vecEntsBarBaz[3]);
+        REQUIRE(it.contains<Bar>());
+        REQUIRE(it.contains<Baz>());
+        REQUIRE(it.signature() == makeEntitySignature<Bar, Baz>());
+        REQUIRE_NOTHROW(it.get<Bar>());
+        REQUIRE_NOTHROW(it.get<Baz>());
+
+        it++;
+        REQUIRE(it == end);
+
+        it--;
+        REQUIRE(it.id() == vecEntsBarBaz[3]);
+
+        it--;
+        REQUIRE(it.id() == vecEntsBarBaz[0]);
+
+        it--;
+        REQUIRE(it.id() == vecEntsFoo[2]);
+
+        it--;
+        REQUIRE(it.id() == vecEntsFoo[1]);
+        REQUIRE(it == begin);
+    }
+}
+
+
+
+
 TEST_CASE( "Entity world test - benchmarks", "[benchmark]" )
 {
     const entityid_t ENTITY_COUNT = 10000;

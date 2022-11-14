@@ -58,6 +58,11 @@ namespace chestnut::ecs::internal
         }
     }
 
+    inline entityid_t CEntityRegistry::getHighestIdRegistered() const noexcept
+    {
+        return m_entityIdCounter;
+    }
+
     inline entitysize_t CEntityRegistry::getEntityCount() const noexcept
     {
         return (entitysize_t)(m_entityIdCounter - ENTITY_ID_MINIMAL - m_vecRecycledEntityIDs.size());

@@ -3,6 +3,7 @@
 #include "component_handle.hpp"
 #include "component_storage.hpp"
 #include "constants.hpp"
+#include "entity_iterator.hpp"
 #include "entity_query_guard.hpp"
 #include "entity_query.hpp"
 #include "entity_registry.hpp"

@@ -17,6 +17,7 @@
 #include "entity_registry.hpp"
 #include "entity_query_guard.hpp"
 #include "entity_query.hpp"
+#include "entity_iterator.hpp"
 #include "component_handle.hpp"
 
 #include <memory>
@@ -127,6 +128,21 @@ namespace chestnut::ecs
 
         void destroyQuery(CEntityQuery *query);
 
+
+        class EntityIteratorMethods
+        {
+        private:
+            CEntityWorld *m_parent;
+
+        public:
+            EntityIteratorMethods(CEntityWorld *parent) : m_parent(parent) {}
+
+            CEntityIterator begin() noexcept;
+            CEntityIterator end() noexcept;
+            CEntityConstIterator cbegin() noexcept;
+            CEntityConstIterator cend() noexcept;
+            
+        } entityIterator;
 
 
         CEntitySignature getEntitySignature(entityid_t entityID) const;

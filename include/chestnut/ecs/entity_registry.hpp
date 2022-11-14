@@ -66,6 +66,13 @@ namespace chestnut::ecs::internal
 
         
         /**
+         * @brief Get the value of the internal ID counter
+         * 
+         * @return highest id or ENTITY_ID_INVALID if no entities have been registered yet
+         */
+        entityid_t getHighestIdRegistered() const noexcept;
+
+        /**
          * @brief Get the amount of all registered entities
          * 
          * @return entity count

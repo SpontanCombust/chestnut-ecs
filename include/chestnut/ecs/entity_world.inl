@@ -4,7 +4,8 @@
 namespace chestnut::ecs
 {
     inline CEntityWorld::CEntityWorld() 
-    : m_entityRegistry(&m_componentStorage)
+    : m_entityRegistry(&m_componentStorage),
+      entityIterator(this)
     {
         
     }
@@ -167,6 +168,63 @@ namespace chestnut::ecs
 
 
 
+    inline CEntityIterator CEntityWorld::EntityIteratorMethods::begin() noexcept
+    {
+        auto it = CEntityIterator(
+            &m_parent->m_entityRegistry, 
+            &m_parent->m_componentStorage, 
+            ENTITY_ID_MINIMAL
+        );
+
+        if(!it.isValid() && it.canGoForward())
+        {
+            ++it;
+        }
+
+        return it;
+    }
+
+    inline CEntityIterator CEntityWorld::EntityIteratorMethods::end() noexcept
+    {
+        auto it = CEntityIterator(
+            &m_parent->m_entityRegistry, 
+            &m_parent->m_componentStorage, 
+            m_parent->m_entityRegistry.getHighestIdRegistered() + 1
+        );
+
+        return it;
+    }
+
+    inline CEntityConstIterator CEntityWorld::EntityIteratorMethods::cbegin() noexcept
+    {
+        auto it = CEntityConstIterator(
+            &m_parent->m_entityRegistry, 
+            &m_parent->m_componentStorage, 
+            ENTITY_ID_MINIMAL
+        );
+
+        if(!it.isValid() && it.canGoForward())
+        {
+            ++it;
+        }
+
+        return it;
+    }
+
+    inline CEntityConstIterator CEntityWorld::EntityIteratorMethods::cend() noexcept
+    {
+        auto it = CEntityConstIterator(
+            &m_parent->m_entityRegistry, 
+            &m_parent->m_componentStorage, 
+            m_parent->m_entityRegistry.getHighestIdRegistered() + 1
+        );
+
+        return it;
+    }
+
+
+
+    
     inline CEntitySignature CEntityWorld::getEntitySignature(entityid_t entityID) const
     {
         return m_entityRegistry.getEntitySignature(entityID);
