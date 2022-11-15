@@ -195,7 +195,7 @@ namespace chestnut::ecs
         return it;
     }
 
-    inline CEntityConstIterator CEntityWorld::EntityIteratorMethods::cbegin() noexcept
+    inline CEntityConstIterator CEntityWorld::EntityIteratorMethods::cbegin() const noexcept
     {
         auto it = CEntityConstIterator(
             &m_parent->m_entityRegistry, 
@@ -211,7 +211,7 @@ namespace chestnut::ecs
         return it;
     }
 
-    inline CEntityConstIterator CEntityWorld::EntityIteratorMethods::cend() noexcept
+    inline CEntityConstIterator CEntityWorld::EntityIteratorMethods::cend() const noexcept
     {
         auto it = CEntityConstIterator(
             &m_parent->m_entityRegistry, 

@@ -139,8 +139,8 @@ namespace chestnut::ecs
 
             CEntityIterator begin() noexcept;
             CEntityIterator end() noexcept;
-            CEntityConstIterator cbegin() noexcept;
-            CEntityConstIterator cend() noexcept;
+            CEntityConstIterator cbegin() const noexcept;
+            CEntityConstIterator cend() const noexcept;
             
         } entityIterator;
 
