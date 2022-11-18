@@ -27,8 +27,8 @@ namespace chestnut::ecs::internal
             {
                 if(m_pendingOut_setEntityIDs.find(*it) != m_pendingOut_setEntityIDs.end())
                 {
-                    it = m_targetQuery.m_vecEntityIDs.erase(it);
                     m_pendingOut_setEntityIDs.erase(*it);
+                    it = m_targetQuery.m_vecEntityIDs.erase(it);
                 }
                 else
                 {
