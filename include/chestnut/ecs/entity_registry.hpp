@@ -1,47 +1,25 @@
-/**
- * @file entity_registry.hpp
- * @author Przemysław Cedro (SpontanCombust)
- * @brief Header file for the internal entity registry class
- * @version 1.0
- * @date 2021-11-30
- * 
- * @copyright Copyright (c) 2021
- * 
- */
-
-
-#ifndef __CHESTNUT_ECS_ENTITY_REGISTRY_H__
-#define __CHESTNUT_ECS_ENTITY_REGISTRY_H__
+#pragma once
 
 #include "types.hpp"
-#include "constants.hpp"
+#include "component_storage.hpp"
 #include "entity_signature.hpp"
 
-#include <deque>
 #include <functional>
 #include <vector>
 
 namespace chestnut::ecs::internal
 {
     /**
-     * @brief Entity record data used in the registry
-     */
-    struct SEntityRegistryRecord
-    {
-        /** @brief If the record is actively used by some entity */
-        bool isIdUsed;
-        /** @brief If the entity is a template entity */
-        bool isTemplate;
-        /** @brief Signature of the entity */
-        CEntitySignature signature;
-    };
-
-    /**
-     * @brief Class storing metadata about entities e.g. which types of components they own
+     * @brief Class that manages distribution of entity IDs and provides helper functions to find certain entities 
      */
     class CEntityRegistry
     {
     private:
+        /**
+         * @brief Pointer to the component storage
+         */
+        const CComponentStorage *m_componentStoragePtr;
+
         /**
          * @brief Counter for distributing new entity ID
          */
@@ -51,156 +29,94 @@ namespace chestnut::ecs::internal
          */
         std::vector< entityid_t > m_vecRecycledEntityIDs;
 
-    public:
-        /**
-         * @brief Flags to use when calling searching methods in the registry
-         */
-        enum ESearchFlags
-        {
-            /** @brief If should look through non-template entites */
-            CAN_BE_REGULAR_ENTITY   = 1,
-            /** @brief If should look through template entities */
-            CAN_BE_TEMPLATE_ENTITY  = 2
-        };
-
-        /**
-         * @brief Deque of entity records
-         */
-        std::deque< SEntityRegistryRecord > m_dequeEntityRecords; // can't do it with vector if signatures get passed outside by reference
 
     public:
         /**
          * @brief Constructor
          */
-        CEntityRegistry();
+        CEntityRegistry(const CComponentStorage *componentStorage) noexcept;
 
 
         /**
          * @brief Create a record of a new entity and return its ID
          * 
-         * @param isTemplateEntity if entity is a template entity
+         * @param canRecycleId specifies whether the registry can reuse the ID of a previously unregistered entity
+         * 
          * @return registered entity ID
          */
-        entityid_t registerNewEntity( bool isTemplateEntity );
+        entityid_t registerNewEntity(bool canRecycleId = true) noexcept;
 
         /**
-         * @brief Create a record of a new entity, set a signature for it and return its ID
-         * 
-         * @param isTemplateEntity if entity is a template entity
-         * @param signature entity signature to immediately set
-         * @return registered entity ID
-         */
-        entityid_t registerNewEntity( bool isTemplateEntity, const CEntitySignature& signature );
-
-
-        /**
-         * @brief Update entity's signature
-         * 
-         * @details Ignores request if entity is not yet registered.
-         * 
-         * @param id entity ID
-         * @param newSignature new entity signature 
-         */
-        void updateEntity( entityid_t id, const CEntitySignature& newSignature );
-
-
-        /**
-         * @brief Returns whether an entity with this data is registered
+         * @brief Returns whether an entity with this id is registered
          * 
          * @param id ID of the entity
-         * @param searchFlags flags dictating which entities should be included in the search
+         * 
          * @return true if entity record has been found
          * @return false otherwise
-         * 
-         * @see ESearchFlags
          */
-        bool hasEntity( entityid_t id, int searchFlags = CAN_BE_REGULAR_ENTITY | CAN_BE_TEMPLATE_ENTITY ) const;
+        bool isEntityRegistered(entityid_t id) const noexcept;
 
         /**
          * @brief Remove record of entity with ID
          * 
          * @param id ID of the entity
          */
-        void unregisterEntity( entityid_t id );
+        void unregisterEntity(entityid_t id) noexcept;
 
 
         
         /**
+         * @brief Get the value of the internal ID counter
+         * 
+         * @return highest id or ENTITY_ID_INVALID if no entities have been registered yet
+         */
+        entityid_t getHighestIdRegistered() const noexcept;
+
+        /**
          * @brief Get the amount of all registered entities
          * 
-         * @param searchFlags flags dictating which entities should be included in the search
          * @return entity count
-         * 
-         * @see ESearchFlags
          */
-        entitysize_t getEntityCount( int searchFlags = CAN_BE_REGULAR_ENTITY | CAN_BE_TEMPLATE_ENTITY ) const;
+        entitysize_t getEntityCount() const noexcept;
 
         /**
          * @brief Get the amount of all registered entities with the exact signature as given
          * 
          * @param requiredSignature signature
-         * @param searchFlags flags dictating which entities should be included in the search
-         * @return entity count
          * 
-         * @see ESearchFlags
+         * @return entity count
          */
-        entitysize_t getEntityCountOfExactSignature( const CEntitySignature& requiredSignature, int searchFlags = CAN_BE_REGULAR_ENTITY | CAN_BE_TEMPLATE_ENTITY ) const;
+        entitysize_t getEntityCountOfExactSignature( const CEntitySignature& requiredSignature) const noexcept;
 
         /**
          * @brief Get the amount of all registered entities, which signature is includes types in requiredSignaturePart
          * 
          * @param requiredSignaturePart signature
-         * @param searchFlags flags dictating which entities should be included in the search
-         * @return entity count
          * 
-         * @see ESearchFlags
+         * @return entity count
          */
-        entitysize_t getEntityCountOfPartialSignature( const CEntitySignature& requiredSignaturePart, int searchFlags = CAN_BE_REGULAR_ENTITY | CAN_BE_TEMPLATE_ENTITY ) const;
+        entitysize_t getEntityCountOfPartialSignature( const CEntitySignature& requiredSignaturePart) const noexcept;
 
 
         /**
          * @brief Get the signature of the entity
          * 
          * @param id entity ID
-         * @return const pointer to signature or null if entity is not registered
+         * @return entity's signature or an empty signature if entity is not registered
          */
-        const CEntitySignature* getEntitySignature( entityid_t id ) const;
+        CEntitySignature getEntitySignature(entityid_t id) const noexcept;
 
         /**
          * @brief Get a vector of entities which signature complies with the predicate
          * 
-         * @details This doesn't take template entities into account
-         * 
          * @param pred signature predicate
-         * @param searchFlags flags dictating which entities should be included in the search
+         * 
          * @return vector of entity IDs
-         * 
-         * @see ESearchFlags
          */
-        std::vector< entityid_t > findEntities( std::function< bool( const CEntitySignature& ) > pred, int searchFlags = CAN_BE_REGULAR_ENTITY | CAN_BE_TEMPLATE_ENTITY ) const;
-
-
-    private:
-        /**
-         * @brief Turn entry deque index into entity ID
-         * 
-         * @param index deque index
-         * @return entity ID
-         */
-        entityid_t entityIdFromIndex( entityid_t index ) const;
-        /**
-         * @brief Turn entity ID into entry deque index
-         * 
-         * @param id entity ID
-         * @return entry deque index
-         */
-        entityid_t indexFromEntityId( entityid_t id ) const;
+        std::vector<entityid_t> findEntities(std::function<bool(const CEntitySignature&)> predicate) const noexcept;
     };
     
 } // namespace chestnut::ecs::internal
 
 
-#include "entity_registry.tpp"
-
-
-#endif // __CHESTNUT_ECS_ENTITY_REGISTRY_H__
+#include "entity_registry.inl"

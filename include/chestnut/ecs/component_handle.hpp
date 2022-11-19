@@ -10,11 +10,10 @@
  */
 
 
-#ifndef __CHESTNUT_ECS_COMPONENT_HANDLE_H__
-#define __CHESTNUT_ECS_COMPONENT_HANDLE_H__
+#pragma once
 
 #include "types.hpp"
-#include "component_wrapper.hpp"
+#include "component_storage.hpp"
 
 #include <exception>
 
@@ -41,9 +40,9 @@ namespace chestnut::ecs
         
     private:
         /**
-         * @brief Pointer to the underlying component wrapper
+         * @brief Pointer to the storage
          */
-        internal::SComponentWrapper<C> *m_componentWrapper;
+        internal::CComponentStorage *m_componentStorage;
 
     public:
         /**
@@ -78,6 +77,24 @@ namespace chestnut::ecs
         const C& get() const;
 
         /**
+         * @brief Overloaded dereference operator
+         * 
+         * @return component reference
+         * 
+         * @throws BadComponentAccessException if component is invalid
+         */
+        C& operator*();
+
+        /**
+         * @brief Overloaded dereference operator
+         * 
+         * @return const component reference
+         * 
+         * @throws BadComponentAccessException if component is invalid
+         */
+        const C& operator*() const;
+
+        /**
          * @brief Overloaded pointer-to-member operator
          * 
          * @return component pointer
@@ -104,13 +121,10 @@ namespace chestnut::ecs
         operator bool() const noexcept;
 
     private:
-        CComponentHandle( entityid_t owner, internal::SComponentWrapper<C> *componentWrapper ) noexcept;
+        CComponentHandle( entityid_t owner, internal::CComponentStorage *storage) noexcept;
     };
 
 } // namespace chestnut::ecs
 
 
-#include "component_handle.tpp"
-
-
-#endif // __CHESTNUT_ECS_COMPONENT_HANDLE_H__
+#include "component_handle.inl"

@@ -1,153 +1,193 @@
 #include <catch2/catch.hpp>
 
+#include "../include/chestnut/ecs/component_storage.hpp"
 #include "../include/chestnut/ecs/entity_registry.hpp"
 
 using namespace chestnut::ecs;
 using namespace chestnut::ecs::internal;
 
+struct FooComp {};
+struct BarComp {};
+struct BazComp {};
+
 TEST_CASE( "Entity registry test" )
 {
-    CEntityRegistry registry;
+    CComponentStorage storage;
+    CEntityRegistry registry(&storage);
 
-    SECTION( "Simple registering and checking" )
+    SECTION("Check if registered")
     {
-        //! New (not recycled) entity IDs should be distributed in linear growing fashion, starting from ENTITY_ID_MINIMAL
-        //! Registry should recycle IDs starting from the latest unregistered entity ID
+        auto ent1 = registry.registerNewEntity();
+        auto ent2 = registry.registerNewEntity();
+        auto ent3 = registry.registerNewEntity();
 
-        REQUIRE( registry.getEntityCount() == 0 );
-
-        registry.registerNewEntity(false);
-        registry.registerNewEntity(false);
-        registry.registerNewEntity(false);
-        registry.registerNewEntity(false);
-
-        REQUIRE( registry.getEntityCount() == 4 );
-
-        REQUIRE_FALSE( registry.hasEntity( ENTITY_ID_INVALID ) );
-        REQUIRE( registry.hasEntity( ENTITY_ID_MINIMAL + 0) );
-        REQUIRE( registry.hasEntity( ENTITY_ID_MINIMAL + 1) );
-        REQUIRE( registry.hasEntity( ENTITY_ID_MINIMAL + 2) );
-        REQUIRE( registry.hasEntity( ENTITY_ID_MINIMAL + 3) );
-        REQUIRE_FALSE( registry.hasEntity( ENTITY_ID_MINIMAL + 4) );
-    }
-
-    SECTION( "Registering with signature and checking the signature" )
-    {
-        CEntitySignature signature;
-        signature.add<int>();
-        signature.add<char>();
-
-        entityid_t id1 = registry.registerNewEntity( false );
-        entityid_t id2 = registry.registerNewEntity( false, signature );
-
-        const CEntitySignature* signaturePtr;
-        REQUIRE( registry.hasEntity( id1 ) );
-        REQUIRE( ( signaturePtr = registry.getEntitySignature( id1 ) ) );
-        REQUIRE( signaturePtr->isEmpty() );
-
-        REQUIRE( registry.hasEntity( id2 ) );
-        REQUIRE( ( signaturePtr = registry.getEntitySignature( id2 ) ) );
-        REQUIRE( ( signaturePtr->has<int>() && signaturePtr->has<char>() ) );
-    }
-
-    SECTION( "Test exception throw when fetching signature of unregistered entity" )
-    {
-        REQUIRE_FALSE( registry.getEntitySignature( ENTITY_ID_INVALID ) );
-        REQUIRE_FALSE( registry.getEntitySignature( ENTITY_ID_MINIMAL ) ); // none were registered yet
-    }
-
-    SECTION( "Updating registry entity" )
-    {
-        CEntitySignature signature;
-        const CEntitySignature* signaturePtr;
-
-        entityid_t id = registry.registerNewEntity( false );
-
-        signaturePtr = registry.getEntitySignature( id );
-        REQUIRE( signaturePtr->isEmpty() ); 
-
-        signature.add<int>();
-        registry.updateEntity( id, signature );
-
-        signaturePtr = registry.getEntitySignature( id );
-        REQUIRE_FALSE( signaturePtr->isEmpty() );
-        REQUIRE( signaturePtr->has<int>() );
-    }
-
-    SECTION( "Removing entities" )
-    {
-        entityid_t id1 = registry.registerNewEntity( false );
-        entityid_t id2 = registry.registerNewEntity( false );
-        entityid_t id3 = registry.registerNewEntity( false );
-        entityid_t id4 = registry.registerNewEntity( false );
-
-        REQUIRE( registry.hasEntity(id1) );
-        REQUIRE( registry.hasEntity(id2) );
-        REQUIRE( registry.hasEntity(id3) );
-        REQUIRE( registry.hasEntity(id4) );
+        REQUIRE(registry.isEntityRegistered(ent1));
+        REQUIRE(registry.isEntityRegistered(ent2));
+        REQUIRE(registry.isEntityRegistered(ent3));
         
-        registry.unregisterEntity(id2);
-        registry.unregisterEntity(id3);
-        registry.unregisterEntity(id4);
 
-        REQUIRE( registry.hasEntity(id1) );
-        REQUIRE_FALSE( registry.hasEntity(id2) );
-        REQUIRE_FALSE( registry.hasEntity(id3) );
-        REQUIRE_FALSE( registry.hasEntity(id4) );
+        registry.unregisterEntity(ent1);
+        registry.unregisterEntity(ent3);
+
+        REQUIRE_FALSE(registry.isEntityRegistered(ent1));
+        REQUIRE(registry.isEntityRegistered(ent2));
+        REQUIRE_FALSE(registry.isEntityRegistered(ent3));
     }
 
-    SECTION( "Entity ID recycling" )
+    SECTION("ID recycling")
     {
-        entityid_t id1 = registry.registerNewEntity( false );
-        entityid_t id2 = registry.registerNewEntity( false );
-        entityid_t id3 = registry.registerNewEntity( false );
-        entityid_t id4 = registry.registerNewEntity( false );
+        auto ent1 = registry.registerNewEntity();
+        auto ent2 = registry.registerNewEntity();
+        auto ent3 = registry.registerNewEntity();
 
-        registry.unregisterEntity( id2 );
-        registry.unregisterEntity( id3 );
+        registry.unregisterEntity(ent2);
+        auto ent4 = registry.registerNewEntity(true);
+        REQUIRE(ent2 == ent4);
 
-        REQUIRE( registry.hasEntity( id1 ) );
-        REQUIRE_FALSE( registry.hasEntity( id2 ) );
-        REQUIRE_FALSE( registry.hasEntity( id3 ) );
-        REQUIRE( registry.hasEntity( id4 ) );
-
-
-        entityid_t id5 = registry.registerNewEntity( false );
-        entityid_t id6 = registry.registerNewEntity( false );
-
-        REQUIRE( id5 == id3 );
-        REQUIRE( id6 == id2 );
-
-        REQUIRE( registry.hasEntity( id1 ) );
-        REQUIRE( registry.hasEntity( id5 ) );
-        REQUIRE( registry.hasEntity( id6 ) );
-        REQUIRE( registry.hasEntity( id4 ) );
+        registry.unregisterEntity(ent3);
+        auto ent5 = registry.registerNewEntity(false);
+        REQUIRE(ent3 != ent5);
     }
 
-    SECTION( "Checking for template entities" )
+    SECTION("Get signature")
     {
-        entityid_t id1 = registry.registerNewEntity(false);
-        entityid_t id2 = registry.registerNewEntity(true);
-        entityid_t id3 = registry.registerNewEntity(false);
-        entityid_t id4 = registry.registerNewEntity(false);
-        entityid_t id5 = registry.registerNewEntity(true);
+        auto ent1 = registry.registerNewEntity();
+        // ent1 will have no components
+
+        auto ent2 = registry.registerNewEntity();
+        storage.insert(ent2, FooComp{});
+
+        auto ent3 = registry.registerNewEntity();
+        storage.insert(ent3, FooComp{});
+        storage.insert(ent3, BazComp{});
 
 
-        REQUIRE( registry.hasEntity( id1, CEntityRegistry::CAN_BE_REGULAR_ENTITY ) );
-        REQUIRE_FALSE( registry.hasEntity( id1, CEntityRegistry::CAN_BE_TEMPLATE_ENTITY ) );
-        REQUIRE( registry.hasEntity( id1, CEntityRegistry::CAN_BE_REGULAR_ENTITY | CEntityRegistry::CAN_BE_TEMPLATE_ENTITY ) );
+        auto sign1 = registry.getEntitySignature(ent1);
+        REQUIRE(sign1.isEmpty());
 
-        REQUIRE_FALSE( registry.hasEntity( id2, CEntityRegistry::CAN_BE_REGULAR_ENTITY ) );
-        REQUIRE( registry.hasEntity( id2, CEntityRegistry::CAN_BE_TEMPLATE_ENTITY ) );
-        REQUIRE( registry.hasEntity( id2, CEntityRegistry::CAN_BE_REGULAR_ENTITY | CEntityRegistry::CAN_BE_TEMPLATE_ENTITY ) );
+        auto sign2 = registry.getEntitySignature(ent2);
+        REQUIRE((sign2.has<FooComp>() && !sign2.has<BarComp, BazComp>()));
 
-        REQUIRE( registry.hasEntity( id4, CEntityRegistry::CAN_BE_REGULAR_ENTITY ) );
-        REQUIRE_FALSE( registry.hasEntity( id4, CEntityRegistry::CAN_BE_TEMPLATE_ENTITY ) );
-        REQUIRE( registry.hasEntity( id4, CEntityRegistry::CAN_BE_REGULAR_ENTITY | CEntityRegistry::CAN_BE_TEMPLATE_ENTITY ) );
+        auto sign3 = registry.getEntitySignature(ent3);
+        REQUIRE((sign3.has<FooComp, BazComp>() && !sign2.has<BarComp>()));
 
-        REQUIRE( registry.getEntityCount() == 5 );
 
-        registry.unregisterEntity( id2 );
-        REQUIRE_FALSE( registry.hasEntity( id2, CEntityRegistry::CAN_BE_REGULAR_ENTITY | CEntityRegistry::CAN_BE_TEMPLATE_ENTITY ) );
+        registry.unregisterEntity(ent3);
+        sign3 = registry.getEntitySignature(ent3);
+        REQUIRE(sign3.isEmpty());
+    }
+
+    SECTION("Count entities - total")
+    {
+        REQUIRE(registry.getEntityCount() == 0);
+
+        std::vector<entityid_t> ids;
+        for (size_t i = 0; i < 1000; i++)
+        {
+            ids.push_back(registry.registerNewEntity());
+        }
+        
+        REQUIRE(registry.getEntityCount() == 1000);
+
+        for (size_t i = 100; i < 200; i++)
+        {
+            registry.unregisterEntity(ids[i]);
+        }
+
+        REQUIRE(registry.getEntityCount() == 900);
+    }
+
+    SECTION("Count entities - with signature")
+    {
+        for (size_t i = 0; i < 50; i++)
+        {
+            auto ent = registry.registerNewEntity();
+            storage.insert(ent, FooComp{});
+        }
+
+        for (size_t i = 0; i < 100; i++)
+        {
+            auto ent = registry.registerNewEntity();
+            storage.insert(ent, FooComp{});
+            storage.insert(ent, BazComp{});
+        }
+
+        for (size_t i = 0; i < 10; i++)
+        {
+            auto ent = registry.registerNewEntity();
+            storage.insert(ent, BarComp{});
+            storage.insert(ent, BazComp{});
+        }
+
+
+        SECTION("partial")
+        {
+            CEntitySignature sign;
+
+            sign = makeEntitySignature<FooComp>();
+            REQUIRE(registry.getEntityCountOfPartialSignature(sign) == 150);
+
+            sign = makeEntitySignature<BarComp>();
+            REQUIRE(registry.getEntityCountOfPartialSignature(sign) == 10);
+
+            sign = makeEntitySignature<FooComp, BarComp>();
+            REQUIRE(registry.getEntityCountOfPartialSignature(sign) == 0);
+        }
+
+        SECTION("exact")
+        {
+            CEntitySignature sign;
+
+            sign = makeEntitySignature<FooComp>();
+            REQUIRE(registry.getEntityCountOfExactSignature(sign) == 50);
+
+            sign = makeEntitySignature<BarComp>();
+            REQUIRE(registry.getEntityCountOfExactSignature(sign) == 0);
+
+            sign = makeEntitySignature<FooComp, BarComp>();
+            REQUIRE(registry.getEntityCountOfExactSignature(sign) == 0);
+
+            sign = makeEntitySignature<FooComp, BazComp>();
+            REQUIRE(registry.getEntityCountOfExactSignature(sign) == 100);
+        }
+    }
+    
+
+    SECTION("Find entities")
+    {
+        for (size_t i = 0; i < 10; i++)
+        {
+            auto ent = registry.registerNewEntity();
+            storage.insert(ent, FooComp{});
+            storage.insert(ent, BazComp{});
+        }
+
+        for (size_t i = 0; i < 50; i++)
+        {
+            auto ent = registry.registerNewEntity();
+            storage.insert(ent, FooComp{});
+            storage.insert(ent, BarComp{});
+        }
+
+        for (size_t i = 0; i < 100; i++)
+        {
+            auto ent = registry.registerNewEntity();
+            storage.insert(ent, BarComp{});
+            storage.insert(ent, BazComp{});
+        }
+
+
+        auto ents1 = registry.findEntities([](const CEntitySignature& sign) {
+            return true;
+        });
+
+        REQUIRE(ents1.size() == 160);
+
+
+        auto ents2 = registry.findEntities([](const CEntitySignature& sign) {
+            return sign.has<FooComp>() && !sign.has<BazComp>();
+        });
+
+        REQUIRE(ents2.size() == 50);
     }
 }

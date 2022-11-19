@@ -10,23 +10,22 @@
  */
 
 
-#ifndef __CHESTNUT_ECS_CONSTANTS_H__
-#define __CHESTNUT_ECS_CONSTANTS_H__
+#pragma once
 
 #include "types.hpp"
+
+#include <limits>
 
 namespace chestnut::ecs
 {
     /**
      * @brief Constant reserved for invalid entity ID 
      */
-    const entityid_t ENTITY_ID_INVALID = 0;
+    const entityid_t ENTITY_ID_INVALID = std::numeric_limits<entityid_t>::max();
 
     /**
      * @brief Constant for the minimal value entity ID can take
      */
-    const entityid_t ENTITY_ID_MINIMAL = 1;
+    const entityid_t ENTITY_ID_MINIMAL = 0;
     
 } // namespace chestnut::ecs
-
-#endif // __CHESTNUT_ECS_CONSTANTS_H__

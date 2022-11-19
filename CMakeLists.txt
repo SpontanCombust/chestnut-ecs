@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.0)
-project(ChestnutECSCore VERSION 0.5.1)
+project(chestnut-ecs VERSION 1.1.2)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -18,18 +18,11 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(typelist)
 
 
-add_library(${PROJECT_NAME} STATIC)
+add_library(${PROJECT_NAME} INTERFACE)
 
-add_subdirectory(src/chestnut/ecs)
+target_include_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_link_libraries(${PROJECT_NAME} INTERFACE typelist)
 
-set_property(TARGET ${PROJECT_NAME} PROPERTY POSITION_INDEPENDENT_CODE ON)
-
-target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(${PROJECT_NAME} typelist)
-
-
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/ DESTINATION include)
-install(TARGETS ${PROJECT_NAME} DESTINATION lib)
 
 
 

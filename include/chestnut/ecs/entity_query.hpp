@@ -1,8 +1,7 @@
-#ifndef __CHESTNUT_ECS_ENTITY_QUERY_H__
-#define __CHESTNUT_ECS_ENTITY_QUERY_H__
+#pragma once
 
 #include "types.hpp"
-#include "component_wrapper.hpp"
+#include "component_storage.hpp"
 #include "entity_signature.hpp"
 
 #include <functional>
@@ -21,132 +20,49 @@ namespace chestnut::ecs
     {
         friend class internal::CEntityQueryGuard;
 
-    private:
-        typedef std::unordered_map< std::type_index, std::vector< internal::IComponentWrapper * > > CComponentWrapperTypeMap;
+    public:
+        template<typename ...Types>
+        struct Iterator;
+        template<typename ...Types>
+        friend struct Iterator;
 
-        queryid_t m_id;
+    private:
+        internal::CComponentStorage *m_storagePtr;
+
+        CEntitySignature m_requireSignature;
+        CEntitySignature m_rejectSignature;
 
         std::vector< entityid_t > m_vecEntityIDs;
-        CComponentWrapperTypeMap m_mapCompTypeToVecComp;        
 
-        // Sorting helper vectors as query members to avoid allocating and deallocating memory for them on every sort call
-        std::vector< entityid_t > m_sort_orderedIndices;
-        std::vector< entityid_t > m_sort_reorderedEntityIDs;
-        std::vector< internal::IComponentWrapper* > m_sort_reorderedComponents;
 
     public:
-        CEntityQuery( queryid_t id );
-
-        CEntityQuery( const CEntityQuery& ) = delete;
-        CEntityQuery& operator=( const CEntityQuery& ) = delete;
+        CEntityQuery(internal::CComponentStorage *storagePtr, CEntitySignature requireSignature, CEntitySignature rejectSignature ) noexcept;
 
 
-        queryid_t getID() const;
+        const CEntitySignature& getRequireSignature() const noexcept;
+        const CEntitySignature& getRejectSignature() const noexcept;
+        const std::vector<entityid_t> getEntities() const;
+        entitysize_t getEntityCount() const noexcept;
 
-        entitysize_t getEntityCount() const;
+        
 
+        template<typename ...Types>
+        Iterator<Types...> begin() noexcept;
 
-        // Can throw std::out_of_range if requested type isn't stored in the query
-        template< class C1 >
-        void forEachEntityWith( std::function< void( C1& ) > func ) const;
-
-        // Can throw std::out_of_range if requested types combination isn't stored in the query
-        template< class C1, class C2 >
-        void forEachEntityWith( std::function< void( C1&, C2& ) > func ) const;
-
-        // Can throw std::out_of_range if requested types combination isn't stored in the query
-        template< class C1, class C2, class C3 >
-        void forEachEntityWith( std::function< void( C1&, C2&, C3& ) > func ) const;
-
-        // Can throw std::out_of_range if requested types combination isn't stored in the query
-        template< class C1, class C2, class C3, class C4 >
-        void forEachEntityWith( std::function< void( C1&, C2&, C3&, C4& ) > func ) const;
+        template<typename ...Types>
+        Iterator<Types...> end() noexcept;
 
 
-
-        void forEachEntityWith( std::function< void( entityid_t ) > func ) const;
-
-        // Can throw std::out_of_range if requested type isn't stored in the query
-        template< class C1 >
-        void forEachEntityWith( std::function< void( entityid_t, C1& ) > func ) const;
-
-        // Can throw std::out_of_range if requested types combination isn't stored in the query
-        template< class C1, class C2 >
-        void forEachEntityWith( std::function< void( entityid_t, C1&, C2& ) > func ) const; 
-
-        // Can throw std::out_of_range if requested types combination isn't stored in the query
-        template< class C1, class C2, class C3 >
-        void forEachEntityWith( std::function< void( entityid_t, C1&, C2&, C3& ) > func ) const;
-
-        // Can throw std::out_of_range if requested types combination isn't stored in the query
-        template< class C1, class C2, class C3, class C4 >
-        void forEachEntityWith( std::function< void( entityid_t, C1&, C2&, C3&, C4& ) > func ) const;
+        template<typename ...Types>
+        void forEach(const std::function<void(Types&...)>& handler);
 
 
-
-        // Can throw std::out_of_range if requested type isn't stored in the query
-        template< class C1 >
-        void forEachEntityPairWith( std::function< void( C1&, C1& ) > func ) const;
-
-        // Can throw std::out_of_range if requested types combination isn't stored in the query
-        template< class C1, class C2 >
-        void forEachEntityPairWith( std::function< void( C1&, C2&, C1&, C2& ) > func ) const;
-
-        // Can throw std::out_of_range if requested types combination isn't stored in the query
-        template< class C1, class C2, class C3 >
-        void forEachEntityPairWith( std::function< void( C1&, C2&, C3&, C1&, C2&, C3& ) > func ) const;
-
-        // Can throw std::out_of_range if requested types combination isn't stored in the query
-        template< class C1, class C2, class C3, class C4 >
-        void forEachEntityPairWith( std::function< void( C1&, C2&, C3&, C4&, C1&, C2&, C3&, C4& ) > func ) const;
-
-
-
-        void forEachEntityPairWith( std::function< void( entityid_t, entityid_t ) > func ) const;
-
-        // Can throw std::out_of_range if requested type isn't stored in the query
-        template< class C1 >
-        void forEachEntityPairWith( std::function< void( entityid_t, C1&, entityid_t, C1& ) > func ) const;
-
-        // Can throw std::out_of_range if requested types combination isn't stored in the query
-        template< class C1, class C2 >
-        void forEachEntityPairWith( std::function< void( entityid_t, C1&, C2&, entityid_t, C1&, C2& ) > func ) const; 
-
-        // Can throw std::out_of_range if requested types combination isn't stored in the query
-        template< class C1, class C2, class C3 >
-        void forEachEntityPairWith( std::function< void( entityid_t, C1&, C2&, C3&, entityid_t, C1&, C2&, C3& ) > func ) const;
-
-        // Can throw std::out_of_range if requested types combination isn't stored in the query
-        template< class C1, class C2, class C3, class C4 >
-        void forEachEntityPairWith( std::function< void( entityid_t, C1&, C2&, C3&, C4&, entityid_t, C1&, C2&, C3&, C4& ) > func ) const;        
-
-
-
-        // Can throw std::out_of_range if requested type isn't stored in the query
-        template< class C1 >
-        void sort( std::function< bool( const C1&, const C1& )> compare );
-
-        // Can throw std::out_of_range if requested types combination isn't stored in the query
-        template< class C1, class C2 >
-        void sort( std::function< bool( const C1&, const C2&, const C1&, const C2& )> compare );
-
-        // Can throw std::out_of_range if requested types combination isn't stored in the query
-        template< class C1, class C2, class C3 >
-        void sort( std::function< bool( const C1&, const C2&, const C3&, const C1&, const C2&, const C3& )> compare );
-
-        // Can throw std::out_of_range if requested types combination isn't stored in the query
-        template< class C1, class C2, class C3, class C4 >
-        void sort( std::function< bool( const C1&, const C2&, const C3&, const C4&, const C1&, const C2&, const C3&, const C4& )> compare );
-
-
-    private:
-        void reorderData();
+        template<typename ...Types>
+        void sort(std::function<bool(Iterator<Types...>, Iterator<Types...>)> comparator) noexcept;
     };
 
 } // namespace chestnut::ecs
 
 
-#include "entity_query.tpp"
-
-
-#endif // __CHESTNUT_ECS_ENTITY_QUERY_H__
+#include "entity_query_iterator.inl"
+#include "entity_query.inl"
