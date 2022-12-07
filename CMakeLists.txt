@@ -40,12 +40,20 @@ list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/contrib)
 find_package(Threads)
 
 
+
 add_executable(${PROJECT_NAME}_Test)
 
 add_subdirectory(tests)
 
 target_link_libraries(${PROJECT_NAME}_Test ${PROJECT_NAME})
 target_link_libraries(${PROJECT_NAME}_Test Catch2::Catch2 Threads::Threads)
+
+target_compile_options(${PROJECT_NAME}_Test PRIVATE
+    # 4834 - ignored [[nodiscard]] (warning coming from cpp-typelist)
+    $<$<CXX_COMPILER_ID:MSVC>: /wd4834>
+)
+
+
 
 include(CTest)
 include(Catch)

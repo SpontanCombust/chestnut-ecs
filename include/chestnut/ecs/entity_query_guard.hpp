@@ -31,7 +31,7 @@ namespace chestnut::ecs::internal
         void enqueueEntity( entityid_t entityID );
         void dequeueEntity( entityid_t entityID );
 
-        // Returns whether the underlying query has any components stored inside it after the update
+        // Returns whether the content of the query changed after the update
         bool updateQuery();
 
         bool testQuery( const CEntitySignature& signature ) const;

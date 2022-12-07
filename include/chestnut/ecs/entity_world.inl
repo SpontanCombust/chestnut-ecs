@@ -144,16 +144,15 @@ namespace chestnut::ecs
         return this->createQuery(requireSignature, makeEntitySignature<>());
     }
 
-    inline CEntityQuery* CEntityWorld::queryEntities( CEntityQuery *query ) const
+    inline bool CEntityWorld::queryEntities( CEntityQuery *query ) const
     {
         auto it = m_mapQueryIDToQueryGuard.find( query );
         if( it != m_mapQueryIDToQueryGuard.end() )
         {
-            it->second->updateQuery();
-            return query;
+            return it->second->updateQuery();
         }
 
-        return nullptr;
+        return false;
     }
 
     inline void CEntityWorld::destroyQuery( CEntityQuery *query )

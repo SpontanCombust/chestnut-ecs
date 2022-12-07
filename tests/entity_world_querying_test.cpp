@@ -32,14 +32,14 @@ TEST_CASE( "Entity world test - querying" )
     std::vector<entityid_t> vEnts;
 
     // 10 entities with Foo
-    for (size_t i = 0; i < 10; i++)
+    for (int i = 0; i < 10; i++)
     {
         entityid_t ent = world.createEntity();
         world.createComponent<Foo>( ent )->x = i;
         vEnts.push_back(ent);
     }
     // 10 with Foo and Bar
-    for (size_t i = 10; i < 20; i++)
+    for (int i = 10; i < 20; i++)
     {
         entityid_t ent = world.createEntity();
         world.createComponent<Foo>( ent )->x = i;
@@ -47,7 +47,7 @@ TEST_CASE( "Entity world test - querying" )
         vEnts.push_back(ent);
     }
     // 10 with Bar and Baz
-    for (size_t i = 20; i < 30; i++)
+    for (int i = 20; i < 30; i++)
     {
         entityid_t ent = world.createEntity();
         world.createComponent<Bar>( ent )->y = i;
@@ -56,7 +56,7 @@ TEST_CASE( "Entity world test - querying" )
         vEnts.push_back(ent);
     }
     // 10 with Foo and Baz
-    for (size_t i = 30; i < 40; i++)
+    for (int i = 30; i < 40; i++)
     {
         entityid_t ent = world.createEntity();
         world.createComponent<Foo>( ent )->x = i;
@@ -65,7 +65,7 @@ TEST_CASE( "Entity world test - querying" )
         vEnts.push_back(ent);
     }
     // 10 with Foo, Bar and Baz
-    for (size_t i = 40; i < 50; i++)
+    for (int i = 40; i < 50; i++)
     {
         entityid_t ent = world.createEntity();
         world.createComponent<Foo>( ent )->x = i;
@@ -78,15 +78,15 @@ TEST_CASE( "Entity world test - querying" )
 
     SECTION( "Check for null" )
     {
-        REQUIRE( world.queryEntities(nullptr) == nullptr );
+        REQUIRE_FALSE(world.queryEntities(nullptr));
 
         auto q = world.createQuery( CEntitySignature(), CEntitySignature() );
 
-        REQUIRE( world.queryEntities(q) != nullptr );
+        REQUIRE(world.queryEntities(q));
 
         world.destroyQuery(q);
 
-        REQUIRE( world.queryEntities(q) == nullptr );        
+        REQUIRE_FALSE(world.queryEntities(q));
     }
 
     SECTION( "Query entities with Foo" )

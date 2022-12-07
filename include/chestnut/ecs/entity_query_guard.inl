@@ -20,6 +20,8 @@ namespace chestnut::ecs::internal
 
     inline bool CEntityQueryGuard::updateQuery() 
     {
+        bool contentChanged = !m_pendingOut_setEntityIDs.empty() || !m_pendingIn_setEntityIDs.empty();
+
         // first do the removal
         if(!m_pendingOut_setEntityIDs.empty())
         {
@@ -54,8 +56,7 @@ namespace chestnut::ecs::internal
         m_pendingIn_setEntityIDs.clear();
 
 
-        // return whether the target query has any components now
-        return m_targetQuery.m_vecEntityIDs.size() > 0;
+        return contentChanged;
     }
 
     inline bool CEntityQueryGuard::testQuery( const CEntitySignature& signature ) const
