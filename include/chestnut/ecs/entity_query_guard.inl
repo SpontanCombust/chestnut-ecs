@@ -18,9 +18,9 @@ namespace chestnut::ecs::internal
         m_pendingOut_setEntityIDs.insert(entityID);
     }
 
-    inline bool CEntityQueryGuard::updateQuery() 
+    inline SEntityQueryUpdateInfo CEntityQueryGuard::updateQuery() 
     {
-        bool contentChanged = !m_pendingOut_setEntityIDs.empty() || !m_pendingIn_setEntityIDs.empty();
+        SEntityQueryUpdateInfo updateInfo {0, 0, 0};
 
         // first do the removal
         if(!m_pendingOut_setEntityIDs.empty())
@@ -31,6 +31,7 @@ namespace chestnut::ecs::internal
                 {
                     m_pendingOut_setEntityIDs.erase(*it);
                     it = m_targetQuery.m_vecEntityIDs.erase(it);
+                    updateInfo.removed++;
                 }
                 else
                 {
@@ -48,7 +49,11 @@ namespace chestnut::ecs::internal
                 m_pendingIn_setEntityIDs.begin(),
                 m_pendingIn_setEntityIDs.end()
             );
+
+            updateInfo.added = (unsigned int)m_pendingIn_setEntityIDs.size();
         }
+
+        updateInfo.total = (unsigned int)m_targetQuery.m_vecEntityIDs.size();
 
 
         // clear pending data
@@ -56,7 +61,7 @@ namespace chestnut::ecs::internal
         m_pendingIn_setEntityIDs.clear();
 
 
-        return contentChanged;
+        return updateInfo;
     }
 
     inline bool CEntityQueryGuard::testQuery( const CEntitySignature& signature ) const

@@ -124,9 +124,9 @@ namespace chestnut::ecs
         CEntityQuery *createQuery(const CEntitySignature& requireSignature, const CEntitySignature& rejectSignature);
         CEntityQuery *createQuery(const CEntitySignature& requireSignature);
 
-        // Returns true if content of the query changed after the update
-        // Returns false otherwise and if query is null or does not belong to the world
-        bool queryEntities(CEntityQuery *query) const;
+        // Returns info on how the query got updated
+        // Throws exception if query is invalid
+        SEntityQueryUpdateInfo queryEntities(CEntityQuery *query) const;
 
         void destroyQuery(CEntityQuery *query);
 

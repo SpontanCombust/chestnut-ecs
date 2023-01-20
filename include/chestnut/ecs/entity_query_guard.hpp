@@ -5,8 +5,23 @@
 
 #include <unordered_set>
 
+namespace chestnut::ecs
+{
+    /**
+     * @brief Struct used to tell how many entities got added and removed from query on its update
+     * 
+     */
+    struct SEntityQueryUpdateInfo
+    {
+        unsigned int added = 0;
+        unsigned int removed = 0;
+        unsigned int total = 0;
+    };
+}
+
 namespace chestnut::ecs::internal
 {
+
     /**
      * @brief A helper class for managing queries
      * 
@@ -32,7 +47,7 @@ namespace chestnut::ecs::internal
         void dequeueEntity( entityid_t entityID );
 
         // Returns whether the content of the query changed after the update
-        bool updateQuery();
+        SEntityQueryUpdateInfo updateQuery();
 
         bool testQuery( const CEntitySignature& signature ) const;
 

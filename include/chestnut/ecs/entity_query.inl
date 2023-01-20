@@ -1,5 +1,6 @@
+#include "exceptions.hpp"
+
 #include <algorithm> // stable_sort
-#include <cassert>
 #include <numeric> // iota
 
 namespace chestnut::ecs
@@ -35,23 +36,37 @@ inline entitysize_t CEntityQuery::getEntityCount() const noexcept
 
 
 template<typename ...Types>
-CEntityQuery::Iterator<Types...> CEntityQuery::begin() noexcept
+CEntityQuery::Iterator<Types...> CEntityQuery::begin()
 {
-    assert(m_requireSignature.has<Types...>() && "All types supplied must be in query's 'require' signature");
+    if(!m_requireSignature.has<Types...>())
+    {
+        throw QueryException("All types supplied must be in query's 'require' signature");
+    }
 
     CEntitySignature sign = makeEntitySignature<Types...>();
-    assert(!m_rejectSignature.hasAnyFrom(sign) && "None of the supplied types should be in query's 'reject' signature");
+
+    if(m_rejectSignature.hasAnyFrom(sign))
+    {
+        throw QueryException("None of the supplied types should be in query's 'reject' signature");
+    }
 
     return Iterator<Types...>(this, 0);
 }
 
 template<typename ...Types>
-CEntityQuery::Iterator<Types...> CEntityQuery::end() noexcept
+CEntityQuery::Iterator<Types...> CEntityQuery::end()
 {
-    assert(m_requireSignature.has<Types...>() && "All types supplied must be in query's 'require' signature");
+    if(!m_requireSignature.has<Types...>())
+    {
+        throw QueryException("All types supplied must be in query's 'require' signature");
+    }
 
     CEntitySignature sign = makeEntitySignature<Types...>();
-    assert(!m_rejectSignature.hasAnyFrom(sign) && "None of the supplied types should be in query's 'reject' signature");
+
+    if(m_rejectSignature.hasAnyFrom(sign))
+    {
+        throw QueryException("None of the supplied types should be in query's 'reject' signature");
+    }
 
     return Iterator<Types...>(this, (unsigned int)m_vecEntityIDs.size());
 }

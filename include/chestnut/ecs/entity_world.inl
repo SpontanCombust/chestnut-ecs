@@ -1,5 +1,4 @@
-#include <type_traits>
-#include <exception> // invalid_argument
+#include "exceptions.hpp"
 
 namespace chestnut::ecs
 {
@@ -144,15 +143,20 @@ namespace chestnut::ecs
         return this->createQuery(requireSignature, makeEntitySignature<>());
     }
 
-    inline bool CEntityWorld::queryEntities( CEntityQuery *query ) const
+    inline SEntityQueryUpdateInfo CEntityWorld::queryEntities( CEntityQuery *query ) const
     {
+        if(!query)
+        {
+            throw QueryException("Query is null");
+        }
+
         auto it = m_mapQueryIDToQueryGuard.find( query );
         if( it != m_mapQueryIDToQueryGuard.end() )
         {
             return it->second->updateQuery();
         }
 
-        return false;
+        throw QueryException("Query does not belong to this CEntityWorld");
     }
 
     inline void CEntityWorld::destroyQuery( CEntityQuery *query )

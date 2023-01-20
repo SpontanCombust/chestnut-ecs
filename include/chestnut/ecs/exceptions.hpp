@@ -1,6 +1,7 @@
 #pragma once
 
 #include <exception>
+#include <string>
 
 
 namespace chestnut::ecs
@@ -19,6 +20,15 @@ namespace chestnut::ecs
         {
             return "Tried to access invalid component handle.";
         }
-    };    
+    }; 
+
+    struct QueryException : std::exception
+    {
+        QueryException(const char *why)
+        : std::exception(why)
+        {
+            
+        }
+    };
 
 } // namespace chestnut::ecs

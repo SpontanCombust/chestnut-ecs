@@ -47,10 +47,10 @@ namespace chestnut::ecs
         
 
         template<typename ...Types>
-        Iterator<Types...> begin() noexcept;
+        Iterator<Types...> begin();
 
         template<typename ...Types>
-        Iterator<Types...> end() noexcept;
+        Iterator<Types...> end();
 
 
         template<typename ...Types>
