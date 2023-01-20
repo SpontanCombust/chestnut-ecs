@@ -17,9 +17,9 @@ namespace chestnut::ecs
 
 
 
-    inline entityid_t CEntityWorld::createEntity() 
+    inline entityid_t CEntityWorld::createEntity(bool canRecycleId) 
     {
-        return m_entityRegistry.registerNewEntity();
+        return m_entityRegistry.registerNewEntity(canRecycleId);
     }
 
     inline bool CEntityWorld::hasEntity( entityid_t entityID ) const

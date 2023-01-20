@@ -53,7 +53,7 @@ CEntityQuery::Iterator<Types...> CEntityQuery::end() noexcept
     CEntitySignature sign = makeEntitySignature<Types...>();
     assert(!m_rejectSignature.hasAnyFrom(sign) && "None of the supplied types should be in query's 'reject' signature");
 
-    return Iterator<Types...>(this, m_vecEntityIDs.size());
+    return Iterator<Types...>(this, (unsigned int)m_vecEntityIDs.size());
 }
 
 

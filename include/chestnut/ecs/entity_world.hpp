@@ -77,9 +77,10 @@ namespace chestnut::ecs
         /**
          * @brief Create a new entity and return its ID
          * 
+         * @param canRecycleId if the returned ID can be reused from previously destroyed entity
          * @return entity ID
          */
-        entityid_t createEntity();
+        entityid_t createEntity(bool canRecycleId = true);
 
         /**
          * @brief Checks if entity with that ID exists
