@@ -17,11 +17,18 @@ namespace chestnut::ecs
     }
 
     template<typename C>
+    CComponentHandle<C>& CComponentHandle<C>::operator=(const C& val) 
+    {
+        m_componentStorage->at<C>(this->owner) = val;
+        return *this;
+    }
+
+    template<typename C>
     inline C& CComponentHandle<C>::get() 
     {
         if( !m_componentStorage )
         {
-            throw BadComponentAccessException();
+            throw BadHandleAccessException();
         }
 
         return m_componentStorage->at<C>(this->owner);
@@ -32,7 +39,7 @@ namespace chestnut::ecs
     {
         if( !m_componentStorage )
         {
-            throw BadComponentAccessException();
+            throw BadHandleAccessException();
         }
 
         return m_componentStorage->at<C>(this->owner);

@@ -130,11 +130,11 @@ TEST_CASE( "Entity world test - general" )
         baz->z = 3;
         baz->w = 4;
 
+        // test out inner value assignment operator
         bar = world.createComponent<Bar>( ent3 );
-        bar->y = 5;
+        bar = Bar{5};
         baz = world.createComponent<Baz>( ent3 );
-        baz->z = 6;
-        baz->w = 7;
+        baz = Baz{6, 7};
 
 
         REQUIRE( world.hasComponent<Foo>( ent1 ) );
@@ -201,6 +201,20 @@ TEST_CASE( "Entity world test - general" )
         world.destroyComponent<Baz>( ent2 );
         REQUIRE_FALSE( world.hasComponent<Bar>( ent2 ) );
         REQUIRE_FALSE( world.hasComponent<Baz>( ent2 ) );
+    }
+
+    SECTION("Accessing invalid handle")
+    {
+        // null handle
+        CComponentHandle<Foo> handle;
+        REQUIRE_THROWS(handle.get());
+
+        entityid_t ent = world.createEntity();
+        handle = world.createComponent<Foo>(ent);
+        REQUIRE_NOTHROW(handle.get());
+
+        world.destroyComponent<Foo>(ent);
+        REQUIRE_THROWS(handle.get());
     }
 
     SECTION( "Destroying entities with components" )

@@ -9,5 +9,6 @@
 #include "entity_registry.hpp"
 #include "entity_signature.hpp"
 #include "entity_world.hpp"
+#include "exceptions.hpp"
 #include "sparse_set.hpp"
 #include "types.hpp"

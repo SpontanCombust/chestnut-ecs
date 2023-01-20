@@ -1,3 +1,5 @@
+#include "exceptions.hpp"
+
 #include <algorithm> // std::fill
 #include <stdexcept>
 
@@ -112,7 +114,7 @@ T& CSparseSet<T>::at(index_type idx)
 {
     if(idx >= m_sparse.size() || m_sparse[idx] == NIL_INDEX)
     {
-        throw std::runtime_error("no value at index found");
+        throw BadStorageAccessException();
     }
 
     return this->m_dense[m_sparse[idx]].e;
@@ -123,7 +125,7 @@ const T& CSparseSet<T>::at(index_type idx) const
 {
     if(idx >= m_sparse.size() || m_sparse[idx] == NIL_INDEX)
     {
-        throw std::runtime_error("no value at index found");
+        throw BadStorageAccessException();
     }
 
     return this->m_dense[m_sparse[idx]].e;

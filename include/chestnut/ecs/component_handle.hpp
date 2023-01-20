@@ -14,20 +14,11 @@
 
 #include "types.hpp"
 #include "component_storage.hpp"
+#include "exceptions.hpp"
 
-#include <exception>
 
 namespace chestnut::ecs
 {
-    struct BadComponentAccessException : std::exception
-    {
-        const char *what() const throw()
-        {
-            return "Tried to access invalid component handle";
-        }
-    };
-
-
     /**
      * @brief Type providing safe access to component returned from entity world, also stores owner entity ID
      * 
@@ -59,11 +50,21 @@ namespace chestnut::ecs
         CComponentHandle() noexcept;
 
         /**
+         * @brief Inner value assignment operator
+         * 
+         * @param val component value
+         * @return reference to this
+         * 
+         * @throws if handle or component is invalid
+         */
+        CComponentHandle& operator=(const C& val);
+
+        /**
          * @brief Returns a reference to the held component
          * 
          * @return component reference
          * 
-         * @throws BadComponentAccessException if component is invalid
+         * @throws if handle or component is invalid
          */
 
         C& get();
@@ -72,7 +73,7 @@ namespace chestnut::ecs
          * 
          * @return const component reference
          * 
-         * @throws BadComponentAccessException if component is invalid
+         * @throws if handle or component is invalid
          */
         const C& get() const;
 
@@ -81,7 +82,7 @@ namespace chestnut::ecs
          * 
          * @return component reference
          * 
-         * @throws BadComponentAccessException if component is invalid
+         * @throws if handle or component is invalid
          */
         C& operator*();
 
@@ -90,7 +91,7 @@ namespace chestnut::ecs
          * 
          * @return const component reference
          * 
-         * @throws BadComponentAccessException if component is invalid
+         * @throws if handle or component is invalid
          */
         const C& operator*() const;
 
@@ -99,7 +100,7 @@ namespace chestnut::ecs
          * 
          * @return component pointer
          * 
-         * @throws BadComponentAccessException if component is invalid
+         * @throws if handle or component is invalid
          */
         C* operator->();
 
@@ -108,7 +109,7 @@ namespace chestnut::ecs
          * 
          * @return const component pointer
          * 
-         * @throws BadComponentAccessException if component is invalid
+         * @throws if handle or component is invalid
          */
         const C* operator->() const;
 
