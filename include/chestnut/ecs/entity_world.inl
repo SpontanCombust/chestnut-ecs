@@ -32,7 +32,7 @@ namespace chestnut::ecs
         {
             const CEntitySignature signature = m_entityRegistry.getEntitySignature(entityID);
 
-            if(signature.isEmpty())
+            if(!signature.isEmpty())
             {
                 updateQueriesOnEntityChange(entityID, &signature, nullptr);
                 m_componentStorage.eraseAll(entityID);

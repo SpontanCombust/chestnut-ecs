@@ -266,6 +266,29 @@ TEST_CASE( "Entity world test - general" )
         });
 
         REQUIRE( vecFound.size() == 20 );
+
+
+
+        auto allEntsFinder = [](const CEntitySignature& sign) {
+            return true;
+        };
+
+        auto entCount = world.findEntities(allEntsFinder).size();
+        REQUIRE(entCount == 20);
+
+
+        for(auto id : vecFooBar)
+            world.destroyEntity(id);
+
+        entCount = world.findEntities(allEntsFinder).size();
+        REQUIRE(entCount == 10);
+
+
+        for(auto id : vecBarBaz)
+            world.destroyEntity(id);
+
+        entCount = world.findEntities(allEntsFinder).size();
+        REQUIRE(entCount == 0);
     }
 }
 

@@ -102,7 +102,7 @@ namespace chestnut::ecs::internal
 
         for(auto it = m_componentStoragePtr->cbegin(); it != m_componentStoragePtr->cend(); it++)
         {
-            if(predicate(it.signature()))
+            if(isEntityRegistered(it.id()) && predicate(it.signature()))
             {
                 ids.push_back(it.id());
             }
