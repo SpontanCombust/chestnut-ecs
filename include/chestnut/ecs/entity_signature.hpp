@@ -18,18 +18,29 @@
 
 namespace chestnut::ecs
 {
+    //TODO implement iterator
     /**
      * @brief Class used to record component types that entity is comprised of
      */
     class CEntitySignature
     {
     public:
+        //TODO replace with std::vector
         /**
          * @brief Set of std::type_index component types
          */
         std::unordered_set< std::type_index > m_setComponentTypes;
 
     public:
+        /**
+         * @brief Creates signature in place using given types
+         * 
+         * @tparam Types types of components
+         * @return CEntitySignature created signature
+         */
+        template<typename ...Types>
+        static CEntitySignature from();
+
         /**
          * @brief Adds types to signature
          * 
@@ -196,6 +207,7 @@ namespace chestnut::ecs
 	bool operator!=( const CEntitySignature& lhs, const CEntitySignature& rhs );
 
 
+    //TODO remove in 2.0
 	/**
 	 * @brief Creates signature in place using given types
 	 * 

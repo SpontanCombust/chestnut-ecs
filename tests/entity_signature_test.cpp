@@ -129,4 +129,24 @@ TEST_CASE( "Entity signature test" )
         REQUIRE( sign2.hasAllFrom( sign1 ) );
         REQUIRE_FALSE( sign1.hasAllFrom( sign2 ) );
     }
+
+    SECTION("Make signature in-place")
+    {
+        CEntitySignature sign1, sign2;
+
+        sign1.add(typeid(Foo));
+        sign1.add(typeid(Bar));
+
+        // sign2 is empty
+
+        CEntitySignature sign1t1 = makeEntitySignature<Foo, Bar>();
+        CEntitySignature sign2t1 = makeEntitySignature();
+        REQUIRE(sign1 == sign1t1);
+        REQUIRE(sign2 == sign2t1);
+
+        CEntitySignature sign1t2 = CEntitySignature::from<Foo, Bar>();
+        CEntitySignature sign2t2 = CEntitySignature::from();
+        REQUIRE(sign1 == sign1t2);
+        REQUIRE(sign2 == sign2t2);
+    }
 }

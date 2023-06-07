@@ -1,7 +1,16 @@
 #include <typelist.hpp>
+#include "entity_signature.hpp"
 
 namespace chestnut::ecs
 {    
+    template <typename... Types>
+    inline CEntitySignature CEntitySignature::from()
+    {
+        CEntitySignature sign;
+        sign.add<Types...>();
+        return sign;
+    }
+
     inline void CEntitySignature::add( std::type_index compType ) 
     {
         m_setComponentTypes.insert( compType );
@@ -121,11 +130,8 @@ namespace chestnut::ecs
         return lhs.m_setComponentTypes != rhs.m_setComponentTypes;
     }
 
-
-
-
-    template< typename ...Types >
-    void CEntitySignature::add() 
+    template <typename... Types>
+    void CEntitySignature::add()
     {
         using list = tl::type_list<Types...>;
         list::for_each( [&](auto t)
