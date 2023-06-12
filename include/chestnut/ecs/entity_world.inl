@@ -45,8 +45,8 @@ namespace chestnut::ecs
 
 
 
-    template< typename C >
-    CComponentHandle<C> CEntityWorld::createComponent( entityid_t entityID ) 
+    template <typename C>
+    inline CComponentHandle<C> CEntityWorld::createComponent(entityid_t entityID, C &&data)
     {
         // check if entity exists at all
         if( !hasEntity(entityID) )
@@ -65,7 +65,7 @@ namespace chestnut::ecs
             newSignature.add<C>();
             
             // instantiate the actual new component
-            m_componentStorage.insert<C>(entityID);
+            m_componentStorage.insert<C>(entityID, std::forward<C>(data));
 
             updateQueriesOnEntityChange( entityID, &oldSignature, &newSignature );
         }
@@ -73,7 +73,13 @@ namespace chestnut::ecs
         return CComponentHandle<C>(entityID, &m_componentStorage);
     }
 
-    template< typename C >
+    template<typename C>
+    inline CComponentHandle<C> CEntityWorld::createComponent( entityid_t entityID ) 
+    {
+        return this->createComponent(entityID, C());
+    }
+    
+    template < typename C >
     bool CEntityWorld::hasComponent( entityid_t entityID ) const
     {
         if(!hasEntity(entityID))

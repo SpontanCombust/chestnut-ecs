@@ -105,6 +105,12 @@ namespace chestnut::ecs
         // Returns existing component if it was already created before
         // Otherwise returns newly created component
         template<typename C>
+        CComponentHandle<C> createComponent(entityid_t entityID, C&& data);
+
+        // Returns null if entity doesn't exist
+        // Returns existing component if it was already created before
+        // Otherwise returns newly created component
+        template<typename C>
         CComponentHandle<C> createComponent(entityid_t entityID);
 
         template<typename C>

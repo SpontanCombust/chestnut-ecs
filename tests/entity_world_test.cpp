@@ -100,6 +100,11 @@ TEST_CASE( "Entity world test - general" )
         REQUIRE( foo->x == 1 );
 
         REQUIRE( world.hasComponent<Foo>( ent ) );
+
+
+        entityid_t ent1 = world.createEntity();
+        auto foo1 = world.createComponent<Foo>(ent1, Foo {6});
+        REQUIRE(foo1->x == 6);
     }
 
     SECTION( "Getting invalid components" )
