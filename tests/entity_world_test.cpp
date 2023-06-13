@@ -89,6 +89,9 @@ TEST_CASE( "Entity world test - general" )
         entityid_t ent = world.createEntity();
         CComponentHandle<Foo> foo;
 
+        foo = world.createComponent<Foo>(ENTITY_ID_INVALID);
+        REQUIRE_FALSE(foo);
+
         foo = world.createComponent<Foo>( ent );
         REQUIRE( foo );
         REQUIRE( foo.owner == ent );
@@ -99,12 +102,24 @@ TEST_CASE( "Entity world test - general" )
         foo = world.createComponent<Foo>( ent );
         REQUIRE( foo->x == 1 );
 
-        REQUIRE( world.hasComponent<Foo>( ent ) );
+        REQUIRE( world.hasComponent<Foo>( ent ) );       
+    }
 
+    SECTION("Creating or updating components")
+    {
+        CComponentHandle<Foo> foo;
 
-        entityid_t ent1 = world.createEntity();
-        auto foo1 = world.createComponent<Foo>(ent1, Foo {6});
-        REQUIRE(foo1->x == 6);
+        foo = world.createComponent<Foo>(ENTITY_ID_INVALID);
+        REQUIRE_FALSE(foo);
+
+        entityid_t ent = world.createEntity();
+        foo = world.createOrUpdateComponent<Foo>(ent, Foo {8});
+        REQUIRE(foo);
+        REQUIRE(foo->x == 8);
+
+        foo = world.createOrUpdateComponent<Foo>(ent, Foo {11});
+        REQUIRE(foo);
+        REQUIRE(foo->x == 11);
     }
 
     SECTION( "Getting invalid components" )

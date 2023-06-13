@@ -46,7 +46,7 @@ namespace chestnut::ecs
 
 
     template <typename C>
-    inline CComponentHandle<C> CEntityWorld::createComponent(entityid_t entityID, C &&data)
+    inline CComponentHandle<C> CEntityWorld::createComponent(entityid_t entityID)
     {
         // check if entity exists at all
         if( !hasEntity(entityID) )
@@ -54,9 +54,7 @@ namespace chestnut::ecs
             return CComponentHandle<C>();
         }
 
-
         // check if entity already owns the component
-
         if(!m_componentStorage.contains<C>(entityID))
         {
             // make an updated signature for the entity
@@ -65,7 +63,7 @@ namespace chestnut::ecs
             newSignature.add<C>();
             
             // instantiate the actual new component
-            m_componentStorage.insert<C>(entityID, std::forward<C>(data));
+            m_componentStorage.insert<C>(entityID);
 
             updateQueriesOnEntityChange( entityID, &oldSignature, &newSignature );
         }
@@ -73,10 +71,29 @@ namespace chestnut::ecs
         return CComponentHandle<C>(entityID, &m_componentStorage);
     }
 
-    template<typename C>
-    inline CComponentHandle<C> CEntityWorld::createComponent( entityid_t entityID ) 
+    template <typename C>
+    inline CComponentHandle<C> CEntityWorld::createOrUpdateComponent(entityid_t entityID, C &&data)
     {
-        return this->createComponent(entityID, C());
+        // check if entity exists at all
+        if( !hasEntity(entityID) )
+        {
+            return CComponentHandle<C>();
+        }
+
+        // check if entity already owns the component
+        if(!m_componentStorage.contains<C>(entityID))
+        {
+            // make an updated signature for the entity
+            CEntitySignature oldSignature = m_entityRegistry.getEntitySignature(entityID);
+            CEntitySignature newSignature = oldSignature; 
+            newSignature.add<C>();
+            
+            updateQueriesOnEntityChange( entityID, &oldSignature, &newSignature );
+        }
+
+        m_componentStorage.insert<C>(entityID, std::forward<C>(data));
+
+        return CComponentHandle<C>(entityID, &m_componentStorage);
     }
     
     template < typename C >
