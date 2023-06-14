@@ -7,6 +7,21 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 include(FetchContent)
 
 
+# =============================== ALLOW OFFLINE MODE ===================================
+
+FetchContent_Declare(
+    FetchContentOffline
+    GIT_REPOSITORY https://github.com/SpontanCombust/cmake-fetchcontent-offline
+)
+set(FETCHCONTENT_UPDATES_DISCONNECTED_FETCHCONTENTOFFLINE ON)
+FetchContent_MakeAvailable(FetchContentOffline)
+
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${fetchcontentoffline_SOURCE_DIR}")
+include(fetchcontent-offline)
+
+FetchContent_DisconnectedIfOffline()
+
+
 ## ======================================== ECS Core ========================================
 
 FetchContent_Declare(
