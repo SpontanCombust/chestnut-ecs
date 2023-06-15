@@ -14,15 +14,19 @@ TEST_CASE( "Entity signature test" )
     {
         CEntitySignature sign1, sign2;
 
+
         sign1.add<Foo,Bar>();
         REQUIRE( sign1.has<Foo, Bar>() );
+        REQUIRE_FALSE( sign1.has<Baz>() );
 
         sign2.add( typeid(Foo) );
+        REQUIRE( sign2.has( typeid(Foo) ) );
+        REQUIRE_FALSE( sign2.has<Foo, Bar>() );
+        REQUIRE_FALSE( sign2.has( typeid(Bar) ) );
         sign2.add( typeid(Bar) );
         REQUIRE( sign2.has( typeid(Foo) ) );
         REQUIRE( sign2.has( typeid(Bar) ) );
-
-        REQUIRE_FALSE( sign1.has<Baz>() );
+        REQUIRE( sign2.has<Foo, Bar>() );
         REQUIRE_FALSE( sign2.has<Baz>() );
 
         REQUIRE( sign1 == sign2 );

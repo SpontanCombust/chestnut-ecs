@@ -158,9 +158,7 @@ namespace chestnut::ecs
         using list = tl::type_list<Types...>;
         list::for_each( [&](auto t)
         {
-            _has = has( typeid( typename decltype(t)::type ) );
-            
-            if( !_has ) return;
+            _has = _has && has( typeid( typename decltype(t)::type ) );
         });
 
         return _has;
