@@ -120,28 +120,4 @@ inline CEntitySignature CComponentStorage::signature(entityid_t id) const noexce
     return sign;
 }
 
-
-
-
-
-inline CComponentStorage::Iterator CComponentStorage::begin() noexcept
-{
-    return CComponentStorage::Iterator(this, ENTITY_ID_MINIMAL);
-}
-
-inline CComponentStorage::Iterator CComponentStorage::end() noexcept
-{
-    return CComponentStorage::Iterator(this, m_highestId + 1);
-}
-
-inline CComponentStorage::ConstIterator CComponentStorage::cbegin() const noexcept
-{
-    return CComponentStorage::ConstIterator(this, ENTITY_ID_MINIMAL);
-}
-
-inline CComponentStorage::ConstIterator CComponentStorage::cend() const noexcept
-{
-    return CComponentStorage::ConstIterator(this, m_highestId + 1);
-}
-
 } // namespace chestnut::ecs::internal

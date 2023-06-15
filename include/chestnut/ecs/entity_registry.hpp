@@ -24,6 +24,7 @@ namespace chestnut::ecs::internal
          * @brief Counter for distributing new entity ID
          */
         entityid_t m_entityIdCounter;
+        //TODO make it be sorted
         /**
          * @brief Vector of freed entity IDs 
          */

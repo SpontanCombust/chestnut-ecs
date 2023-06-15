@@ -12,10 +12,6 @@ namespace chestnut::ecs::internal
 {
     class CComponentStorage
     {
-    public:
-        struct Iterator; friend Iterator;
-        struct ConstIterator; friend ConstIterator;
-
     private:
         mutable std::unordered_map<std::type_index, std::unique_ptr<CSparseSetBase>> m_mapTypeToSparseSet;
         entityid_t m_highestId;
@@ -25,7 +21,7 @@ namespace chestnut::ecs::internal
         CComponentStorage();
         ~CComponentStorage();
 
-
+        //TODO2.0 use optional/result instead of exceptions
         template<typename T>
         T& at(entityid_t id);
 
@@ -60,12 +56,6 @@ namespace chestnut::ecs::internal
 
         CEntitySignature signature(entityid_t id) const noexcept;
 
-
-        Iterator begin() noexcept;
-        Iterator end() noexcept;
-        ConstIterator cbegin() const noexcept;
-        ConstIterator cend() const noexcept;
-
     private:
         template<typename T>
         CSparseSet<T>& getSparseSet() const noexcept;
@@ -74,5 +64,4 @@ namespace chestnut::ecs::internal
 } // namespace chestnut::ecs::internal
 
 
-#include "component_storage_iterator.inl"
 #include "component_storage.inl"

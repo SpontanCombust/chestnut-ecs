@@ -100,11 +100,11 @@ namespace chestnut::ecs::internal
     {
         std::vector<entityid_t> ids;
 
-        for(auto it = m_componentStoragePtr->cbegin(); it != m_componentStoragePtr->cend(); it++)
+        for(entityid_t id = ENTITY_ID_MINIMAL; id <= m_entityIdCounter; id += 1)
         {
-            if(isEntityRegistered(it.id()) && predicate(it.signature()))
+            if(isEntityRegistered(id) && predicate(m_componentStoragePtr->signature(id)))
             {
-                ids.push_back(it.id());
+                ids.push_back(id);
             }
         }
 
