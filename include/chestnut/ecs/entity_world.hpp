@@ -50,6 +50,7 @@ namespace chestnut::ecs
          */
         mutable std::unordered_map<CEntityQuery *, std::unique_ptr<internal::CEntityQueryGuard>> m_mapQueryIDToQueryGuard;
 
+        //TODO unused mutex, do something about it
         /**
          * @brief Shared mutex that can be used for synchronizing actions on the world between threads
          */
@@ -83,6 +84,7 @@ namespace chestnut::ecs
          */
         entityid_t createEntity(bool canRecycleId = true);
 
+        //TODO make uniform createEntity when ID recycling is hidden
         template<typename C>
         entityid_t createEntityWithComponents(C&& data, bool canRecycleId = true);
 

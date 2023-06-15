@@ -25,7 +25,7 @@ namespace chestnut::ecs
     class CEntitySignature
     {
     public:
-        //TODO replace with std::vector
+        //TODO replace with std::vector and use binary search
         /**
          * @brief Set of std::type_index component types
          */
