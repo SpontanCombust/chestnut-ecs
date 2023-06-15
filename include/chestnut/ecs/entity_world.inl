@@ -26,7 +26,7 @@ namespace chestnut::ecs
     template<typename C>
     entityid_t CEntityWorld::createEntityWithComponents(C&& data, bool canRecycleId)
     {
-        entityid_t ent = m_entityRegistry.registerNewEntity();
+        entityid_t ent = m_entityRegistry.registerNewEntity(canRecycleId);
 
         m_componentStorage.insert<C>(ent, std::forward<C>(data));
 
@@ -39,7 +39,7 @@ namespace chestnut::ecs
     template<typename C, typename... CRest>
     entityid_t CEntityWorld::createEntityWithComponents(std::tuple<C, CRest...>&& data, bool canRecycleId)
     {
-        entityid_t ent = m_entityRegistry.registerNewEntity();
+        entityid_t ent = m_entityRegistry.registerNewEntity(canRecycleId);
 
         tl::type_list<C, CRest...>::for_each([&](auto t) {
             using _Type = typename decltype(t)::type;
