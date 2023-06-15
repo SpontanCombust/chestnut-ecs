@@ -16,6 +16,10 @@
 
 namespace chestnut::ecs
 {
+    //TODO CEntity
+    //TODO entity will have two IDs
+    //     one is fast for internal use and other universally unique to identify entities on the outside
+    //     fast ID should not be accessible to the user 
     /**
      * @brief Type for the ID of the entity
      * 

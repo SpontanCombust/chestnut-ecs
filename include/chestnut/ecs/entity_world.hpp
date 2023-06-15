@@ -22,6 +22,7 @@
 
 #include <memory>
 #include <shared_mutex>
+#include <tuple>
 #include <vector>
 
 namespace chestnut::ecs
@@ -49,6 +50,7 @@ namespace chestnut::ecs
          */
         mutable std::unordered_map<CEntityQuery *, std::unique_ptr<internal::CEntityQueryGuard>> m_mapQueryIDToQueryGuard;
 
+        //TODO unused mutex, do something about it
         /**
          * @brief Shared mutex that can be used for synchronizing actions on the world between threads
          */
@@ -82,6 +84,21 @@ namespace chestnut::ecs
          */
         entityid_t createEntity(bool canRecycleId = true);
 
+        //TODO make uniform createEntity when ID recycling is hidden
+        template<typename C>
+        entityid_t createEntityWithComponents(C&& data, bool canRecycleId = true);
+
+        /**
+         * @brief Create a new entity with given components and return its ID
+         * 
+         * @tparam Cs types of components
+         * @param data tuple of component objects
+         * @param canRecycleId if the returned ID can be reused from previously destroyed entity
+         * @return entity ID
+         */
+        template<typename C, typename... CRest>
+        entityid_t createEntityWithComponents(std::tuple<C, CRest...>&& data, bool canRecycleId = true);
+
         /**
          * @brief Checks if entity with that ID exists
          * 
@@ -105,7 +122,11 @@ namespace chestnut::ecs
         // Returns existing component if it was already created before
         // Otherwise returns newly created component
         template<typename C>
-        CComponentHandle<C> createComponent(entityid_t entityID);
+        CComponentHandle<C> createComponent(entityid_t entityID, C &&data = C());
+
+        // Returns null if entity doesn't exist
+        template<typename C>
+        CComponentHandle<C> createOrUpdateComponent(entityid_t entityId, C &&data);
 
         template<typename C>
         bool hasComponent(entityid_t entityID) const;

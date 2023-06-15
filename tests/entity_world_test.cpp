@@ -89,6 +89,9 @@ TEST_CASE( "Entity world test - general" )
         entityid_t ent = world.createEntity();
         CComponentHandle<Foo> foo;
 
+        foo = world.createComponent<Foo>(ENTITY_ID_INVALID);
+        REQUIRE_FALSE(foo);
+
         foo = world.createComponent<Foo>( ent );
         REQUIRE( foo );
         REQUIRE( foo.owner == ent );
@@ -100,6 +103,29 @@ TEST_CASE( "Entity world test - general" )
         REQUIRE( foo->x == 1 );
 
         REQUIRE( world.hasComponent<Foo>( ent ) );
+
+
+        // create with arg
+        auto bar = world.createComponent(ent, Bar {3});
+        REQUIRE(bar);
+        REQUIRE(bar->y == 3);
+    }
+
+    SECTION("Creating or updating components")
+    {
+        CComponentHandle<Foo> foo;
+
+        foo = world.createComponent<Foo>(ENTITY_ID_INVALID);
+        REQUIRE_FALSE(foo);
+
+        entityid_t ent = world.createEntity();
+        foo = world.createOrUpdateComponent<Foo>(ent, Foo {8});
+        REQUIRE(foo);
+        REQUIRE(foo->x == 8);
+
+        foo = world.createOrUpdateComponent<Foo>(ent, Foo {11});
+        REQUIRE(foo);
+        REQUIRE(foo->x == 11);
     }
 
     SECTION( "Getting invalid components" )
@@ -126,13 +152,10 @@ TEST_CASE( "Entity world test - general" )
 
         foo = world.createComponent<Foo>( ent2 );
         foo->x = 2;
-        baz = world.createComponent<Baz>( ent2 );
-        baz->z = 3;
-        baz->w = 4;
+        baz = world.createComponent<Baz>( ent2, Baz {3, 4} );
 
         // test out inner value assignment operator
-        bar = world.createComponent<Bar>( ent3 );
-        bar = Bar{5};
+        bar = world.createComponent<Bar>( ent3, Bar{5} );
         baz = world.createComponent<Baz>( ent3 );
         baz = Baz{6, 7};
 
@@ -176,6 +199,32 @@ TEST_CASE( "Entity world test - general" )
         REQUIRE( baz );
         REQUIRE( baz->z == 6 );
         REQUIRE( baz->w == 7 );
+    }
+
+    SECTION("Creating entities with data")
+    {
+        CComponentHandle<Foo> foo;
+        CComponentHandle<Bar> bar;
+        CComponentHandle<Baz> baz;
+
+        // one component
+        entityid_t ent2 = world.createEntityWithComponents(Foo{1});
+        CEntitySignature sign2 = world.getEntitySignature(ent2);
+        REQUIRE(sign2 == CEntitySignature::from<Foo>());
+        foo = world.getComponent<Foo>(ent2);
+        REQUIRE(foo->x == 1);
+
+        // many components
+        entityid_t ent3 = world.createEntityWithComponents(std::make_tuple(Foo{1}, Bar{16}, Baz{21, 37}));
+        CEntitySignature sign3 = world.getEntitySignature(ent3);
+        REQUIRE(sign3 == CEntitySignature::from<Foo, Bar, Baz>());
+        foo = world.getComponent<Foo>(ent3);
+        REQUIRE(foo->x == 1);
+        bar = world.getComponent<Bar>(ent3);
+        REQUIRE(bar->y == 16);
+        baz = world.getComponent<Baz>(ent3);
+        REQUIRE(baz->z == 21);
+        REQUIRE(baz->w == 37);
     }
 
     SECTION( "Destroying components" )
@@ -237,8 +286,6 @@ TEST_CASE( "Entity world test - general" )
 
     SECTION( "Find entities" )
     {
-        CEntityWorld world;
-
         std::vector< entityid_t > vecFooBar;
         std::vector< entityid_t > vecBarBaz;
         
@@ -255,7 +302,7 @@ TEST_CASE( "Entity world test - general" )
         {
             entityid_t ent = world.createEntity();
             world.createComponent<Bar>( ent )->y = ent;
-            world.createComponent<Baz>( ent )->z = ent + 1;
+            world.createComponent<Baz>( ent )->z = (char)ent + 1;
             vecBarBaz.push_back( ent );
         }
 
@@ -269,7 +316,7 @@ TEST_CASE( "Entity world test - general" )
 
 
 
-        auto allEntsFinder = [](const CEntitySignature& sign) {
+        auto allEntsFinder = [](auto _) {
             return true;
         };
 

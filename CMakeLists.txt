@@ -1,10 +1,25 @@
 cmake_minimum_required(VERSION 3.0.0)
-project(chestnut-ecs VERSION 1.2.1)
+project(chestnut-ecs VERSION 1.3.0)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(FetchContent)
+
+
+# =============================== ALLOW OFFLINE MODE ===================================
+
+FetchContent_Declare(
+    FetchContentOffline
+    GIT_REPOSITORY https://github.com/SpontanCombust/cmake-fetchcontent-offline
+)
+set(FETCHCONTENT_UPDATES_DISCONNECTED_FETCHCONTENTOFFLINE ON)
+FetchContent_MakeAvailable(FetchContentOffline)
+
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${fetchcontentoffline_SOURCE_DIR}")
+include(fetchcontent-offline)
+
+FetchContent_DisconnectedIfOffline()
 
 
 ## ======================================== ECS Core ========================================
@@ -50,7 +65,7 @@ target_link_libraries(${PROJECT_NAME}_Test Catch2::Catch2 Threads::Threads)
 
 target_compile_options(${PROJECT_NAME}_Test PRIVATE
     # 4834 - ignored [[nodiscard]] (warning coming from cpp-typelist)
-    $<$<CXX_COMPILER_ID:MSVC>: /wd4834>
+    $<$<CXX_COMPILER_ID:MSVC>: /wd4834 /W4>
 )
 
 
