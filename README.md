@@ -163,3 +163,37 @@ query->sort<HealthComponent>(
     }
 );
 ```
+
+
+### Deferring entity world commands
+```cpp
+// Use CCommands object to queue commands that can later be executed on the entity world at once
+// Very useful in cases where immediate call to the entity world can disrupt the logic
+// for example if queried entity is deleted during the querying
+CEntityWorld world;
+CCommands cmd;
+
+for(int i = 0; i < 100; i++)
+{
+    cmd.createEntity(HealthComponent{100, 100}, ImmunityComponent{})
+}
+
+...
+
+for(auto it = query->begin<HealthComponent>; it != end = query->end<HealthComponent>; ++it)
+{
+    auto& [health] = *it;
+    if(health.currentHealth <= 0)
+    {
+        cmd.destroyEntity(it.entityId());
+    }
+    else if(health.currentHealth > health.maxHealth)
+    {
+        cmd.createOrUpdateComponent(it.entityId(), HealthComponent {health.maxHealth, health.maxHealth});
+    }
+}
+
+...
+
+cmd.getCommandQueue().execute(world);
+```
