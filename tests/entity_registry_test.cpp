@@ -36,7 +36,7 @@ TEST_CASE( "Entity registry test" )
 
     SECTION("ID recycling")
     {
-        auto ent1 = registry.registerNewEntity();
+        /*auto ent1 = */registry.registerNewEntity();
         auto ent2 = registry.registerNewEntity();
         auto ent3 = registry.registerNewEntity();
 
@@ -177,7 +177,7 @@ TEST_CASE( "Entity registry test" )
         }
 
 
-        auto ents1 = registry.findEntities([](const CEntitySignature& sign) {
+        auto ents1 = registry.findEntities([](auto _) {
             return true;
         });
 

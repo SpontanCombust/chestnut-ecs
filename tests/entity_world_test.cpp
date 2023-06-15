@@ -286,8 +286,6 @@ TEST_CASE( "Entity world test - general" )
 
     SECTION( "Find entities" )
     {
-        CEntityWorld world;
-
         std::vector< entityid_t > vecFooBar;
         std::vector< entityid_t > vecBarBaz;
         
@@ -304,7 +302,7 @@ TEST_CASE( "Entity world test - general" )
         {
             entityid_t ent = world.createEntity();
             world.createComponent<Bar>( ent )->y = ent;
-            world.createComponent<Baz>( ent )->z = ent + 1;
+            world.createComponent<Baz>( ent )->z = (char)ent + 1;
             vecBarBaz.push_back( ent );
         }
 
@@ -318,7 +316,7 @@ TEST_CASE( "Entity world test - general" )
 
 
 
-        auto allEntsFinder = [](const CEntitySignature& sign) {
+        auto allEntsFinder = [](auto _) {
             return true;
         };
 

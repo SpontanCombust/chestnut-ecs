@@ -65,7 +65,7 @@ target_link_libraries(${PROJECT_NAME}_Test Catch2::Catch2 Threads::Threads)
 
 target_compile_options(${PROJECT_NAME}_Test PRIVATE
     # 4834 - ignored [[nodiscard]] (warning coming from cpp-typelist)
-    $<$<CXX_COMPILER_ID:MSVC>: /wd4834>
+    $<$<CXX_COMPILER_ID:MSVC>: /wd4834 /W4>
 )
 
 

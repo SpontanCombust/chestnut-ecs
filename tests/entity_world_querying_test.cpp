@@ -51,8 +51,8 @@ TEST_CASE( "Entity world test - querying" )
     {
         entityid_t ent = world.createEntity();
         world.createComponent<Bar>( ent )->y = i;
-        world.createComponent<Baz>( ent )->z = i + 1;
-        world.createComponent<Baz>( ent )->w = i + 2;
+        world.createComponent<Baz>( ent )->z = (char)i + 1;
+        world.createComponent<Baz>( ent )->w = (char)i + 2;
         vEnts.push_back(ent);
     }
     // 10 with Foo and Baz
@@ -60,8 +60,8 @@ TEST_CASE( "Entity world test - querying" )
     {
         entityid_t ent = world.createEntity();
         world.createComponent<Foo>( ent )->x = i;
-        world.createComponent<Baz>( ent )->z = i + 1;
-        world.createComponent<Baz>( ent )->w = i + 2;
+        world.createComponent<Baz>( ent )->z = (char)i + 1;
+        world.createComponent<Baz>( ent )->w = (char)i + 2;
         vEnts.push_back(ent);
     }
     // 10 with Foo, Bar and Baz
@@ -70,8 +70,8 @@ TEST_CASE( "Entity world test - querying" )
         entityid_t ent = world.createEntity();
         world.createComponent<Foo>( ent )->x = i;
         world.createComponent<Bar>( ent )->y = i + 1;
-        world.createComponent<Baz>( ent )->z = i + 2;
-        world.createComponent<Baz>( ent )->w = i + 3;
+        world.createComponent<Baz>( ent )->z = (char)i + 2;
+        world.createComponent<Baz>( ent )->w = (char)i + 3;
         vEnts.push_back(ent);
     }
     

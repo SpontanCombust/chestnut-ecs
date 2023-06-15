@@ -142,11 +142,11 @@ TEST_CASE("Effieciency benchmarks - finding components", "[benchmark]")
         }
 
         auto benchmarker = [&setSmall](const int n) {
-            bool contains;
+            bool contains = false;
 
             for (int i = 0; i < n; i++)
             {
-                contains = setSmall.contains(i);
+                contains = contains && setSmall.contains(i);
             }
 
             return contains;
@@ -204,11 +204,11 @@ TEST_CASE("Effieciency benchmarks - finding components", "[benchmark]")
         }
 
         auto benchmarker = [&setBig](const int n) {
-            bool contains;
+            bool contains = false;
 
             for (int i = 0; i < n; i++)
             {
-                contains = setBig.contains(i);
+                contains = contains && setBig.contains(i);
             }
 
             return contains;
