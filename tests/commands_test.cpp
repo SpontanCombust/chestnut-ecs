@@ -89,6 +89,31 @@ TEST_CASE("Commands test")
         REQUIRE_FALSE(bar);
     }
 
+    SECTION("Update components")
+    {
+        entityid_t ent1 = world.createEntityWithComponents(std::make_tuple(Foo{1}, Bar{2, 3}));
+        entityid_t ent2 = world.createEntityWithComponents(std::make_tuple(Bar{4, 5}));
+
+        cmd.updateComponent<Foo>(ent1, [](Foo& foo) { foo.a = 11; })
+           .updateComponent<Foo>(ent2, [](Foo& foo) { foo.a = 22; })
+           .updateComponent<Bar>(ent2, [](Bar& bar) { bar.a = 33; })
+           .getCommandQueue().execute(world);
+
+        
+        CComponentHandle<Foo> foo;
+        CComponentHandle<Bar> bar;
+
+        foo = world.getComponent<Foo>(ent1);
+        REQUIRE(foo);
+        REQUIRE(foo->a == 11);
+
+        foo = world.getComponent<Foo>(ent2);
+        REQUIRE_FALSE(foo);
+        bar = world.getComponent<Bar>(ent2);
+        REQUIRE(bar);
+        REQUIRE((bar->a == 33 && bar->b == 5));
+    }
+
     SECTION("Destroy components")
     {
         entityid_t ent1 = world.createEntity();

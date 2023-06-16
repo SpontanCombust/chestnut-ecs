@@ -5,6 +5,7 @@
 #include "command_queue.hpp"
 
 #include <tuple>
+#include <type_traits>
 
 namespace chestnut::ecs
 {
@@ -127,6 +128,35 @@ namespace chestnut::ecs
         }
     };
 
+    template<typename C, typename F, 
+             std::enable_if_t<std::is_invocable_v<F, C&>, bool> = true>
+    class CUpdateComponentCommand : public IEntityCommand
+    {
+    private:
+        F m_updater;
+
+    public:
+        CUpdateComponentCommand(entityid_t id, F&& updater)
+        : IEntityCommand(id), m_updater(std::move(updater))
+        {
+            
+        }
+
+        void excecute(CEntityWorld& world) override
+        {
+            auto handle = world.getComponent<C>(m_entityId);
+            if(handle)
+            {
+                m_updater(*handle);
+            }
+        }
+
+        size_t size() const override
+        {
+            return sizeof(CUpdateComponentCommand<C, F>);
+        }
+    };
+
     template<class C>
     class CDestroyComponentCommand : public IEntityCommand
     {
@@ -196,6 +226,13 @@ namespace chestnut::ecs
         CCommands& createOrUpdateComponent(entityid_t ent, C&& data)
         {
             m_queue.insert(CCreateOrUpdateComponentCommand(ent, std::forward<C>(data)));
+            return *this;
+        }
+
+        template<class C, class F>
+        CCommands& updateComponent(entityid_t ent, F&& updater)
+        {
+            m_queue.insert(CUpdateComponentCommand<C, F>(ent, std::forward<F>(updater)));
             return *this;
         }
 
