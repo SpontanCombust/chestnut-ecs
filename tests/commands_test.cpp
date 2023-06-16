@@ -123,4 +123,17 @@ TEST_CASE("Commands test")
         bar = world.getComponent<Bar>(ent3);
         REQUIRE_FALSE(bar);
     }
+
+    SECTION("Clear queue")
+    {
+        cmd.createEntity()
+           .createEntity(Foo{1})
+           .createEntity()
+           .createEntity(Bar{2, 3}, Foo{4});
+
+        cmd.clear();
+        cmd.getCommandQueue().execute(world);
+
+        REQUIRE(world.findEntities([](auto sign) { return true; }).size() == 0);
+    }
 }

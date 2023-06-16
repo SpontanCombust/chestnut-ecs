@@ -207,6 +207,12 @@ namespace chestnut::ecs
         }
 
 
+        CCommands& clear()
+        {
+            m_queue.clear();
+            return *this;
+        }
+
         CCommandQueue& getCommandQueue()
         {
             return m_queue;

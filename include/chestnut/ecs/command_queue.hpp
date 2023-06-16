@@ -33,7 +33,12 @@ namespace chestnut::ecs
             new (eob) C(std::move(cmd));
         }
 
-        void execute(CEntityWorld& world)
+        void clear()
+        {
+            m_buff.clear();
+        }
+
+        void execute(CEntityWorld& world) const
         {
             if(m_buff.empty())
             {
@@ -42,7 +47,7 @@ namespace chestnut::ecs
 
             for(size_t i = 0; i < m_buff.size();)
             {
-                std::byte *data = &m_buff[i];
+                const std::byte *data = &m_buff[i];
                 ICommand *cmd = (ICommand *)data;
                 size_t cmdSize = cmd->size();
 
