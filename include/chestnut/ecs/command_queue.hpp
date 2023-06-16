@@ -16,11 +16,9 @@ namespace chestnut::ecs
         std::vector<std::byte> m_buff;
 
     public:
-        template<typename C>
+        template<typename C, std::enable_if_t<std::is_base_of_v<ICommand, C>, bool> = true>
         void insert(C &&cmd)
         {
-            static_assert(std::is_base_of_v<ICommand, C>, "The command class should implement ICommand interface");
-
             size_t cmdSize = cmd.size();
 
             // make room for the new command
@@ -52,6 +50,7 @@ namespace chestnut::ecs
                 size_t cmdSize = cmd->size();
 
                 cmd->excecute(world);
+                cmd->~ICommand(); // destructor called explicitly because of previously used placement-new
 
                 i += cmdSize;
             }

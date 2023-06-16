@@ -9,6 +9,8 @@ namespace chestnut::ecs
     class ICommand
     {
     public:
+        virtual ~ICommand() = default;
+
         virtual void excecute(CEntityWorld& world) = 0;
         virtual size_t size() const = 0;
     };
