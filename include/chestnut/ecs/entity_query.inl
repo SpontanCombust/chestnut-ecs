@@ -1,6 +1,5 @@
-#include "exceptions.hpp"
-
 #include <algorithm> // stable_sort
+#include <exception>
 #include <numeric> // iota
 
 namespace chestnut::ecs
@@ -40,14 +39,14 @@ CEntityQuery::Iterator<Types...> CEntityQuery::begin()
 {
     if(!m_requireSignature.has<Types...>())
     {
-        throw QueryException("All types supplied must be in query's 'require' signature");
+        throw std::runtime_error("All types supplied must be in query's 'require' signature");
     }
 
     CEntitySignature sign = makeEntitySignature<Types...>();
 
     if(m_rejectSignature.hasAnyFrom(sign))
     {
-        throw QueryException("None of the supplied types should be in query's 'reject' signature");
+        throw std::runtime_error("None of the supplied types should be in query's 'reject' signature");
     }
 
     return Iterator<Types...>(this, 0);
@@ -58,14 +57,14 @@ CEntityQuery::Iterator<Types...> CEntityQuery::end()
 {
     if(!m_requireSignature.has<Types...>())
     {
-        throw QueryException("All types supplied must be in query's 'require' signature");
+        throw std::runtime_error("All types supplied must be in query's 'require' signature");
     }
 
     CEntitySignature sign = makeEntitySignature<Types...>();
 
     if(m_rejectSignature.hasAnyFrom(sign))
     {
-        throw QueryException("None of the supplied types should be in query's 'reject' signature");
+        throw std::runtime_error("None of the supplied types should be in query's 'reject' signature");
     }
 
     return Iterator<Types...>(this, (unsigned int)m_vecEntityIDs.size());

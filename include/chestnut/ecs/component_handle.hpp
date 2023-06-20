@@ -14,7 +14,6 @@
 
 #include "types.hpp"
 #include "component_storage.hpp"
-#include "exceptions.hpp"
 
 
 namespace chestnut::ecs

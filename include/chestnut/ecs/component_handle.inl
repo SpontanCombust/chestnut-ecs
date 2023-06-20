@@ -28,7 +28,7 @@ namespace chestnut::ecs
     {
         if( !m_componentStorage )
         {
-            throw BadHandleAccessException();
+            throw std::runtime_error("Invalid component handle");
         }
 
         return m_componentStorage->at<C>(this->owner);
@@ -39,7 +39,7 @@ namespace chestnut::ecs
     {
         if( !m_componentStorage )
         {
-            throw BadHandleAccessException();
+            throw std::runtime_error("Invalid component handle");
         }
 
         return m_componentStorage->at<C>(this->owner);

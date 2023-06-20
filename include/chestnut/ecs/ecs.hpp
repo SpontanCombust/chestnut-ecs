@@ -1,5 +1,6 @@
 #pragma once
 
+#include "commands.hpp"
 #include "component_handle.hpp"
 #include "component_storage.hpp"
 #include "constants.hpp"
@@ -9,6 +10,5 @@
 #include "entity_registry.hpp"
 #include "entity_signature.hpp"
 #include "entity_world.hpp"
-#include "exceptions.hpp"
 #include "sparse_set.hpp"
 #include "types.hpp"

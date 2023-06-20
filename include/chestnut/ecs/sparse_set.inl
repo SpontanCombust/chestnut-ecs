@@ -1,7 +1,5 @@
-#include "exceptions.hpp"
-
 #include <algorithm> // std::fill
-#include <stdexcept>
+#include <exception>
 
 namespace chestnut::ecs::internal
 {
@@ -114,7 +112,7 @@ T& CSparseSet<T>::at(index_type idx)
 {
     if(idx >= m_sparse.size() || m_sparse[idx] == NIL_INDEX)
     {
-        throw BadStorageAccessException();
+        throw std::runtime_error("No element at index" + idx);
     }
 
     return this->m_dense[m_sparse[idx]].e;
@@ -125,7 +123,7 @@ const T& CSparseSet<T>::at(index_type idx) const
 {
     if(idx >= m_sparse.size() || m_sparse[idx] == NIL_INDEX)
     {
-        throw BadStorageAccessException();
+        throw std::runtime_error("No element at index" + idx);
     }
 
     return this->m_dense[m_sparse[idx]].e;

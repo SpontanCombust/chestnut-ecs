@@ -1,6 +1,6 @@
-#include "exceptions.hpp"
-
 #include <typelist.hpp>
+
+#include <exception>
 
 namespace chestnut::ecs
 {
@@ -201,7 +201,7 @@ namespace chestnut::ecs
     {
         if(!query)
         {
-            throw QueryException("Query is null");
+            throw std::runtime_error("Query is null");
         }
 
         auto it = m_mapQueryIDToQueryGuard.find( query );
@@ -210,7 +210,7 @@ namespace chestnut::ecs
             return it->second->updateQuery();
         }
 
-        throw QueryException("Query does not belong to this CEntityWorld");
+        throw std::runtime_error("Query does not belong to this CEntityWorld");
     }
 
     inline void CEntityWorld::destroyQuery( CEntityQuery *query )
