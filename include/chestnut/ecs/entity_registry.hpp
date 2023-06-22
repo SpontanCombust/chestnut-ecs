@@ -23,12 +23,12 @@ namespace chestnut::ecs::internal
         /**
          * @brief Counter for distributing new entity ID
          */
-        entityid_t m_entityIdCounter;
+        entityslot_t m_entityIdCounter;
         //TODO make it be sorted
         /**
          * @brief Vector of freed entity IDs 
          */
-        std::vector< entityid_t > m_vecRecycledEntityIDs;
+        std::vector<entityslot_t> m_vecRecycledEntityIDs;
 
 
     public:
@@ -45,7 +45,7 @@ namespace chestnut::ecs::internal
          * 
          * @return registered entity ID
          */
-        entityid_t registerNewEntity(bool canRecycleId = true) noexcept;
+        entityslot_t registerNewEntity(bool canRecycleId = true) noexcept;
 
         /**
          * @brief Returns whether an entity with this id is registered
@@ -55,14 +55,14 @@ namespace chestnut::ecs::internal
          * @return true if entity record has been found
          * @return false otherwise
          */
-        bool isEntityRegistered(entityid_t id) const noexcept;
+        bool isEntityRegistered(entityslot_t id) const noexcept;
 
         /**
          * @brief Remove record of entity with ID
          * 
          * @param id ID of the entity
          */
-        void unregisterEntity(entityid_t id) noexcept;
+        void unregisterEntity(entityslot_t id) noexcept;
 
 
         
@@ -71,14 +71,14 @@ namespace chestnut::ecs::internal
          * 
          * @return highest id or ENTITY_ID_INVALID if no entities have been registered yet
          */
-        entityid_t getHighestIdRegistered() const noexcept;
+        entityslot_t getHighestIdRegistered() const noexcept;
 
         /**
          * @brief Get the amount of all registered entities
          * 
          * @return entity count
          */
-        entitysize_t getEntityCount() const noexcept;
+        entityslot_t getEntityCount() const noexcept;
 
         /**
          * @brief Get the amount of all registered entities with the exact signature as given
@@ -87,7 +87,7 @@ namespace chestnut::ecs::internal
          * 
          * @return entity count
          */
-        entitysize_t getEntityCountOfExactSignature( const CEntitySignature& requiredSignature) const noexcept;
+        entityslot_t getEntityCountOfExactSignature( const CEntitySignature& requiredSignature) const noexcept;
 
         /**
          * @brief Get the amount of all registered entities, which signature is includes types in requiredSignaturePart
@@ -96,7 +96,7 @@ namespace chestnut::ecs::internal
          * 
          * @return entity count
          */
-        entitysize_t getEntityCountOfPartialSignature( const CEntitySignature& requiredSignaturePart) const noexcept;
+        entityslot_t getEntityCountOfPartialSignature( const CEntitySignature& requiredSignaturePart) const noexcept;
 
 
         /**
@@ -105,7 +105,7 @@ namespace chestnut::ecs::internal
          * @param id entity ID
          * @return entity's signature or an empty signature if entity is not registered
          */
-        CEntitySignature getEntitySignature(entityid_t id) const noexcept;
+        CEntitySignature getEntitySignature(entityslot_t id) const noexcept;
 
         /**
          * @brief Get a vector of entities which signature complies with the predicate
@@ -114,7 +114,7 @@ namespace chestnut::ecs::internal
          * 
          * @return vector of entity IDs
          */
-        std::vector<entityid_t> findEntities(std::function<bool(const CEntitySignature&)> predicate) const noexcept;
+        std::vector<entityslot_t> findEntities(std::function<bool(const CEntitySignature&)> predicate) const noexcept;
     };
     
 } // namespace chestnut::ecs::internal

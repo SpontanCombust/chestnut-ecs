@@ -14,7 +14,7 @@ namespace chestnut::ecs::internal
     {
     private:
         mutable std::unordered_map<std::type_index, std::unique_ptr<CSparseSetBase>> m_mapTypeToSparseSet;
-        entityid_t m_highestId;
+        entityslot_t m_lastSlot;
 
 
     public:
@@ -23,38 +23,38 @@ namespace chestnut::ecs::internal
 
         //TODO2.0 use optional/result instead of exceptions
         template<typename T>
-        T& at(entityid_t id);
+        T& at(entityslot_t id);
 
         template<typename T>
-        const T& at(entityid_t id) const;
+        const T& at(entityslot_t id) const;
 
         
         template<typename T>
         bool empty() const noexcept;
 
         template<typename T>
-        entitysize_t size() const noexcept;
+        size_t size() const noexcept;
 
         template<typename T>
-        bool contains(entityid_t id) const noexcept;
+        bool contains(entityslot_t id) const noexcept;
 
 
         template<typename T>
         void clear() noexcept;
 
         template<typename T>
-        void insert(entityid_t id, T&& arg) noexcept;
+        void insert(entityslot_t id, T&& arg) noexcept;
 
         template<typename T>
-        void insert(entityid_t id) noexcept;
+        void insert(entityslot_t id) noexcept;
 
         template<typename T>
-        void erase(entityid_t id) noexcept;
+        void erase(entityslot_t id) noexcept;
 
 
-        void eraseAll(entityid_t id) noexcept;
+        void eraseAll(entityslot_t id) noexcept;
 
-        CEntitySignature signature(entityid_t id) const noexcept;
+        CEntitySignature signature(entityslot_t id) const noexcept;
 
     private:
         template<typename T>

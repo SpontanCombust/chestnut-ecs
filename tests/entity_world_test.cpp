@@ -31,13 +31,13 @@ TEST_CASE( "Entity world test - general" )
 
     SECTION( "Creating and checking empty entities" )
     {
-        entityid_t e1, e2, e3;
+        entityslot_t e1, e2, e3;
 
         e1 = world.createEntity();
         e2 = world.createEntity();
         e3 = world.createEntity();
 
-        REQUIRE_FALSE( world.hasEntity( ENTITY_ID_INVALID ) );
+        REQUIRE_FALSE( world.hasEntity( ENTITY_SLOT_INVALID ) );
         REQUIRE( world.hasEntity(e1) );
         REQUIRE( world.hasEntity(e2) );
         REQUIRE( world.hasEntity(e3) );
@@ -45,7 +45,7 @@ TEST_CASE( "Entity world test - general" )
 
     SECTION( "Destroying empty entities" )
     {
-        entityid_t e1, e2, e3;
+        entityslot_t e1, e2, e3;
 
         e1 = world.createEntity();
         e2 = world.createEntity();
@@ -64,7 +64,7 @@ TEST_CASE( "Entity world test - general" )
 
     SECTION( "ID recycling" )
     {
-        entityid_t ent1, ent2, ent3, ent4;
+        entityslot_t ent1, ent2, ent3, ent4;
 
         ent1 = world.createEntity();
         ent2 = world.createEntity();
@@ -86,10 +86,10 @@ TEST_CASE( "Entity world test - general" )
         REQUIRE_FALSE( world.createComponent<Foo>(1) );
 
 
-        entityid_t ent = world.createEntity();
+        entityslot_t ent = world.createEntity();
         CComponentHandle<Foo> foo;
 
-        foo = world.createComponent<Foo>(ENTITY_ID_INVALID);
+        foo = world.createComponent<Foo>(ENTITY_SLOT_INVALID);
         REQUIRE_FALSE(foo);
 
         foo = world.createComponent<Foo>( ent );
@@ -115,10 +115,10 @@ TEST_CASE( "Entity world test - general" )
     {
         CComponentHandle<Foo> foo;
 
-        foo = world.createComponent<Foo>(ENTITY_ID_INVALID);
+        foo = world.createComponent<Foo>(ENTITY_SLOT_INVALID);
         REQUIRE_FALSE(foo);
 
-        entityid_t ent = world.createEntity();
+        entityslot_t ent = world.createEntity();
         foo = world.createOrUpdateComponent<Foo>(ent, Foo {8});
         REQUIRE(foo);
         REQUIRE(foo->x == 8);
@@ -138,9 +138,9 @@ TEST_CASE( "Entity world test - general" )
 
     SECTION( "Getting components" )
     {
-        entityid_t ent1 = world.createEntity();
-        entityid_t ent2 = world.createEntity();
-        entityid_t ent3 = world.createEntity();
+        entityslot_t ent1 = world.createEntity();
+        entityslot_t ent2 = world.createEntity();
+        entityslot_t ent3 = world.createEntity();
 
         CComponentHandle<Foo> foo;
         CComponentHandle<Bar> bar;
@@ -208,14 +208,14 @@ TEST_CASE( "Entity world test - general" )
         CComponentHandle<Baz> baz;
 
         // one component
-        entityid_t ent2 = world.createEntityWithComponents(Foo{1});
+        entityslot_t ent2 = world.createEntityWithComponents(Foo{1});
         CEntitySignature sign2 = world.getEntitySignature(ent2);
         REQUIRE(sign2 == CEntitySignature::from<Foo>());
         foo = world.getComponent<Foo>(ent2);
         REQUIRE(foo->x == 1);
 
         // many components
-        entityid_t ent3 = world.createEntityWithComponents(std::make_tuple(Foo{1}, Bar{16}, Baz{21, 37}));
+        entityslot_t ent3 = world.createEntityWithComponents(std::make_tuple(Foo{1}, Bar{16}, Baz{21, 37}));
         CEntitySignature sign3 = world.getEntitySignature(ent3);
         REQUIRE(sign3 == CEntitySignature::from<Foo, Bar, Baz>());
         foo = world.getComponent<Foo>(ent3);
@@ -229,7 +229,7 @@ TEST_CASE( "Entity world test - general" )
 
     SECTION( "Destroying components" )
     {
-        entityid_t ent1, ent2;
+        entityslot_t ent1, ent2;
 
         ent1 = world.createEntity();
         ent2 = world.createEntity();
@@ -258,7 +258,7 @@ TEST_CASE( "Entity world test - general" )
         CComponentHandle<Foo> handle;
         REQUIRE_THROWS(handle.get());
 
-        entityid_t ent = world.createEntity();
+        entityslot_t ent = world.createEntity();
         handle = world.createComponent<Foo>(ent);
         REQUIRE_NOTHROW(handle.get());
 
@@ -268,7 +268,7 @@ TEST_CASE( "Entity world test - general" )
 
     SECTION( "Destroying entities with components" )
     {
-        entityid_t ent = world.createEntity();
+        entityslot_t ent = world.createEntity();
 
         world.createComponent<Foo>( ent );
         world.createComponent<Bar>( ent );
@@ -286,13 +286,13 @@ TEST_CASE( "Entity world test - general" )
 
     SECTION( "Find entities" )
     {
-        std::vector< entityid_t > vecFooBar;
-        std::vector< entityid_t > vecBarBaz;
+        std::vector< entityslot_t > vecFooBar;
+        std::vector< entityslot_t > vecBarBaz;
         
         // 10 with Foo and Bar
         for (size_t i = 0; i < 10; i++)
         {
-            entityid_t ent = world.createEntity();
+            entityslot_t ent = world.createEntity();
             world.createComponent<Foo>( ent )->x = ent;
             world.createComponent<Bar>( ent )->y = ent + 1;
             vecFooBar.push_back( ent );
@@ -300,14 +300,14 @@ TEST_CASE( "Entity world test - general" )
         // 10 with Bar and Baz
         for (size_t i = 0; i < 10; i++)
         {
-            entityid_t ent = world.createEntity();
+            entityslot_t ent = world.createEntity();
             world.createComponent<Bar>( ent )->y = ent;
             world.createComponent<Baz>( ent )->z = (char)ent + 1;
             vecBarBaz.push_back( ent );
         }
 
 
-        std::vector< entityid_t > vecFound = world.findEntities( []( const CEntitySignature& sign ) 
+        std::vector< entityslot_t > vecFound = world.findEntities( []( const CEntitySignature& sign ) 
         {
             return sign.has<Bar>();
         });
@@ -346,7 +346,7 @@ TEST_CASE("Entity iterator test")
 {
     CEntityWorld world;
 
-    std::vector<entityid_t> vecEntsFoo;
+    std::vector<entityslot_t> vecEntsFoo;
     for (size_t i = 0; i < 4; i++)
     {
         auto ent = world.createEntity();
@@ -354,7 +354,7 @@ TEST_CASE("Entity iterator test")
         vecEntsFoo.push_back(ent);
     }
 
-    std::vector<entityid_t> vecEntsBarBaz;
+    std::vector<entityslot_t> vecEntsBarBaz;
     for (size_t i = 0; i < 4; i++)
     {
         auto ent = world.createEntity();
@@ -474,7 +474,7 @@ TEST_CASE("Entity iterator test")
 
 TEST_CASE( "Entity world test - benchmarks", "[benchmark]" )
 {
-    const entityid_t ENTITY_COUNT = 10000;
+    const entityslot_t ENTITY_COUNT = 10000;
     CEntityWorld world;
 
     BENCHMARK( "Creating a lot of similair entities" )
@@ -483,9 +483,9 @@ TEST_CASE( "Entity world test - benchmarks", "[benchmark]" )
         CComponentHandle<Bar> bar;
         CComponentHandle<Baz> baz;
 
-        for (entityid_t i = 0; i < ENTITY_COUNT; i++)
+        for (entityslot_t i = 0; i < ENTITY_COUNT; i++)
         {
-            entityid_t ent = world.createEntity();
+            entityslot_t ent = world.createEntity();
 
             // every foo will be different
             foo = world.createComponent<Foo>( ent );
@@ -507,9 +507,9 @@ TEST_CASE( "Entity world test - benchmarks", "[benchmark]" )
         CComponentHandle<Bar> bar;
         CComponentHandle<Baz> baz;
 
-        for (entityid_t i = 0; i < ENTITY_COUNT; i++)
+        for (entityslot_t i = 0; i < ENTITY_COUNT; i++)
         {
-            entityid_t ent = world.createEntity();
+            entityslot_t ent = world.createEntity();
 
             // every foo will be different
             foo = world.createComponent<Foo>( ent );

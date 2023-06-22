@@ -5,14 +5,14 @@
 namespace chestnut::ecs::internal
 {
     inline CEntityRegistry::CEntityRegistry(const CComponentStorage *componentStorage) noexcept
-    : m_componentStoragePtr(componentStorage), m_entityIdCounter(ENTITY_ID_MINIMAL)
+    : m_componentStoragePtr(componentStorage), m_entityIdCounter(ENTITY_SLOT_MINIMAL)
     {
 
     }
 
-    inline entityid_t CEntityRegistry::registerNewEntity(bool canRecycleId) noexcept
+    inline entityslot_t CEntityRegistry::registerNewEntity(bool canRecycleId) noexcept
     {
-        entityid_t id;
+        entityslot_t id;
 
         if( canRecycleId && !m_vecRecycledEntityIDs.empty() )
         {
@@ -27,16 +27,16 @@ namespace chestnut::ecs::internal
         return id;
     }
 
-    inline bool CEntityRegistry::isEntityRegistered(entityid_t id) const noexcept
+    inline bool CEntityRegistry::isEntityRegistered(entityslot_t id) const noexcept
     {
-        if( id == ENTITY_ID_INVALID )
+        if( id == ENTITY_SLOT_INVALID )
         {
             return false;
         }
         if(id < m_entityIdCounter)
         {
             auto it = std::find_if(m_vecRecycledEntityIDs.begin(), m_vecRecycledEntityIDs.end(),
-                [id](entityid_t recycledId) {
+                [id](entityslot_t recycledId) {
                     return id == recycledId;
                 }
             );
@@ -50,7 +50,7 @@ namespace chestnut::ecs::internal
         return false;
     }
 
-    inline void CEntityRegistry::unregisterEntity(entityid_t id) noexcept
+    inline void CEntityRegistry::unregisterEntity(entityslot_t id) noexcept
     {
         if(isEntityRegistered(id))
         {
@@ -58,35 +58,35 @@ namespace chestnut::ecs::internal
         }
     }
 
-    inline entityid_t CEntityRegistry::getHighestIdRegistered() const noexcept
+    inline entityslot_t CEntityRegistry::getHighestIdRegistered() const noexcept
     {
         return m_entityIdCounter;
     }
 
-    inline entitysize_t CEntityRegistry::getEntityCount() const noexcept
+    inline entityslot_t CEntityRegistry::getEntityCount() const noexcept
     {
-        return (entitysize_t)(m_entityIdCounter - ENTITY_ID_MINIMAL - m_vecRecycledEntityIDs.size());
+        return (entityslot_t)(m_entityIdCounter - ENTITY_SLOT_MINIMAL - m_vecRecycledEntityIDs.size());
     }
 
-    inline entitysize_t CEntityRegistry::getEntityCountOfExactSignature(const CEntitySignature& requiredSignature) const noexcept
+    inline entityslot_t CEntityRegistry::getEntityCountOfExactSignature(const CEntitySignature& requiredSignature) const noexcept
     {
         auto ents = this->findEntities([&requiredSignature](const CEntitySignature& sign) -> bool {
             return sign == requiredSignature;
         });
 
-        return (entitysize_t)ents.size();
+        return (entityslot_t)ents.size();
     }
 
-    inline entitysize_t CEntityRegistry::getEntityCountOfPartialSignature(const CEntitySignature& requiredSignaturePart) const noexcept
+    inline entityslot_t CEntityRegistry::getEntityCountOfPartialSignature(const CEntitySignature& requiredSignaturePart) const noexcept
     {
         auto ents = this->findEntities([&requiredSignaturePart](const CEntitySignature& sign) -> bool {
             return sign.hasAllFrom(requiredSignaturePart);
         });
 
-        return (entitysize_t)ents.size();
+        return (entityslot_t)ents.size();
     }
 
-    inline CEntitySignature CEntityRegistry::getEntitySignature(entityid_t id) const noexcept
+    inline CEntitySignature CEntityRegistry::getEntitySignature(entityslot_t id) const noexcept
     {
         if(isEntityRegistered(id))
         {
@@ -96,11 +96,11 @@ namespace chestnut::ecs::internal
         return CEntitySignature();
     }
     
-    inline std::vector<entityid_t> CEntityRegistry::findEntities(std::function<bool(const CEntitySignature&)> predicate) const noexcept
+    inline std::vector<entityslot_t> CEntityRegistry::findEntities(std::function<bool(const CEntitySignature&)> predicate) const noexcept
     {
-        std::vector<entityid_t> ids;
+        std::vector<entityslot_t> ids;
 
-        for(entityid_t id = ENTITY_ID_MINIMAL; id <= m_entityIdCounter; id += 1)
+        for(entityslot_t id = ENTITY_SLOT_MINIMAL; id <= m_entityIdCounter; id += 1)
         {
             if(isEntityRegistered(id) && predicate(m_componentStoragePtr->signature(id)))
             {

@@ -81,7 +81,7 @@ TEST_CASE( "Entity registry test" )
     {
         REQUIRE(registry.getEntityCount() == 0);
 
-        std::vector<entityid_t> ids;
+        std::vector<entityslot_t> ids;
         for (size_t i = 0; i < 1000; i++)
         {
             ids.push_back(registry.registerNewEntity());

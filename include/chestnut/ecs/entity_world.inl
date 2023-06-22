@@ -18,15 +18,15 @@ namespace chestnut::ecs
 
 
 
-    inline entityid_t CEntityWorld::createEntity(bool canRecycleId) 
+    inline entityslot_t CEntityWorld::createEntity(bool canRecycleId) 
     {
         return m_entityRegistry.registerNewEntity(canRecycleId);
     }
 
     template<typename C>
-    entityid_t CEntityWorld::createEntityWithComponents(C&& data, bool canRecycleId)
+    entityslot_t CEntityWorld::createEntityWithComponents(C&& data, bool canRecycleId)
     {
-        entityid_t ent = m_entityRegistry.registerNewEntity(canRecycleId);
+        entityslot_t ent = m_entityRegistry.registerNewEntity(canRecycleId);
 
         m_componentStorage.insert<C>(ent, std::forward<C>(data));
 
@@ -37,9 +37,9 @@ namespace chestnut::ecs
     }
 
     template<typename C, typename... CRest>
-    entityid_t CEntityWorld::createEntityWithComponents(std::tuple<C, CRest...>&& data, bool canRecycleId)
+    entityslot_t CEntityWorld::createEntityWithComponents(std::tuple<C, CRest...>&& data, bool canRecycleId)
     {
-        entityid_t ent = m_entityRegistry.registerNewEntity(canRecycleId);
+        entityslot_t ent = m_entityRegistry.registerNewEntity(canRecycleId);
 
         tl::type_list<C, CRest...>::for_each([&](auto t) {
             using _Type = typename decltype(t)::type;
@@ -52,12 +52,12 @@ namespace chestnut::ecs
         return ent;
     }
 
-    inline bool CEntityWorld::hasEntity( entityid_t entityID ) const
+    inline bool CEntityWorld::hasEntity( entityslot_t entityID ) const
     {
         return m_entityRegistry.isEntityRegistered(entityID);
     }
 
-    inline void CEntityWorld::destroyEntity( entityid_t entityID ) 
+    inline void CEntityWorld::destroyEntity( entityslot_t entityID ) 
     {
         if(hasEntity(entityID))
         {
@@ -77,7 +77,7 @@ namespace chestnut::ecs
 
 
     template <typename C>
-    inline CComponentHandle<C> CEntityWorld::createComponent(entityid_t entityID, C &&data)
+    inline CComponentHandle<C> CEntityWorld::createComponent(entityslot_t entityID, C &&data)
     {
         // check if entity exists at all
         if( !hasEntity(entityID) )
@@ -103,7 +103,7 @@ namespace chestnut::ecs
     }
 
     template <typename C>
-    inline CComponentHandle<C> CEntityWorld::createOrUpdateComponent(entityid_t entityID, C &&data)
+    inline CComponentHandle<C> CEntityWorld::createOrUpdateComponent(entityslot_t entityID, C &&data)
     {
         // check if entity exists at all
         if( !hasEntity(entityID) )
@@ -128,7 +128,7 @@ namespace chestnut::ecs
     }
     
     template < typename C >
-    bool CEntityWorld::hasComponent( entityid_t entityID ) const
+    bool CEntityWorld::hasComponent( entityslot_t entityID ) const
     {
         if(!hasEntity(entityID))
         {
@@ -139,7 +139,7 @@ namespace chestnut::ecs
     }
 
     template< typename C >
-    CComponentHandle<C> CEntityWorld::getComponent( entityid_t entityID ) const
+    CComponentHandle<C> CEntityWorld::getComponent( entityslot_t entityID ) const
     {
         if(hasComponent<C>(entityID))
         {
@@ -150,7 +150,7 @@ namespace chestnut::ecs
     }
 
     template< typename C >
-    void CEntityWorld::destroyComponent( entityid_t entityID ) 
+    void CEntityWorld::destroyComponent( entityslot_t entityID ) 
     {
         if(hasComponent<C>(entityID))
         {
@@ -175,13 +175,13 @@ namespace chestnut::ecs
         std::unique_ptr<internal::CEntityQueryGuard> guard = std::make_unique<internal::CEntityQueryGuard>(&m_componentStorage, requireSignature, rejectSignature);
 
 
-        std::vector< entityid_t > vecEntitiesToFetchFrom = m_entityRegistry.findEntities( 
+        std::vector< entityslot_t > vecEntitiesToFetchFrom = m_entityRegistry.findEntities( 
         [&guard]( const CEntitySignature& sign )
         {
             return guard->testQuery( sign );
         });
 
-        for (entityid_t i = 0; i < vecEntitiesToFetchFrom.size(); i++)
+        for (entityslot_t i = 0; i < vecEntitiesToFetchFrom.size(); i++)
         {
             guard->enqueueEntity(vecEntitiesToFetchFrom[i]);
         }
@@ -230,7 +230,7 @@ namespace chestnut::ecs
         auto it = CEntityIterator(
             &m_parent->m_entityRegistry, 
             &m_parent->m_componentStorage, 
-            ENTITY_ID_MINIMAL
+            ENTITY_SLOT_MINIMAL
         );
 
         if(!it.isValid() && it.canGoForward())
@@ -257,7 +257,7 @@ namespace chestnut::ecs
         auto it = CEntityConstIterator(
             &m_parent->m_entityRegistry, 
             &m_parent->m_componentStorage, 
-            ENTITY_ID_MINIMAL
+            ENTITY_SLOT_MINIMAL
         );
 
         if(!it.isValid() && it.canGoForward())
@@ -282,12 +282,12 @@ namespace chestnut::ecs
 
 
     
-    inline CEntitySignature CEntityWorld::getEntitySignature(entityid_t entityID) const
+    inline CEntitySignature CEntityWorld::getEntitySignature(entityslot_t entityID) const
     {
         return m_entityRegistry.getEntitySignature(entityID);
     }
 
-    inline std::vector< entityid_t > CEntityWorld::findEntities(std::function< bool( const CEntitySignature& ) > pred ) const
+    inline std::vector< entityslot_t > CEntityWorld::findEntities(std::function< bool( const CEntitySignature& ) > pred ) const
     {
         return m_entityRegistry.findEntities(pred);
     }
@@ -297,7 +297,7 @@ namespace chestnut::ecs
 
 
 
-    inline void CEntityWorld::updateQueriesOnEntityChange( entityid_t entity, const CEntitySignature* prevSignature, const CEntitySignature* currSignature )
+    inline void CEntityWorld::updateQueriesOnEntityChange( entityslot_t entity, const CEntitySignature* prevSignature, const CEntitySignature* currSignature )
     {
         bool prevValid, currValid;
 

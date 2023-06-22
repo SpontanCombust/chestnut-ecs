@@ -17,7 +17,7 @@ namespace chestnut::ecs
             
         }
 
-        entityid_t entityId() const noexcept
+        entityslot_t entityId() const noexcept
         {
             return m_query->m_vecEntityIDs[m_currentQueryIdx];
         }

@@ -67,16 +67,16 @@ namespace chestnut::ecs
     class IEntityCommand : public ICommand
     {
     protected:
-        entityid_t m_entityId;
+        entityslot_t m_entityId;
 
     public:
-        IEntityCommand(entityid_t entityId) 
+        IEntityCommand(entityslot_t entityId) 
         : m_entityId(entityId) 
         {
 
         }
 
-        entityid_t entity() const
+        entityslot_t entity() const
         {
             return m_entityId;
         }
@@ -85,7 +85,7 @@ namespace chestnut::ecs
     class CDestroyEntityCommand : public IEntityCommand
     {
     public:
-        CDestroyEntityCommand(entityid_t entityId)
+        CDestroyEntityCommand(entityslot_t entityId)
         : IEntityCommand(entityId)
         {
 
@@ -111,7 +111,7 @@ namespace chestnut::ecs
         C m_data;
 
     public:
-        CCreateOrUpdateComponentCommand(entityid_t id, C &&data)
+        CCreateOrUpdateComponentCommand(entityslot_t id, C &&data)
         : IEntityCommand(id), m_data(data)
         {
 
@@ -136,7 +136,7 @@ namespace chestnut::ecs
         F m_updater;
 
     public:
-        CUpdateComponentCommand(entityid_t id, F&& updater)
+        CUpdateComponentCommand(entityslot_t id, F&& updater)
         : IEntityCommand(id), m_updater(std::move(updater))
         {
             
@@ -161,7 +161,7 @@ namespace chestnut::ecs
     class CDestroyComponentCommand : public IEntityCommand
     {
     public:
-        CDestroyComponentCommand(entityid_t id)
+        CDestroyComponentCommand(entityslot_t id)
         : IEntityCommand(id)
         {
 
@@ -216,28 +216,28 @@ namespace chestnut::ecs
             return *this;
         }
 
-        CCommands& destroyEntity(entityid_t ent)
+        CCommands& destroyEntity(entityslot_t ent)
         {
             m_queue.insert(CDestroyEntityCommand(ent));
             return *this;
         }
 
         template<class C>
-        CCommands& createOrUpdateComponent(entityid_t ent, C&& data)
+        CCommands& createOrUpdateComponent(entityslot_t ent, C&& data)
         {
             m_queue.insert(CCreateOrUpdateComponentCommand(ent, std::forward<C>(data)));
             return *this;
         }
 
         template<class C, class F>
-        CCommands& updateComponent(entityid_t ent, F&& updater)
+        CCommands& updateComponent(entityslot_t ent, F&& updater)
         {
             m_queue.insert(CUpdateComponentCommand<C, F>(ent, std::forward<F>(updater)));
             return *this;
         }
 
         template<class C>
-        CCommands& destroyComponent(entityid_t ent)
+        CCommands& destroyComponent(entityslot_t ent)
         {
             m_queue.insert(CDestroyComponentCommand<C>(ent));
             return *this;

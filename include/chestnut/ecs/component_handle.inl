@@ -5,12 +5,12 @@ namespace chestnut::ecs
     template<typename C>
     CComponentHandle<C>::CComponentHandle() noexcept
     {
-        this->owner = ENTITY_ID_INVALID;
+        this->owner = ENTITY_SLOT_INVALID;
         this->m_componentStorage = nullptr;
     }
 
     template<typename C>
-    CComponentHandle<C>::CComponentHandle( entityid_t owner, internal::CComponentStorage *storage) noexcept
+    CComponentHandle<C>::CComponentHandle( entityslot_t owner, internal::CComponentStorage *storage) noexcept
     {
         this->owner = owner;
         this->m_componentStorage = storage;

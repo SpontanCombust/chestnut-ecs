@@ -37,9 +37,9 @@ TEST_CASE("Commands test")
 
     SECTION("Destroy entities")
     {
-        entityid_t ent1 = world.createEntity();
-        entityid_t ent2 = world.createEntity();
-        entityid_t ent3 = world.createEntity();
+        entityslot_t ent1 = world.createEntity();
+        entityslot_t ent2 = world.createEntity();
+        entityslot_t ent3 = world.createEntity();
         
         cmd.destroyEntity(ent1)
            .createUniqueEntity()
@@ -57,9 +57,9 @@ TEST_CASE("Commands test")
 
     SECTION("Create or update components")
     {
-        entityid_t ent1 = world.createEntityWithComponents(std::make_tuple(Foo{1}, Bar{2, 3}));
-        entityid_t ent2 = world.createEntity();
-        entityid_t ent3 = world.createEntityWithComponents(Foo{4});
+        entityslot_t ent1 = world.createEntityWithComponents(std::make_tuple(Foo{1}, Bar{2, 3}));
+        entityslot_t ent2 = world.createEntity();
+        entityslot_t ent3 = world.createEntityWithComponents(Foo{4});
 
         cmd.createOrUpdateComponent(ent1, Foo{6})
            .createOrUpdateComponent(ent2, Bar{7, 8})
@@ -91,8 +91,8 @@ TEST_CASE("Commands test")
 
     SECTION("Update components")
     {
-        entityid_t ent1 = world.createEntityWithComponents(std::make_tuple(Foo{1}, Bar{2, 3}));
-        entityid_t ent2 = world.createEntityWithComponents(std::make_tuple(Bar{4, 5}));
+        entityslot_t ent1 = world.createEntityWithComponents(std::make_tuple(Foo{1}, Bar{2, 3}));
+        entityslot_t ent2 = world.createEntityWithComponents(std::make_tuple(Bar{4, 5}));
 
         cmd.updateComponent<Foo>(ent1, [](Foo& foo) { foo.a = 11; })
            .updateComponent<Foo>(ent2, [](Foo& foo) { foo.a = 22; })
@@ -116,9 +116,9 @@ TEST_CASE("Commands test")
 
     SECTION("Destroy components")
     {
-        entityid_t ent1 = world.createEntity();
-        entityid_t ent2 = world.createEntityWithComponents(Foo{1});
-        entityid_t ent3 = world.createEntityWithComponents(std::make_tuple(Foo{2}, Bar{3, 4}));
+        entityslot_t ent1 = world.createEntity();
+        entityslot_t ent2 = world.createEntityWithComponents(Foo{1});
+        entityslot_t ent3 = world.createEntityWithComponents(std::make_tuple(Foo{2}, Bar{3, 4}));
 
         cmd.destroyComponent<Foo>(ent1)
            .destroyComponent<Bar>(ent1)

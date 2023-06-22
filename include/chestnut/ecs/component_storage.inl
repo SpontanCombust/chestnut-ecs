@@ -5,7 +5,7 @@ namespace chestnut::ecs::internal
 
 inline CComponentStorage::CComponentStorage() 
 {
-    m_highestId = ENTITY_ID_MINIMAL;
+    m_lastSlot = ENTITY_SLOT_MINIMAL;
 }
 
 inline CComponentStorage::~CComponentStorage() 
@@ -17,13 +17,13 @@ inline CComponentStorage::~CComponentStorage()
 
 
 template<typename T>
-inline T& CComponentStorage::at(entityid_t id) 
+inline T& CComponentStorage::at(entityslot_t id) 
 {
     return getSparseSet<T>().at(id);
 }
 
 template<typename T>
-inline const T& CComponentStorage::at(entityid_t id) const
+inline const T& CComponentStorage::at(entityslot_t id) const
 {
     return getSparseSet<T>().at(id);
 }
@@ -35,13 +35,13 @@ inline bool CComponentStorage::empty() const noexcept
 }
 
 template<typename T>
-inline entitysize_t CComponentStorage::size() const noexcept
+inline size_t CComponentStorage::size() const noexcept
 {
-    return (entitysize_t)getSparseSet<T>().size();
+    return (size_t)getSparseSet<T>().size();
 }
 
 template<typename T>
-inline bool CComponentStorage::contains(entityid_t id) const noexcept
+inline bool CComponentStorage::contains(entityslot_t id) const noexcept
 {
     return getSparseSet<T>().contains(id);
 }
@@ -53,24 +53,24 @@ inline void CComponentStorage::clear() noexcept
 }
 
 template<typename T>
-inline void CComponentStorage::insert(entityid_t id, T&& arg) noexcept
+inline void CComponentStorage::insert(entityslot_t id, T&& arg) noexcept
 {
-    if(id > m_highestId)
+    if(id > m_lastSlot)
     {
-        m_highestId = id;
+        m_lastSlot = id;
     }
     
     getSparseSet<T>().insert(id, std::forward<T>(arg));
 }
 
 template<typename T>
-inline void CComponentStorage::insert(entityid_t id) noexcept
+inline void CComponentStorage::insert(entityslot_t id) noexcept
 {
     this->insert(id, T());
 }
 
 template<typename T>
-inline void CComponentStorage::erase(entityid_t id) noexcept
+inline void CComponentStorage::erase(entityslot_t id) noexcept
 {
     getSparseSet<T>().erase(id);
 }
@@ -97,7 +97,7 @@ inline CSparseSet<T>& CComponentStorage::getSparseSet() const noexcept
 
 
 
-inline void CComponentStorage::eraseAll(entityid_t id) noexcept
+inline void CComponentStorage::eraseAll(entityslot_t id) noexcept
 {
     for(const auto& [typeIndex, sparseSetBase] : m_mapTypeToSparseSet)
     {
@@ -105,7 +105,7 @@ inline void CComponentStorage::eraseAll(entityid_t id) noexcept
     }   
 }
 
-inline CEntitySignature CComponentStorage::signature(entityid_t id) const noexcept
+inline CEntitySignature CComponentStorage::signature(entityslot_t id) const noexcept
 {
     CEntitySignature sign;
 

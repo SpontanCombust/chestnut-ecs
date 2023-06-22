@@ -29,19 +29,19 @@ public:
 TEST_CASE( "Entity world test - querying" )
 {
     CEntityWorld world;
-    std::vector<entityid_t> vEnts;
+    std::vector<entityslot_t> vEnts;
 
     // 10 entities with Foo
     for (int i = 0; i < 10; i++)
     {
-        entityid_t ent = world.createEntity();
+        entityslot_t ent = world.createEntity();
         world.createComponent<Foo>( ent )->x = i;
         vEnts.push_back(ent);
     }
     // 10 with Foo and Bar
     for (int i = 10; i < 20; i++)
     {
-        entityid_t ent = world.createEntity();
+        entityslot_t ent = world.createEntity();
         world.createComponent<Foo>( ent )->x = i;
         world.createComponent<Bar>( ent )->y = i + 1;
         vEnts.push_back(ent);
@@ -49,7 +49,7 @@ TEST_CASE( "Entity world test - querying" )
     // 10 with Bar and Baz
     for (int i = 20; i < 30; i++)
     {
-        entityid_t ent = world.createEntity();
+        entityslot_t ent = world.createEntity();
         world.createComponent<Bar>( ent )->y = i;
         world.createComponent<Baz>( ent )->z = (char)i + 1;
         world.createComponent<Baz>( ent )->w = (char)i + 2;
@@ -58,7 +58,7 @@ TEST_CASE( "Entity world test - querying" )
     // 10 with Foo and Baz
     for (int i = 30; i < 40; i++)
     {
-        entityid_t ent = world.createEntity();
+        entityslot_t ent = world.createEntity();
         world.createComponent<Foo>( ent )->x = i;
         world.createComponent<Baz>( ent )->z = (char)i + 1;
         world.createComponent<Baz>( ent )->w = (char)i + 2;
@@ -67,7 +67,7 @@ TEST_CASE( "Entity world test - querying" )
     // 10 with Foo, Bar and Baz
     for (int i = 40; i < 50; i++)
     {
-        entityid_t ent = world.createEntity();
+        entityslot_t ent = world.createEntity();
         world.createComponent<Foo>( ent )->x = i;
         world.createComponent<Bar>( ent )->y = i + 1;
         world.createComponent<Baz>( ent )->z = (char)i + 2;
@@ -193,7 +193,7 @@ TEST_CASE( "Entity world test - querying" )
 
         for (char i = 0; i < 5; i++)
         {
-            entityid_t ent = world.createEntity();
+            entityslot_t ent = world.createEntity();
             world.createComponent<Bar>( ent ) = {i};
             world.createComponent<Baz>( ent ) = {char(i + 1), short(i + 2)};
             vEnts.push_back(ent);

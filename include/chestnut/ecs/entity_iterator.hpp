@@ -15,10 +15,10 @@ namespace chestnut::ecs
     private:
         const internal::CEntityRegistry *m_registryPtr;
         internal::CComponentStorage *m_storagePtr;
-        entityid_t m_currentId;
+        entityslot_t m_currentId;
 
     public:
-        CEntityIterator(const internal::CEntityRegistry *registryPtr, internal::CComponentStorage *storagePtr, entityid_t id) noexcept
+        CEntityIterator(const internal::CEntityRegistry *registryPtr, internal::CComponentStorage *storagePtr, entityslot_t id) noexcept
         : m_registryPtr(registryPtr), m_storagePtr(storagePtr), m_currentId(id)
         {
             
@@ -31,19 +31,19 @@ namespace chestnut::ecs
 
         bool canGoForward() const noexcept
         {
-            entityid_t highestId = m_registryPtr->getHighestIdRegistered();
-            return m_currentId != ENTITY_ID_INVALID
-                && highestId != ENTITY_ID_INVALID 
+            entityslot_t highestId = m_registryPtr->getHighestIdRegistered();
+            return m_currentId != ENTITY_SLOT_INVALID
+                && highestId != ENTITY_SLOT_INVALID 
                 && m_currentId <= highestId;
         }
 
         bool canGoBackward() const noexcept
         {
-            return m_currentId != ENTITY_ID_INVALID
-                && m_currentId > ENTITY_ID_MINIMAL;
+            return m_currentId != ENTITY_SLOT_INVALID
+                && m_currentId > ENTITY_SLOT_MINIMAL;
         }
 
-        entityid_t id() const noexcept
+        entityslot_t id() const noexcept
         {
             return m_currentId;
         }
@@ -157,10 +157,10 @@ namespace chestnut::ecs
     private:
         const internal::CEntityRegistry *m_registryPtr;
         const internal::CComponentStorage *m_storagePtr;
-        entityid_t m_currentId;
+        entityslot_t m_currentId;
 
     public:
-        CEntityConstIterator(const internal::CEntityRegistry *registryPtr, const internal::CComponentStorage *storagePtr, entityid_t id) noexcept
+        CEntityConstIterator(const internal::CEntityRegistry *registryPtr, const internal::CComponentStorage *storagePtr, entityslot_t id) noexcept
         : m_registryPtr(registryPtr), m_storagePtr(storagePtr), m_currentId(id)
         {
             
@@ -173,19 +173,19 @@ namespace chestnut::ecs
 
         bool canGoForward() const noexcept
         {
-            entityid_t highestId = m_registryPtr->getHighestIdRegistered();
-            return m_currentId != ENTITY_ID_INVALID
-                && highestId != ENTITY_ID_INVALID 
+            entityslot_t highestId = m_registryPtr->getHighestIdRegistered();
+            return m_currentId != ENTITY_SLOT_INVALID
+                && highestId != ENTITY_SLOT_INVALID 
                 && m_currentId <= highestId;
         }
 
         bool canGoBackward() const noexcept
         {
-            return m_currentId != ENTITY_ID_INVALID
-                && m_currentId > ENTITY_ID_MINIMAL;
+            return m_currentId != ENTITY_SLOT_INVALID
+                && m_currentId > ENTITY_SLOT_MINIMAL;
         }
 
-        entityid_t id() const noexcept
+        entityslot_t id() const noexcept
         {
             return m_currentId;
         }

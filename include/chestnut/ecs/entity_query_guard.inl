@@ -6,13 +6,13 @@ namespace chestnut::ecs::internal
 
     }
 
-    inline void CEntityQueryGuard::enqueueEntity( entityid_t entityID ) 
+    inline void CEntityQueryGuard::enqueueEntity( entityslot_t entityID ) 
     {
         m_pendingOut_setEntityIDs.erase(entityID);
         m_pendingIn_setEntityIDs.insert(entityID);
     }
 
-    inline void CEntityQueryGuard::dequeueEntity( entityid_t entityID ) 
+    inline void CEntityQueryGuard::dequeueEntity( entityslot_t entityID ) 
     {
         m_pendingIn_setEntityIDs.erase(entityID);
         m_pendingOut_setEntityIDs.insert(entityID);

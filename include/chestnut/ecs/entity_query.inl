@@ -21,14 +21,14 @@ inline const CEntitySignature& CEntityQuery::getRequireSignature() const noexcep
     return m_requireSignature;
 }
 
-inline const std::vector<entityid_t> CEntityQuery::getEntities() const
+inline const std::vector<entityslot_t> CEntityQuery::getEntities() const
 {
     return m_vecEntityIDs;
 }
 
-inline entitysize_t CEntityQuery::getEntityCount() const noexcept
+inline size_t CEntityQuery::getEntityCount() const noexcept
 {
-    return (entitysize_t)m_vecEntityIDs.size();
+    return m_vecEntityIDs.size();
 }
 
 
@@ -98,7 +98,7 @@ void CEntityQuery::sort(std::function<bool(CEntityQuery::Iterator<Types...>, CEn
         }
     );
 
-    std::vector<entityid_t> sortedEnts(m_vecEntityIDs.size());
+    std::vector<entityslot_t> sortedEnts(m_vecEntityIDs.size());
 
     for (unsigned int i = 0; i < m_vecEntityIDs.size(); i++)
     {

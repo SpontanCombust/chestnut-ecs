@@ -12,8 +12,8 @@
 
 #pragma once
 
-#include "types.hpp"
 #include "component_storage.hpp"
+#include "entity.hpp"
 
 
 namespace chestnut::ecs
@@ -38,7 +38,7 @@ namespace chestnut::ecs
         /**
          * @brief Owner entity of the component
          */
-        entityid_t owner; 
+        entityslot_t owner; 
 
 
     public:
@@ -121,7 +121,7 @@ namespace chestnut::ecs
         operator bool() const noexcept;
 
     private:
-        CComponentHandle( entityid_t owner, internal::CComponentStorage *storage) noexcept;
+        CComponentHandle( entityslot_t owner, internal::CComponentStorage *storage) noexcept;
     };
 
 } // namespace chestnut::ecs

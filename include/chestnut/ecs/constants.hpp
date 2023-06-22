@@ -21,11 +21,11 @@ namespace chestnut::ecs
     /**
      * @brief Constant reserved for invalid entity ID 
      */
-    const entityid_t ENTITY_ID_INVALID = std::numeric_limits<entityid_t>::max();
+    const entityslot_t ENTITY_SLOT_INVALID = std::numeric_limits<entityslot_t>::max();
 
     /**
      * @brief Constant for the minimal value entity ID can take
      */
-    const entityid_t ENTITY_ID_MINIMAL = 0;
+    const entityslot_t ENTITY_SLOT_MINIMAL = 0;
     
 } // namespace chestnut::ecs
