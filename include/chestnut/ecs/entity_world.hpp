@@ -21,7 +21,6 @@
 #include "component_handle.hpp"
 
 #include <memory>
-#include <shared_mutex>
 #include <tuple>
 #include <vector>
 
@@ -49,12 +48,6 @@ namespace chestnut::ecs
          * This action doesn't affect World itself.
          */
         mutable std::unordered_map<CEntityQuery *, std::unique_ptr<internal::CEntityQueryGuard>> m_mapQueryIDToQueryGuard;
-
-        //TODO unused mutex, do something about it
-        /**
-         * @brief Shared mutex that can be used for synchronizing actions on the world between threads
-         */
-        mutable std::shared_mutex m_mutex;
 
 
 
