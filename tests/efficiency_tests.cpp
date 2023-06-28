@@ -27,7 +27,7 @@ TEST_CASE("Effieciency benchmarks - adding components", "[benchmark]")
                 setSmall.insert(i, SmallData{});
             }
 
-            return setSmall.size();
+            return setSmall.denseSize();
         };
 
         BENCHMARK("1000")
@@ -82,7 +82,7 @@ TEST_CASE("Effieciency benchmarks - adding components", "[benchmark]")
                 setBig.insert(i, BigData{});
             }
 
-            return setBig.size();
+            return setBig.denseSize();
         };
 
         BENCHMARK("1000")
@@ -274,7 +274,7 @@ TEST_CASE("Effieciency benchmarks - removing components", "[benchmark]")
                 setSmall.erase(i);
             }
 
-            return setSmall.size();
+            return setSmall.denseSize();
         };
         
         BENCHMARK("1000")
@@ -334,7 +334,7 @@ TEST_CASE("Effieciency benchmarks - removing components", "[benchmark]")
                 setBig.erase(i);
             }
 
-            return setBig.size();
+            return setBig.denseSize();
         };
         
         BENCHMARK("1000")

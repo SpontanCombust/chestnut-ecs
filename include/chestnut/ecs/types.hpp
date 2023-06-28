@@ -14,10 +14,9 @@
 
 #include <cstdint> // uint32_t, uint64_t
 
+
 namespace chestnut::ecs
 {
     typedef uint32_t entityslot_t;
-    
-    typedef uint64_t entityuuid_t;
 
 } // namespace chestnut::ecs

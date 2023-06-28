@@ -1,31 +1,32 @@
 #pragma once
 
 #include "types.hpp"
+#include "uuid.hpp"
 
 namespace chestnut::ecs
 {
     class CEntity
     {
-    private:
-        entityuuid_t m_uuid;
-        entityslot_t m_slot;
+    public:
+        CUniqueIdentifier uuid;
+        entityslot_t slot;
 
     public:
-        CEntity(entityuuid_t uuid, entityslot_t slot)
-        : m_uuid(uuid), m_slot(slot)
+        CEntity(CUniqueIdentifier uuid, entityslot_t slot)
+        : uuid(uuid), slot(slot)
         {
 
         }
 
-        bool operator==(const CEntity& other)
+        inline bool operator==(const CEntity& other) const
         {
             // entity will never have its slot changed, no need to check that then
-            return m_uuid == other.m_uuid;   
+            return uuid == other.uuid;   
         }
 
-        bool operator!=(const CEntity& other)
+        inline bool operator!=(const CEntity& other) const
         {
-            return m_uuid != other.m_uuid;
+            return uuid != other.uuid;
         }
     };
 

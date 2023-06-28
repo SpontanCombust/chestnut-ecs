@@ -15,7 +15,6 @@
 #include "component_storage.hpp"
 #include "entity.hpp"
 
-
 namespace chestnut::ecs
 {
     /**
@@ -38,15 +37,11 @@ namespace chestnut::ecs
         /**
          * @brief Owner entity of the component
          */
-        entityslot_t owner; 
+        CEntity owner; 
 
 
     public:
-        /**
-         * @brief Constructor; initializes owner to ENTITY_ID_INVALID
-         * 
-         */
-        CComponentHandle() noexcept;
+        bool valid() const;
 
         /**
          * @brief Inner value assignment operator
@@ -56,7 +51,7 @@ namespace chestnut::ecs
          * 
          * @throws if handle or component is invalid
          */
-        CComponentHandle& operator=(const C& val);
+        CComponentHandle& operator=(C&& val);
 
         /**
          * @brief Returns a reference to the held component
@@ -121,7 +116,7 @@ namespace chestnut::ecs
         operator bool() const noexcept;
 
     private:
-        CComponentHandle( entityslot_t owner, internal::CComponentStorage *storage) noexcept;
+        CComponentHandle(CEntity owner, internal::CComponentStorage *storage) noexcept;
     };
 
 } // namespace chestnut::ecs

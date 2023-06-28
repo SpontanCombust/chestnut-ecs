@@ -32,8 +32,8 @@ namespace chestnut::ecs::internal
     class CEntityQueryGuard
     {
     private:
-        std::unordered_set< entityslot_t > m_pendingIn_setEntityIDs;
-        std::unordered_set< entityslot_t > m_pendingOut_setEntityIDs;
+        std::unordered_set< entityslot_t > m_pendingIn_setEntitySlots;
+        std::unordered_set< entityslot_t > m_pendingOut_setEntitySlots;
 
         CEntityQuery m_targetQuery;
 
@@ -43,8 +43,8 @@ namespace chestnut::ecs::internal
 
 
         // Doesn't check for duplicates
-        void enqueueEntity( entityslot_t entityID );
-        void dequeueEntity( entityslot_t entityID );
+        void enqueueEntity( entityslot_t entitySlot );
+        void dequeueEntity( entityslot_t entitySlot );
 
         // Returns whether the content of the query changed after the update
         SEntityQueryUpdateInfo updateQuery();

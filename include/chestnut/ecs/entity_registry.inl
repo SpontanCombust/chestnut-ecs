@@ -4,111 +4,63 @@
 
 namespace chestnut::ecs::internal
 {
-    inline CEntityRegistry::CEntityRegistry(const CComponentStorage *componentStorage) noexcept
-    : m_componentStoragePtr(componentStorage), m_entityIdCounter(ENTITY_SLOT_MINIMAL)
+    inline CEntityRegistry::CEntityRegistry() noexcept
+    : m_entitySlotAccumulator(ENTITY_SLOT_MINIMAL)
     {
 
     }
 
-    inline entityslot_t CEntityRegistry::registerNewEntity(bool canRecycleId) noexcept
+    inline CEntity CEntityRegistry::registerNewEntity() noexcept
     {
-        entityslot_t id;
+        entityslot_t slot;
 
-        if( canRecycleId && !m_vecRecycledEntityIDs.empty() )
+        if (!m_vecRecycledSlots.empty())
         {
-            id = m_vecRecycledEntityIDs.back();
-            m_vecRecycledEntityIDs.pop_back();
+            slot = m_vecRecycledSlots.back();
+            m_vecRecycledSlots.pop_back();
         }
         else
         {
-            id = m_entityIdCounter++;
+            slot = m_entitySlotAccumulator++;
         }
 
-        return id;
+        CUniqueIdentifier uuid;
+        m_mapEntityUuidToSlot[uuid] = slot;
+
+        return CEntity(uuid, slot);
     }
 
-    inline bool CEntityRegistry::isEntityRegistered(entityslot_t id) const noexcept
+    inline bool CEntityRegistry::isEntityRegistered(CUniqueIdentifier uuid) const noexcept
     {
-        if( id == ENTITY_SLOT_INVALID )
+        return m_mapEntityUuidToSlot.find(uuid) != m_mapEntityUuidToSlot.end();
+    }
+
+    inline void CEntityRegistry::unregisterEntity(CUniqueIdentifier uuid) noexcept
+    {
+        auto slotIt = m_mapEntityUuidToSlot.find(uuid);
+        if (slotIt != m_mapEntityUuidToSlot.end())
         {
-            return false;
+            m_vecRecycledSlots.push_back(slotIt->second);
+            m_mapEntityUuidToSlot.erase(slotIt);
         }
-        if(id < m_entityIdCounter)
+    }
+
+    inline tl::optional<entityslot_t> CEntityRegistry::getSlotForEntity(CUniqueIdentifier uuid) const noexcept
+    {
+        auto slotIt = m_mapEntityUuidToSlot.find(uuid);
+        if (slotIt != m_mapEntityUuidToSlot.end())
         {
-            auto it = std::find_if(m_vecRecycledEntityIDs.begin(), m_vecRecycledEntityIDs.end(),
-                [id](entityslot_t recycledId) {
-                    return id == recycledId;
-                }
-            );
-
-            if(it == m_vecRecycledEntityIDs.end())
-            {
-                return true;
-            }
+            return slotIt->second;
         }
-
-        return false;
-    }
-
-    inline void CEntityRegistry::unregisterEntity(entityslot_t id) noexcept
-    {
-        if(isEntityRegistered(id))
+        else
         {
-            m_vecRecycledEntityIDs.push_back(id);
+            return tl::nullopt;
         }
     }
 
-    inline entityslot_t CEntityRegistry::getHighestIdRegistered() const noexcept
+    inline size_t CEntityRegistry::getEntityCount() const noexcept
     {
-        return m_entityIdCounter;
-    }
-
-    inline entityslot_t CEntityRegistry::getEntityCount() const noexcept
-    {
-        return (entityslot_t)(m_entityIdCounter - ENTITY_SLOT_MINIMAL - m_vecRecycledEntityIDs.size());
-    }
-
-    inline entityslot_t CEntityRegistry::getEntityCountOfExactSignature(const CEntitySignature& requiredSignature) const noexcept
-    {
-        auto ents = this->findEntities([&requiredSignature](const CEntitySignature& sign) -> bool {
-            return sign == requiredSignature;
-        });
-
-        return (entityslot_t)ents.size();
-    }
-
-    inline entityslot_t CEntityRegistry::getEntityCountOfPartialSignature(const CEntitySignature& requiredSignaturePart) const noexcept
-    {
-        auto ents = this->findEntities([&requiredSignaturePart](const CEntitySignature& sign) -> bool {
-            return sign.hasAllFrom(requiredSignaturePart);
-        });
-
-        return (entityslot_t)ents.size();
-    }
-
-    inline CEntitySignature CEntityRegistry::getEntitySignature(entityslot_t id) const noexcept
-    {
-        if(isEntityRegistered(id))
-        {
-            return m_componentStoragePtr->signature(id);
-        }
-
-        return CEntitySignature();
-    }
-    
-    inline std::vector<entityslot_t> CEntityRegistry::findEntities(std::function<bool(const CEntitySignature&)> predicate) const noexcept
-    {
-        std::vector<entityslot_t> ids;
-
-        for(entityslot_t id = ENTITY_SLOT_MINIMAL; id <= m_entityIdCounter; id += 1)
-        {
-            if(isEntityRegistered(id) && predicate(m_componentStoragePtr->signature(id)))
-            {
-                ids.push_back(id);
-            }
-        }
-
-        return ids;
+        return m_mapEntityUuidToSlot.size();
     }
 
 } // namespace chestnut::ecs::internal

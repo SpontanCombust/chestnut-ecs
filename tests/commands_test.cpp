@@ -25,8 +25,8 @@ TEST_CASE("Commands test")
         cmd.createEntity()
            .createEntity(Foo{0})
            .createEntity(Foo{1}, Bar{2, 3})
-           .createUniqueEntity()
-           .createUniqueEntity(Foo{1}, Bar{2, 3})
+           .createEntity()
+           .createEntity(Foo{1}, Bar{2, 3})
            .getCommandQueue().execute(world);
 
         REQUIRE(world.findEntities([](auto sign) { return true; }).size() == 5);
@@ -37,12 +37,12 @@ TEST_CASE("Commands test")
 
     SECTION("Destroy entities")
     {
-        entityslot_t ent1 = world.createEntity();
-        entityslot_t ent2 = world.createEntity();
-        entityslot_t ent3 = world.createEntity();
+        CEntity ent1 = world.createEntity();
+        CEntity ent2 = world.createEntity();
+        CEntity ent3 = world.createEntity();
         
         cmd.destroyEntity(ent1)
-           .createUniqueEntity()
+           .createEntity()
            .destroyEntity(ent3)
            .createEntity()
            .getCommandQueue().execute(world);
@@ -50,29 +50,24 @@ TEST_CASE("Commands test")
         // ID recycling was not used
         REQUIRE_FALSE(world.hasEntity(ent1));
         REQUIRE(world.hasEntity(ent2));
-        // ID recycling was used
-        REQUIRE(world.hasEntity(ent3));
+        REQUIRE_FALSE(world.hasEntity(ent3));
         REQUIRE(world.findEntities([](auto sign) { return true; }).size() == 3);
     }
 
     SECTION("Create or update components")
     {
-        entityslot_t ent1 = world.createEntityWithComponents(std::make_tuple(Foo{1}, Bar{2, 3}));
-        entityslot_t ent2 = world.createEntity();
-        entityslot_t ent3 = world.createEntityWithComponents(Foo{4});
+        CEntity ent1 = world.createEntityWithComponents(std::make_tuple(Foo{1}, Bar{2, 3}));
+        CEntity ent2 = world.createEntity();
+        CEntity ent3 = world.createEntityWithComponents(Foo{4});
 
         cmd.createOrUpdateComponent(ent1, Foo{6})
            .createOrUpdateComponent(ent2, Bar{7, 8})
            .getCommandQueue().execute(world);
 
-
-        CComponentHandle<Foo> foo;
-        CComponentHandle<Bar> bar;
-
-        foo = world.getComponent<Foo>(ent1);
+        auto foo = world.getComponent<Foo>(ent1);
         REQUIRE(foo);
         REQUIRE(foo->a == 6);
-        bar = world.getComponent<Bar>(ent1);
+        auto bar = world.getComponent<Bar>(ent1);
         REQUIRE(bar);
         REQUIRE((bar->a == 2 && bar->b == 3));
 
@@ -91,34 +86,30 @@ TEST_CASE("Commands test")
 
     SECTION("Update components")
     {
-        entityslot_t ent1 = world.createEntityWithComponents(std::make_tuple(Foo{1}, Bar{2, 3}));
-        entityslot_t ent2 = world.createEntityWithComponents(std::make_tuple(Bar{4, 5}));
+        CEntity ent1 = world.createEntityWithComponents(std::make_tuple(Foo{1}, Bar{2, 3}));
+        CEntity ent2 = world.createEntityWithComponents(std::make_tuple(Bar{4, 5}));
 
         cmd.updateComponent<Foo>(ent1, [](Foo& foo) { foo.a = 11; })
            .updateComponent<Foo>(ent2, [](Foo& foo) { foo.a = 22; })
            .updateComponent<Bar>(ent2, [](Bar& bar) { bar.a = 33; })
            .getCommandQueue().execute(world);
 
-        
-        CComponentHandle<Foo> foo;
-        CComponentHandle<Bar> bar;
-
-        foo = world.getComponent<Foo>(ent1);
+        auto foo = world.getComponent<Foo>(ent1);
         REQUIRE(foo);
         REQUIRE(foo->a == 11);
 
         foo = world.getComponent<Foo>(ent2);
         REQUIRE_FALSE(foo);
-        bar = world.getComponent<Bar>(ent2);
+        CComponentHandle<Bar> bar = world.getComponent<Bar>(ent2);
         REQUIRE(bar);
         REQUIRE((bar->a == 33 && bar->b == 5));
     }
 
     SECTION("Destroy components")
     {
-        entityslot_t ent1 = world.createEntity();
-        entityslot_t ent2 = world.createEntityWithComponents(Foo{1});
-        entityslot_t ent3 = world.createEntityWithComponents(std::make_tuple(Foo{2}, Bar{3, 4}));
+        CEntity ent1 = world.createEntity();
+        CEntity ent2 = world.createEntityWithComponents(Foo{1});
+        CEntity ent3 = world.createEntityWithComponents(std::make_tuple(Foo{2}, Bar{3, 4}));
 
         cmd.destroyComponent<Foo>(ent1)
            .destroyComponent<Bar>(ent1)
@@ -128,13 +119,9 @@ TEST_CASE("Commands test")
            .destroyComponent<Bar>(ent3)
            .getCommandQueue().execute(world);
 
-
-        CComponentHandle<Foo> foo;
-        CComponentHandle<Bar> bar;
-
-        foo = world.getComponent<Foo>(ent1);
+        auto foo = world.getComponent<Foo>(ent1);
         REQUIRE_FALSE(foo);
-        bar = world.getComponent<Bar>(ent1);
+        auto bar = world.getComponent<Bar>(ent1);
         REQUIRE_FALSE(bar);
         
         foo = world.getComponent<Foo>(ent2);

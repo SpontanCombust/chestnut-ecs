@@ -22,9 +22,9 @@ namespace chestnut::ecs
 
     public:
         template<typename ...Types>
-        struct Iterator;
+        class Iterator;
         template<typename ...Types>
-        friend struct Iterator;
+        friend class Iterator;
 
     private:
         internal::CComponentStorage *m_storagePtr;
@@ -32,7 +32,7 @@ namespace chestnut::ecs
         CEntitySignature m_requireSignature;
         CEntitySignature m_rejectSignature;
 
-        std::vector< entityslot_t > m_vecEntityIDs;
+        std::vector< entityslot_t > m_vecEntitySlots;
 
 
     public:
@@ -41,7 +41,7 @@ namespace chestnut::ecs
 
         const CEntitySignature& getRequireSignature() const noexcept;
         const CEntitySignature& getRejectSignature() const noexcept;
-        const std::vector<entityslot_t> getEntities() const;
+        const std::vector<CEntity> getEntities() const;
         size_t getEntityCount() const noexcept;
 
         

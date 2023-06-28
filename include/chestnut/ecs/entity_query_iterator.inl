@@ -5,32 +5,30 @@
 namespace chestnut::ecs
 {
     template<typename ...Types>
-    struct CEntityQuery::Iterator
+    class CEntityQuery::Iterator
     {
-        CEntityQuery *m_query;
-        unsigned int m_currentQueryIdx;
-
-
+    public:
         Iterator(CEntityQuery *query, unsigned int queryIdx) noexcept
         : m_query(query), m_currentQueryIdx(queryIdx)
         {
             
         }
 
-        entityslot_t entityId() const noexcept
+        CEntity entity() const noexcept
         {
-            return m_query->m_vecEntityIDs[m_currentQueryIdx];
+            entityslot_t slot = this->slot();
+            CUniqueIdentifier uuid = m_query->m_storagePtr->at<CIdentityComponent>(slot).uuid;
+            return CEntity(uuid, slot);
         }
-
-
 
         std::tuple<Types&...> operator*()
         {
             using TL = tl::type_list<Types...>;
 
+            entityslot_t slot = this->slot();
             return TL::template for_each_and_collect<std::tuple>([&](auto t) -> typename decltype(t)::type& {
                 using T = typename decltype(t)::type;
-                return m_query->m_storagePtr->at<T>(m_query->m_vecEntityIDs[m_currentQueryIdx]);
+                return m_query->m_storagePtr->at<T>(slot);
             });
         }
 
@@ -82,6 +80,16 @@ namespace chestnut::ecs
         bool operator!=(const Iterator& other) const noexcept
         {
             return !(*this == other);
+        }
+
+
+    private:
+        CEntityQuery *m_query;
+        unsigned int m_currentQueryIdx;
+
+        inline entityslot_t slot() const
+        {
+            return m_query->m_vecEntitySlots[m_currentQueryIdx];
         }
     };
 

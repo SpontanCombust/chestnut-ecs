@@ -3,146 +3,105 @@
 
 namespace chestnut::ecs::internal
 {
-
-inline CSparseSetBase::CSparseSetBase(index_type initSparseSize) noexcept
+inline CSparseSetBase::CSparseSetBase(size_t initSparseSize) noexcept 
 : m_sparse(initSparseSize, NIL_INDEX)
 {
 
 }
 
-inline CSparseSetBase::CSparseSetBase(const CSparseSetBase& other) noexcept
-: m_sparse(other.m_sparse)
+inline const std::vector<int> &CSparseSetBase::sparse() const noexcept
 {
-
+    return this->m_sparse;
 }
 
-inline CSparseSetBase& CSparseSetBase::operator=(const CSparseSetBase& other) noexcept
+inline size_t CSparseSetBase::sparseSize() const noexcept
 {
-    this->m_sparse = other.m_sparse;
-    return *this;
+    return this->m_sparse.size();
 }
 
-inline CSparseSetBase::CSparseSetBase(CSparseSetBase&& other) noexcept
-: m_sparse(std::move(other.m_sparse))
+inline bool CSparseSetBase::contains(size_t idx) const noexcept
 {
-
-}
-
-inline CSparseSetBase& CSparseSetBase::operator=(CSparseSetBase&& other) noexcept
-{
-    this->m_sparse = std::move(other.m_sparse);
-    return *this;
-}
-
-inline const std::vector<int>& CSparseSetBase::sparse() const noexcept
-{
-    return m_sparse;
-}
-
-inline bool CSparseSetBase::contains(index_type idx) const noexcept
-{
-    if(idx >= m_sparse.size())
+    if(idx >= this->m_sparse.size())
     {
         return false;
     }
 
-    return m_sparse[idx] != NIL_INDEX;
+    return this->m_sparse[idx] != NIL_INDEX;
 }
 
-inline void CSparseSetBase::erase(index_type idx) noexcept
+inline void CSparseSetBase::erase(size_t idx) noexcept
 {
-    if(idx < m_sparse.size())
+    if(idx < this->m_sparse.size())
     {
-        m_sparse[idx] = NIL_INDEX;   
+       this->m_sparse[idx] = NIL_INDEX;   
     }
 }
-
-
-
 
 
 
 
 
 template<typename T>
-CSparseSet<T>::CSparseSet(index_type initSparseSize) noexcept
+inline CSparseSet<T>::CSparseSet(size_t initSparseSize) noexcept
 : CSparseSetBase(initSparseSize), m_dense()
 {
 
 }
 
 template<typename T>
-CSparseSet<T>::CSparseSet(const CSparseSet<T>& other) noexcept
-: CSparseSetBase(other), m_dense(other.m_dense)
-{
-
-}
-
-template<typename T>
-CSparseSet<T>& CSparseSet<T>::operator=(const CSparseSet<T>& other) noexcept
-{   
-    CSparseSetBase::operator=(other);
-    this->m_dense = other.m_dense;
-    return *this;
-}
-
-template<typename T>
-CSparseSet<T>::CSparseSet(CSparseSet<T>&& other) noexcept
-: CSparseSetBase(std::move(other)), m_dense(std::move(other.m_dense))
-{
-
-}
-
-template<typename T>
-CSparseSet<T>& CSparseSet<T>::operator=(CSparseSet<T>&& other) noexcept
-{
-    CSparseSetBase::operator=(std::move(other));
-    this->m_dense = std::move(other.m_dense);
-    return *this;
-}
-
-template<typename T>
-const std::vector<typename CSparseSet<T>::SDenseElement>& CSparseSet<T>::dense() const noexcept
+inline const std::vector<typename CSparseSet<T>::SDenseElement>& CSparseSet<T>::dense() const noexcept
 {
     return this->m_dense;
 }
 
 template<typename T>
-T& CSparseSet<T>::at(index_type idx) 
+inline size_t CSparseSet<T>::denseSize() const noexcept
 {
-    if(idx >= m_sparse.size() || m_sparse[idx] == NIL_INDEX)
-    {
-        throw std::runtime_error("No element at index" + idx);
-    }
-
-    return this->m_dense[m_sparse[idx]].e;
+    return this->m_dense.size();
 }
 
 template<typename T>
-const T& CSparseSet<T>::at(index_type idx) const
+inline T& CSparseSet<T>::at(size_t idx) 
 {
-    if(idx >= m_sparse.size() || m_sparse[idx] == NIL_INDEX)
+    if (idx >= this->m_sparse.size())
     {
-        throw std::runtime_error("No element at index" + idx);
+        throw std::runtime_error("Index " + std::to_string(idx) + " out of range");
     }
-
-    return this->m_dense[m_sparse[idx]].e;
+    else if (this->m_sparse[idx] == NIL_INDEX)
+    {
+        throw std::runtime_error("No value at index " + std::to_string(idx));
+    }
+    else
+    {
+        return this->m_dense[m_sparse[idx]].e;
+    }
 }
 
 template<typename T>
-bool CSparseSet<T>::empty() const noexcept
+inline const T& CSparseSet<T>::at(size_t idx) const
+{
+    if (idx >= this->m_sparse.size())
+    {
+        throw std::runtime_error("Index " + std::to_string(idx) + " out of range");
+    }
+    else if (this->m_sparse[idx] == NIL_INDEX)
+    {
+        throw std::runtime_error("No value at index " + std::to_string(idx));
+    }
+    else
+    {
+        return this->m_dense[m_sparse[idx]].e;
+    }
+}
+
+template<typename T>
+inline bool CSparseSet<T>::empty() const noexcept
 {
     return m_dense.empty();
 }
 
 template<typename T>
-CSparseSetBase::index_type CSparseSet<T>::size() const noexcept
-{
-    return (CSparseSetBase::index_type)m_dense.size();
-}
-
-template<typename T>
-void CSparseSet<T>::clear() noexcept
+inline void CSparseSet<T>::clear() noexcept
 {
     m_dense.clear();
 
@@ -150,7 +109,7 @@ void CSparseSet<T>::clear() noexcept
 }
 
 template<typename T>
-void CSparseSet<T>::insert(index_type idx, T&& arg) noexcept
+inline void CSparseSet<T>::insert(size_t idx, T&& arg) noexcept
 {
     if(idx >= m_sparse.size())
     {
@@ -167,12 +126,12 @@ void CSparseSet<T>::insert(index_type idx, T&& arg) noexcept
             std::forward<T>(arg),
             idx
         });
-        m_sparse[idx] = (CSparseSetBase::index_type)(m_dense.size() - 1);
+        m_sparse[idx] = (int)m_dense.size() - 1;
     }
 }
 
 template<typename T>
-void CSparseSet<T>::erase(index_type idx) noexcept
+inline void CSparseSet<T>::erase(size_t idx) noexcept
 {
     if(idx < m_sparse.size() && m_sparse[idx] != NIL_INDEX)
     {

@@ -6,16 +6,16 @@ namespace chestnut::ecs::internal
 
     }
 
-    inline void CEntityQueryGuard::enqueueEntity( entityslot_t entityID ) 
+    inline void CEntityQueryGuard::enqueueEntity( entityslot_t entitySlot ) 
     {
-        m_pendingOut_setEntityIDs.erase(entityID);
-        m_pendingIn_setEntityIDs.insert(entityID);
+        m_pendingOut_setEntitySlots.erase(entitySlot);
+        m_pendingIn_setEntitySlots.insert(entitySlot);
     }
 
-    inline void CEntityQueryGuard::dequeueEntity( entityslot_t entityID ) 
+    inline void CEntityQueryGuard::dequeueEntity( entityslot_t entitySlot ) 
     {
-        m_pendingIn_setEntityIDs.erase(entityID);
-        m_pendingOut_setEntityIDs.insert(entityID);
+        m_pendingIn_setEntitySlots.erase(entitySlot);
+        m_pendingOut_setEntitySlots.insert(entitySlot);
     }
 
     inline SEntityQueryUpdateInfo CEntityQueryGuard::updateQuery() 
@@ -23,14 +23,14 @@ namespace chestnut::ecs::internal
         SEntityQueryUpdateInfo updateInfo {0, 0, 0};
 
         // first do the removal
-        if(!m_pendingOut_setEntityIDs.empty())
+        if(!m_pendingOut_setEntitySlots.empty())
         {
-            for(auto it = m_targetQuery.m_vecEntityIDs.begin(); it != m_targetQuery.m_vecEntityIDs.end(); /*NOP*/)
+            for(auto it = m_targetQuery.m_vecEntitySlots.begin(); it != m_targetQuery.m_vecEntitySlots.end(); /*NOP*/)
             {
-                if(m_pendingOut_setEntityIDs.find(*it) != m_pendingOut_setEntityIDs.end())
+                if(m_pendingOut_setEntitySlots.find(*it) != m_pendingOut_setEntitySlots.end())
                 {
-                    m_pendingOut_setEntityIDs.erase(*it);
-                    it = m_targetQuery.m_vecEntityIDs.erase(it);
+                    m_pendingOut_setEntitySlots.erase(*it);
+                    it = m_targetQuery.m_vecEntitySlots.erase(it);
                     updateInfo.removed++;
                 }
                 else
@@ -42,23 +42,23 @@ namespace chestnut::ecs::internal
         
 
         // then addition
-        if(!m_pendingIn_setEntityIDs.empty() )
+        if(!m_pendingIn_setEntitySlots.empty() )
         {
-            m_targetQuery.m_vecEntityIDs.insert(
-                m_targetQuery.m_vecEntityIDs.end(),
-                m_pendingIn_setEntityIDs.begin(),
-                m_pendingIn_setEntityIDs.end()
+            m_targetQuery.m_vecEntitySlots.insert(
+                m_targetQuery.m_vecEntitySlots.end(),
+                m_pendingIn_setEntitySlots.begin(),
+                m_pendingIn_setEntitySlots.end()
             );
 
-            updateInfo.added = (unsigned int)m_pendingIn_setEntityIDs.size();
+            updateInfo.added = (unsigned int)m_pendingIn_setEntitySlots.size();
         }
 
-        updateInfo.total = (unsigned int)m_targetQuery.m_vecEntityIDs.size();
+        updateInfo.total = (unsigned int)m_targetQuery.m_vecEntitySlots.size();
 
 
         // clear pending data
-        m_pendingOut_setEntityIDs.clear();
-        m_pendingIn_setEntityIDs.clear();
+        m_pendingOut_setEntitySlots.clear();
+        m_pendingIn_setEntitySlots.clear();
 
 
         return updateInfo;

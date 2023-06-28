@@ -1,3 +1,5 @@
+#include "native_components.hpp"
+
 #include <algorithm> // stable_sort
 #include <exception>
 #include <numeric> // iota
@@ -21,14 +23,22 @@ inline const CEntitySignature& CEntityQuery::getRequireSignature() const noexcep
     return m_requireSignature;
 }
 
-inline const std::vector<entityslot_t> CEntityQuery::getEntities() const
+inline const std::vector<CEntity> CEntityQuery::getEntities() const
 {
-    return m_vecEntityIDs;
+    std::vector<CEntity> v;
+
+    for(unsigned int slot : m_vecEntitySlots)
+    {
+        CUniqueIdentifier uuid = m_storagePtr->at<CIdentityComponent>(slot).uuid;
+        v.push_back(CEntity(uuid, slot));
+    }    
+
+    return v;
 }
 
 inline size_t CEntityQuery::getEntityCount() const noexcept
 {
-    return m_vecEntityIDs.size();
+    return m_vecEntitySlots.size();
 }
 
 
@@ -67,7 +77,7 @@ CEntityQuery::Iterator<Types...> CEntityQuery::end()
         throw std::runtime_error("None of the supplied types should be in query's 'reject' signature");
     }
 
-    return Iterator<Types...>(this, (unsigned int)m_vecEntityIDs.size());
+    return Iterator<Types...>(this, (unsigned int)m_vecEntitySlots.size());
 }
 
 
@@ -86,7 +96,7 @@ void CEntityQuery::forEach(const std::function<void(Types&...)>& handler )
 template<typename ...Types>
 void CEntityQuery::sort(std::function<bool(CEntityQuery::Iterator<Types...>, CEntityQuery::Iterator<Types...>)> comparator) noexcept
 {
-    std::vector<unsigned int> indices(m_vecEntityIDs.size());
+    std::vector<unsigned int> indices(m_vecEntitySlots.size());
     std::iota(indices.begin(), indices.end(), 0);
 
     std::stable_sort(indices.begin(), indices.end(),
@@ -98,14 +108,14 @@ void CEntityQuery::sort(std::function<bool(CEntityQuery::Iterator<Types...>, CEn
         }
     );
 
-    std::vector<entityslot_t> sortedEnts(m_vecEntityIDs.size());
+    std::vector<entityslot_t> sortedEnts(m_vecEntitySlots.size());
 
-    for (unsigned int i = 0; i < m_vecEntityIDs.size(); i++)
+    for (unsigned int i = 0; i < m_vecEntitySlots.size(); i++)
     {
-        sortedEnts[i] = this->m_vecEntityIDs[indices[i]];
+        sortedEnts[i] = this->m_vecEntitySlots[indices[i]];
     }
 
-    this->m_vecEntityIDs = std::move(sortedEnts);
+    this->m_vecEntitySlots = std::move(sortedEnts);
 }
 
 } // namespace chestnut::ecs

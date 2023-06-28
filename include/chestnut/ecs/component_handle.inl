@@ -1,48 +1,50 @@
 #include "constants.hpp"
 
+#include "native_components.hpp"
+
 namespace chestnut::ecs
 {       
     template<typename C>
-    CComponentHandle<C>::CComponentHandle() noexcept
+    CComponentHandle<C>::CComponentHandle(CEntity owner, internal::CComponentStorage *storage) noexcept
+    : m_componentStorage(storage), owner(owner)
     {
-        this->owner = ENTITY_SLOT_INVALID;
-        this->m_componentStorage = nullptr;
+
     }
 
     template<typename C>
-    CComponentHandle<C>::CComponentHandle( entityslot_t owner, internal::CComponentStorage *storage) noexcept
+    inline bool CComponentHandle<C>::valid() const
     {
-        this->owner = owner;
-        this->m_componentStorage = storage;
+        if (m_componentStorage->contains<CIdentityComponent>(this->owner.slot))
+        {
+            auto uuid = m_componentStorage->at<CIdentityComponent>(this->owner.slot).uuid;
+            if (uuid != this->owner.uuid)
+            {
+                return false;
+            }
+
+            return m_componentStorage->contains<C>(this->owner.slot);
+        }
+
+        return false;
     }
 
     template<typename C>
-    CComponentHandle<C>& CComponentHandle<C>::operator=(const C& val) 
+    inline CComponentHandle<C>& CComponentHandle<C>::operator=(C&& val) 
     {
-        m_componentStorage->at<C>(this->owner) = val;
+        m_componentStorage->insert<C>(this->owner.slot, std::forward<C>(val));
         return *this;
     }
 
     template<typename C>
     inline C& CComponentHandle<C>::get() 
     {
-        if( !m_componentStorage )
-        {
-            throw std::runtime_error("Invalid component handle");
-        }
-
-        return m_componentStorage->at<C>(this->owner);
+        return m_componentStorage->at<C>(this->owner.slot);
     }
 
     template<typename C>
     inline const C& CComponentHandle<C>::get() const
     {
-        if( !m_componentStorage )
-        {
-            throw std::runtime_error("Invalid component handle");
-        }
-
-        return m_componentStorage->at<C>(this->owner);
+        return m_componentStorage->at<C>(this->owner.slot);
     }
 
     template<typename C>
@@ -72,7 +74,7 @@ namespace chestnut::ecs
     template<typename C>
     inline CComponentHandle<C>::operator bool() const noexcept
     {
-        return m_componentStorage != nullptr;
+        return this->valid();
     }
 
 } // namespace chestnut::ecs

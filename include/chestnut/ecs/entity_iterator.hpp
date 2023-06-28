@@ -2,7 +2,9 @@
 
 
 #include "component_storage.hpp"
-#include "entity_registry.hpp"
+#include "native_components.hpp"
+
+#include <exception>
 
 namespace chestnut::ecs
 {
@@ -12,59 +14,53 @@ namespace chestnut::ecs
      */
     class CEntityIterator
     {
-    private:
-        const internal::CEntityRegistry *m_registryPtr;
-        internal::CComponentStorage *m_storagePtr;
-        entityslot_t m_currentId;
-
     public:
-        CEntityIterator(const internal::CEntityRegistry *registryPtr, internal::CComponentStorage *storagePtr, entityslot_t id) noexcept
-        : m_registryPtr(registryPtr), m_storagePtr(storagePtr), m_currentId(id)
+        CEntityIterator(internal::CComponentStorage *storagePtr, entityslot_t slot) noexcept
+        : m_storagePtr(storagePtr), m_currentSlot(slot)
         {
             
         }
 
-        bool isValid() const noexcept
+        inline bool isSlotTaken() const noexcept
         {
-            return m_registryPtr->isEntityRegistered(m_currentId);
+            return m_storagePtr->contains<CIdentityComponent>(m_currentSlot);
         }
 
-        bool canGoForward() const noexcept
+        inline bool isInBounds() const noexcept
         {
-            entityslot_t highestId = m_registryPtr->getHighestIdRegistered();
-            return m_currentId != ENTITY_SLOT_INVALID
-                && highestId != ENTITY_SLOT_INVALID 
-                && m_currentId <= highestId;
+            entityslot_t maxSlot = (entityslot_t)m_storagePtr->maxSlot();
+            return m_currentSlot >= ENTITY_SLOT_MINIMAL
+                && m_currentSlot <= maxSlot;
         }
 
-        bool canGoBackward() const noexcept
+        CEntity entity() const
         {
-            return m_currentId != ENTITY_SLOT_INVALID
-                && m_currentId > ENTITY_SLOT_MINIMAL;
-        }
+            if (!isSlotTaken())
+            {
+                throw std::runtime_error("Iterator invalidated");
+            }
 
-        entityslot_t id() const noexcept
-        {
-            return m_currentId;
+            auto uuid = m_storagePtr->at<CIdentityComponent>(m_currentSlot).uuid;
+            return CEntity(uuid, m_currentSlot);
         }
 
         template<typename T>
         T& get()
         {
-            return m_storagePtr->at<T>(m_currentId);
+            return m_storagePtr->at<T>(m_currentSlot);
         }
 
         template<typename T>
         bool contains() const noexcept
         {
-            return m_storagePtr->contains<T>(m_currentId);
+            return m_storagePtr->contains<T>(m_currentSlot);
         }
 
 
 
         CEntitySignature signature() const noexcept
         {
-            return m_storagePtr->signature(m_currentId);
+            return m_storagePtr->signature(m_currentSlot);
         }
 
 
@@ -79,9 +75,9 @@ namespace chestnut::ecs
         {
             do
             {
-                ++m_currentId;
+                ++m_currentSlot;
             }
-            while(!this->isValid() && this->canGoForward());
+            while(!this->isSlotTaken() && this->isInBounds());
 
             return *this;
         }
@@ -111,9 +107,9 @@ namespace chestnut::ecs
         {
             do
             {
-                --m_currentId;
+                --m_currentSlot;
             }
-            while(!this->isValid() && this->canGoBackward());
+            while(!this->isSlotTaken() && this->isInBounds());
 
             return *this;
         }
@@ -134,15 +130,18 @@ namespace chestnut::ecs
 
         bool operator==(const CEntityIterator& other) const noexcept
         {
-            return m_registryPtr == other.m_registryPtr 
-                && m_storagePtr == other.m_storagePtr
-                && m_currentId == other.m_currentId;
+            return m_storagePtr == other.m_storagePtr
+                && m_currentSlot == other.m_currentSlot;
         }
 
         bool operator!=(const CEntityIterator& other) const noexcept
         {
             return !(*this == other);
         }
+
+    private:
+        internal::CComponentStorage *m_storagePtr;
+        entityslot_t m_currentSlot;
     };
 
 
@@ -154,59 +153,53 @@ namespace chestnut::ecs
      */
     class CEntityConstIterator
     {
-    private:
-        const internal::CEntityRegistry *m_registryPtr;
-        const internal::CComponentStorage *m_storagePtr;
-        entityslot_t m_currentId;
-
     public:
-        CEntityConstIterator(const internal::CEntityRegistry *registryPtr, const internal::CComponentStorage *storagePtr, entityslot_t id) noexcept
-        : m_registryPtr(registryPtr), m_storagePtr(storagePtr), m_currentId(id)
+        CEntityConstIterator(const internal::CComponentStorage *storagePtr, entityslot_t slot) noexcept
+        : m_storagePtr(storagePtr), m_currentSlot(slot)
         {
             
         }
 
-        bool isValid() const noexcept
+        inline bool isSlotTaken() const noexcept
         {
-            return m_registryPtr->isEntityRegistered(m_currentId);
+            return m_storagePtr->contains<CIdentityComponent>(m_currentSlot);
         }
 
-        bool canGoForward() const noexcept
+        inline bool isInBounds() const noexcept
         {
-            entityslot_t highestId = m_registryPtr->getHighestIdRegistered();
-            return m_currentId != ENTITY_SLOT_INVALID
-                && highestId != ENTITY_SLOT_INVALID 
-                && m_currentId <= highestId;
+            entityslot_t maxSlot = (entityslot_t)m_storagePtr->maxSlot();
+            return m_currentSlot >= ENTITY_SLOT_MINIMAL
+                && m_currentSlot <= maxSlot;
         }
 
-        bool canGoBackward() const noexcept
+        CEntity entity() const
         {
-            return m_currentId != ENTITY_SLOT_INVALID
-                && m_currentId > ENTITY_SLOT_MINIMAL;
-        }
+            if (!isSlotTaken())
+            {
+                throw std::runtime_error("Iterator out of bounds");
+            }
 
-        entityslot_t id() const noexcept
-        {
-            return m_currentId;
+            auto uuid = m_storagePtr->at<CIdentityComponent>(m_currentSlot).uuid;
+            return CEntity(uuid, m_currentSlot);
         }
 
         template<typename T>
         const T& get() const
         {
-            return m_storagePtr->at<T>(m_currentId);
+            return m_storagePtr->at<T>(m_currentSlot);
         }
 
         template<typename T>
         bool contains() const noexcept
         {
-            return m_storagePtr->contains<T>(m_currentId);
+            return m_storagePtr->contains<T>(m_currentSlot);
         }
 
 
 
         CEntitySignature signature() const noexcept
         {
-            return m_storagePtr->signature(m_currentId);
+            return m_storagePtr->signature(m_currentSlot);
         }
 
 
@@ -221,9 +214,9 @@ namespace chestnut::ecs
         {
             do
             {
-                ++m_currentId;
+                ++m_currentSlot;
             }
-            while(!this->isValid() && this->canGoForward());
+            while(!this->isSlotTaken() && this->isInBounds());
 
             return *this;
         }
@@ -253,9 +246,9 @@ namespace chestnut::ecs
         {
             do
             {
-                --m_currentId;
+                --m_currentSlot;
             }
-            while(!this->isValid() && this->canGoBackward());
+            while(!this->isSlotTaken() && this->isInBounds());
 
             return *this;
         }
@@ -276,15 +269,19 @@ namespace chestnut::ecs
 
         bool operator==(const CEntityConstIterator& other) const noexcept
         {
-            return m_registryPtr == other.m_registryPtr 
-                && m_storagePtr == other.m_storagePtr
-                && m_currentId == other.m_currentId;
+            return m_storagePtr == other.m_storagePtr
+                && m_currentSlot == other.m_currentSlot;
         }
 
         bool operator!=(const CEntityConstIterator& other) const noexcept
         {
             return !(*this == other);
         }
+
+
+    private:
+        const internal::CComponentStorage *m_storagePtr;
+        entityslot_t m_currentSlot;
     };
 
 } // namespace chestnut::ecs

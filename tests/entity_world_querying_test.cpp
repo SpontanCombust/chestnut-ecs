@@ -29,19 +29,19 @@ public:
 TEST_CASE( "Entity world test - querying" )
 {
     CEntityWorld world;
-    std::vector<entityslot_t> vEnts;
+    std::vector<CEntity> vEnts;
 
     // 10 entities with Foo
     for (int i = 0; i < 10; i++)
     {
-        entityslot_t ent = world.createEntity();
+        CEntity ent = world.createEntity();
         world.createComponent<Foo>( ent )->x = i;
         vEnts.push_back(ent);
     }
     // 10 with Foo and Bar
     for (int i = 10; i < 20; i++)
     {
-        entityslot_t ent = world.createEntity();
+        CEntity ent = world.createEntity();
         world.createComponent<Foo>( ent )->x = i;
         world.createComponent<Bar>( ent )->y = i + 1;
         vEnts.push_back(ent);
@@ -49,7 +49,7 @@ TEST_CASE( "Entity world test - querying" )
     // 10 with Bar and Baz
     for (int i = 20; i < 30; i++)
     {
-        entityslot_t ent = world.createEntity();
+        CEntity ent = world.createEntity();
         world.createComponent<Bar>( ent )->y = i;
         world.createComponent<Baz>( ent )->z = (char)i + 1;
         world.createComponent<Baz>( ent )->w = (char)i + 2;
@@ -58,7 +58,7 @@ TEST_CASE( "Entity world test - querying" )
     // 10 with Foo and Baz
     for (int i = 30; i < 40; i++)
     {
-        entityslot_t ent = world.createEntity();
+        CEntity ent = world.createEntity();
         world.createComponent<Foo>( ent )->x = i;
         world.createComponent<Baz>( ent )->z = (char)i + 1;
         world.createComponent<Baz>( ent )->w = (char)i + 2;
@@ -67,7 +67,7 @@ TEST_CASE( "Entity world test - querying" )
     // 10 with Foo, Bar and Baz
     for (int i = 40; i < 50; i++)
     {
-        entityslot_t ent = world.createEntity();
+        CEntity ent = world.createEntity();
         world.createComponent<Foo>( ent )->x = i;
         world.createComponent<Bar>( ent )->y = i + 1;
         world.createComponent<Baz>( ent )->z = (char)i + 2;
@@ -193,7 +193,7 @@ TEST_CASE( "Entity world test - querying" )
 
         for (char i = 0; i < 5; i++)
         {
-            entityslot_t ent = world.createEntity();
+            CEntity ent = world.createEntity();
             world.createComponent<Bar>( ent ) = {i};
             world.createComponent<Baz>( ent ) = {char(i + 1), short(i + 2)};
             vEnts.push_back(ent);
@@ -250,28 +250,28 @@ TEST_CASE( "Entity world test - querying" )
         q->sort<Foo>(std::function(
             [](Iterator it1, Iterator it2) -> bool {
                 // sort by entity ID descending
-                return it1.entityId() > it2.entityId();
+                return it1.entity().uuid > it2.entity().uuid;
             }
         ));
 
         for(auto it = q->begin<Foo>(); it != q->end<Foo>() - 1; it++)
         {
             auto next = it + 1;
-            REQUIRE(it.entityId() > next.entityId());
+            REQUIRE(it.entity().uuid > next.entity().uuid);
         }
 
 
         q->sort<Foo>(std::function(
             [](Iterator it1, Iterator it2) -> bool {
                 // now ascending
-                return it1.entityId() < it2.entityId();
+                return it1.entity().uuid < it2.entity().uuid;
             }
         ));
 
         for(auto it = q->begin<Foo>(); it != q->end<Foo>() - 1; it++)
         {
             auto next = it + 1;
-            REQUIRE(it.entityId() < next.entityId());
+            REQUIRE(it.entity().uuid < next.entity().uuid);
         }
 
         world.destroyQuery(q);

@@ -21,6 +21,7 @@
 #include "component_handle.hpp"
 
 #include <memory>
+#include <string>
 #include <tuple>
 #include <vector>
 
@@ -69,44 +70,19 @@ namespace chestnut::ecs
         ~CEntityWorld();
 
 
-        /**
-         * @brief Create a new entity and return its ID
-         * 
-         * @param canRecycleId if the returned ID can be reused from previously destroyed entity
-         * @return entity ID
-         */
-        entityslot_t createEntity(bool canRecycleId = true);
+        CEntity createEntity();
 
         //TODO make uniform createEntity when ID recycling is hidden
         template<typename C>
-        entityslot_t createEntityWithComponents(C&& data, bool canRecycleId = true);
+        CEntity createEntityWithComponents(C&& data);
 
-        /**
-         * @brief Create a new entity with given components and return its ID
-         * 
-         * @tparam Cs types of components
-         * @param data tuple of component objects
-         * @param canRecycleId if the returned ID can be reused from previously destroyed entity
-         * @return entity ID
-         */
         template<typename C, typename... CRest>
-        entityslot_t createEntityWithComponents(std::tuple<C, CRest...>&& data, bool canRecycleId = true);
+        CEntity createEntityWithComponents(std::tuple<C, CRest...>&& data);
 
-        /**
-         * @brief Checks if entity with that ID exists
-         * 
-         * @param entityID ID of the entity
-         * @return true if entity exists
-         * @return false otherwise
-         */
-        bool hasEntity(entityslot_t entityID) const;
+        //TODO rename to isEntityAlive
+        bool hasEntity(CEntity entity) const;
 
-        /**
-         * @brief Erase entity and all components that belong to it 
-         * 
-         * @param entityID ID of the entity
-         */
-        void destroyEntity(entityslot_t entityID);
+        void destroyEntity(CEntity entity);
 
 
 
@@ -115,22 +91,22 @@ namespace chestnut::ecs
         // Returns existing component if it was already created before
         // Otherwise returns newly created component
         template<typename C>
-        CComponentHandle<C> createComponent(entityslot_t entityID, C &&data = C());
+        CComponentHandle<C> createComponent(CEntity entity, C&& data = C());
 
         // Returns null if entity doesn't exist
         template<typename C>
-        CComponentHandle<C> createOrUpdateComponent(entityslot_t entityId, C &&data);
+        CComponentHandle<C> createOrUpdateComponent(CEntity entity, C&& data);
 
         template<typename C>
-        bool hasComponent(entityslot_t entityID) const;
+        bool hasComponent(CEntity entity) const;
 
         // Returns null if entity doesn't exist or if it doesn't own that component
         // Otherwise returns component owned by the entity
         template<typename C>
-        CComponentHandle<C> getComponent(entityslot_t entityID) const;
+        CComponentHandle<C> getComponent(CEntity entity) const;
 
         template<typename C>
-        void destroyComponent(entityslot_t entityID);
+        void destroyComponent(CEntity entity);
 
         
 
@@ -161,16 +137,16 @@ namespace chestnut::ecs
         } entityIterator;
 
 
-        CEntitySignature getEntitySignature(entityslot_t entityID) const;
+        CEntitySignature getEntitySignature(CEntity entity) const;
 
         // Simpler form of querying for entities, where you only get their IDs when
         // Use this only when you'll be looking for entities non-frequently. Otherwise use regular queries
-        std::vector< entityslot_t > findEntities( std::function< bool( const CEntitySignature& ) > predicate ) const;
+        std::vector<CEntity> findEntities(std::function<bool(const CEntitySignature&)> predicate) const;
 
 
     private:
         // If null passed for signature, it is interpreted as that the signature is definitely empty
-        void updateQueriesOnEntityChange(entityslot_t entity, const CEntitySignature* prevSignature, const CEntitySignature* currSignature);
+        void updateQueriesOnEntityChange(entityslot_t entitySlot, const CEntitySignature* prevSignature, const CEntitySignature* currSignature);
     };
 
 } // namespace chestnut::ecs

@@ -1,7 +1,9 @@
 #pragma once
 
+#include <string>
 #include <type_traits>
 #include <vector>
+
 
 namespace chestnut::ecs::internal
 {
@@ -11,30 +13,18 @@ namespace chestnut::ecs::internal
         mutable std::vector<int> m_sparse;
 
     public:
-        using index_type = unsigned int;
-
         inline static const int NIL_INDEX = -1;
-
-
 
     public:
         CSparseSetBase() noexcept = default;
-        CSparseSetBase(index_type initSparseSize) noexcept;
-
-        CSparseSetBase(const CSparseSetBase& other) noexcept;
-        CSparseSetBase& operator=(const CSparseSetBase& other) noexcept;
-
-        CSparseSetBase(CSparseSetBase&& other) noexcept;
-        CSparseSetBase& operator=(CSparseSetBase&& other) noexcept; 
-
+        CSparseSetBase(size_t initSparseSize) noexcept;
         virtual ~CSparseSetBase() = default;
 
-
         const std::vector<int>& sparse() const noexcept;   
+        size_t sparseSize() const noexcept;
+        bool contains(size_t idx) const noexcept;    
 
-        bool contains(index_type idx) const noexcept;    
-
-        virtual void erase(index_type idx) noexcept;
+        virtual void erase(size_t idx) noexcept;
     };
 
 
@@ -46,7 +36,7 @@ namespace chestnut::ecs::internal
         struct SDenseElement 
         {
             T e;
-            index_type i;
+            size_t i;
         };
 
     private:
@@ -55,27 +45,19 @@ namespace chestnut::ecs::internal
 
     public:
         CSparseSet() noexcept = default;
-        CSparseSet(index_type initSparseSize) noexcept;
-
-        CSparseSet(const CSparseSet& other) noexcept;
-        CSparseSet& operator=(const CSparseSet& other) noexcept;
-
-        CSparseSet(CSparseSet&& other) noexcept;
-        CSparseSet& operator=(CSparseSet&& other) noexcept;
-
+        CSparseSet(size_t initSparseSize) noexcept;
 
         const std::vector<SDenseElement>& dense() const noexcept;
+        size_t denseSize() const noexcept;
 
-
-        T& at(index_type idx);
-        const T& at(index_type idx) const;
+        T& at(size_t idx);
+        const T& at(size_t idx) const;
 
         bool empty() const noexcept;
-        index_type size() const noexcept;
 
         void clear() noexcept;
-        void insert(index_type idx, T&& arg) noexcept;
-        void erase(index_type idx) noexcept override;
+        void insert(size_t idx, T&& arg) noexcept;
+        void erase(size_t idx) noexcept override;
     };
     
 } // namespace chestnut::ecs::internal

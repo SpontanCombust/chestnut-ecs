@@ -1,3 +1,5 @@
+#include "native_components.hpp"
+
 #include <typelist.hpp>
 
 #include <exception>
@@ -5,7 +7,7 @@
 namespace chestnut::ecs
 {
     inline CEntityWorld::CEntityWorld() 
-    : m_entityRegistry(&m_componentStorage),
+    : m_entityRegistry(),
       entityIterator(this)
     {
         
@@ -18,58 +20,63 @@ namespace chestnut::ecs
 
 
 
-    inline entityslot_t CEntityWorld::createEntity(bool canRecycleId) 
+    inline CEntity CEntityWorld::createEntity() 
     {
-        return m_entityRegistry.registerNewEntity(canRecycleId);
+        CEntity entity = m_entityRegistry.registerNewEntity();
+        m_componentStorage.insert(entity.slot, CIdentityComponent{entity.uuid});
+        //TODO think if queries should be updated
+        return entity;
     }
 
     template<typename C>
-    entityslot_t CEntityWorld::createEntityWithComponents(C&& data, bool canRecycleId)
+    inline CEntity CEntityWorld::createEntityWithComponents(C&& data)
     {
-        entityslot_t ent = m_entityRegistry.registerNewEntity(canRecycleId);
+        CEntity ent = m_entityRegistry.registerNewEntity();
 
-        m_componentStorage.insert<C>(ent, std::forward<C>(data));
+        m_componentStorage.insert(ent.slot, CIdentityComponent{ent.uuid});
+        m_componentStorage.insert<C>(ent.slot, std::forward<C>(data));
 
         CEntitySignature newSign = CEntitySignature::from<C>();
-        this->updateQueriesOnEntityChange(ent, nullptr, &newSign);
+        this->updateQueriesOnEntityChange(ent.slot, nullptr, &newSign);
 
         return ent;
     }
 
     template<typename C, typename... CRest>
-    entityslot_t CEntityWorld::createEntityWithComponents(std::tuple<C, CRest...>&& data, bool canRecycleId)
+    inline CEntity CEntityWorld::createEntityWithComponents(std::tuple<C, CRest...>&& data)
     {
-        entityslot_t ent = m_entityRegistry.registerNewEntity(canRecycleId);
+        CEntity ent = m_entityRegistry.registerNewEntity();
 
+        m_componentStorage.insert(ent.slot, CIdentityComponent{ent.uuid});
         tl::type_list<C, CRest...>::for_each([&](auto t) {
             using _Type = typename decltype(t)::type;
-            m_componentStorage.insert<_Type>(ent, std::forward<_Type>(std::get<_Type>(data)));
+            m_componentStorage.insert<_Type>(ent.slot, std::forward<_Type>(std::get<_Type>(data)));
         });
 
         CEntitySignature newSign = CEntitySignature::from<C, CRest...>();
-        this->updateQueriesOnEntityChange(ent, nullptr, &newSign);
+        this->updateQueriesOnEntityChange(ent.slot, nullptr, &newSign);
 
         return ent;
     }
 
-    inline bool CEntityWorld::hasEntity( entityslot_t entityID ) const
+    inline bool CEntityWorld::hasEntity(CEntity entity) const
     {
-        return m_entityRegistry.isEntityRegistered(entityID);
+        return m_entityRegistry.isEntityRegistered(entity.uuid);
     }
 
-    inline void CEntityWorld::destroyEntity( entityslot_t entityID ) 
+    inline void CEntityWorld::destroyEntity(CEntity entity) 
     {
-        if(hasEntity(entityID))
+        if(hasEntity(entity))
         {
-            const CEntitySignature signature = m_entityRegistry.getEntitySignature(entityID);
+            const CEntitySignature signature = m_componentStorage.signature(entity.slot);
 
             if(!signature.isEmpty())
             {
-                updateQueriesOnEntityChange(entityID, &signature, nullptr);
-                m_componentStorage.eraseAll(entityID);
+                updateQueriesOnEntityChange(entity.slot, &signature, nullptr);
+                m_componentStorage.eraseAll(entity.slot);
             }
 
-            m_entityRegistry.unregisterEntity( entityID );
+            m_entityRegistry.unregisterEntity(entity.uuid);
         }
     }
 
@@ -77,92 +84,96 @@ namespace chestnut::ecs
 
 
     template <typename C>
-    inline CComponentHandle<C> CEntityWorld::createComponent(entityslot_t entityID, C &&data)
+    inline CComponentHandle<C> CEntityWorld::createComponent(CEntity entity, C&& data)
     {
         // check if entity exists at all
-        if( !hasEntity(entityID) )
+        if( !hasEntity(entity) )
         {
-            return CComponentHandle<C>();
+            // throw std::runtime_error("No such entity found");
+            return CComponentHandle<C>(entity, &m_componentStorage);
         }
 
         // check if entity already owns the component
-        if(!m_componentStorage.contains<C>(entityID))
+        if(m_componentStorage.contains<C>(entity.slot))
         {
-            // make an updated signature for the entity
-            CEntitySignature oldSignature = m_entityRegistry.getEntitySignature(entityID);
-            CEntitySignature newSignature = oldSignature; 
-            newSignature.add<C>();
-            
-            // instantiate the actual new component
-            m_componentStorage.insert<C>(entityID, std::forward<C>(data));
-
-            updateQueriesOnEntityChange( entityID, &oldSignature, &newSignature );
+            // throw std::runtime_error("Component already exists");
+            return CComponentHandle<C>(entity, &m_componentStorage);
         }
 
-        return CComponentHandle<C>(entityID, &m_componentStorage);
+        // make an updated signature for the entity
+        CEntitySignature oldSignature = m_componentStorage.signature(entity.slot);
+        CEntitySignature newSignature = oldSignature; 
+        newSignature.add<C>();
+        
+        // instantiate the actual new component
+        m_componentStorage.insert<C>(entity.slot, std::forward<C>(data));
+        updateQueriesOnEntityChange(entity.slot, &oldSignature, &newSignature );
+
+        return CComponentHandle<C>(entity, &m_componentStorage);
     }
 
     template <typename C>
-    inline CComponentHandle<C> CEntityWorld::createOrUpdateComponent(entityslot_t entityID, C &&data)
+    inline CComponentHandle<C> CEntityWorld::createOrUpdateComponent(CEntity entity, C &&data)
     {
         // check if entity exists at all
-        if( !hasEntity(entityID) )
+        if( !hasEntity(entity) )
         {
-            return CComponentHandle<C>();
+            // throw std::runtime_error("No such entity found");
+            return CComponentHandle<C>(entity, &m_componentStorage);
         }
 
         // check if entity already owns the component
-        if(!m_componentStorage.contains<C>(entityID))
+        if(!m_componentStorage.contains<C>(entity.slot))
         {
             // make an updated signature for the entity
-            CEntitySignature oldSignature = m_entityRegistry.getEntitySignature(entityID);
+            CEntitySignature oldSignature = m_componentStorage.signature(entity.slot);
             CEntitySignature newSignature = oldSignature; 
             newSignature.add<C>();
             
-            updateQueriesOnEntityChange( entityID, &oldSignature, &newSignature );
+            updateQueriesOnEntityChange(entity.slot, &oldSignature, &newSignature );
         }
 
-        m_componentStorage.insert<C>(entityID, std::forward<C>(data));
+        m_componentStorage.insert<C>(entity.slot, std::forward<C>(data));
 
-        return CComponentHandle<C>(entityID, &m_componentStorage);
+        return CComponentHandle<C>(entity, &m_componentStorage);
     }
     
     template < typename C >
-    bool CEntityWorld::hasComponent( entityslot_t entityID ) const
+    inline bool CEntityWorld::hasComponent(CEntity entity) const
     {
-        if(!hasEntity(entityID))
+        if(!hasEntity(entity))
         {
             return false;
         }
 
-        return m_componentStorage.contains<C>(entityID);
+        return m_componentStorage.contains<C>(entity.slot);
     }
 
     template< typename C >
-    CComponentHandle<C> CEntityWorld::getComponent( entityslot_t entityID ) const
+    inline CComponentHandle<C> CEntityWorld::getComponent(CEntity entity) const
     {
-        if(hasComponent<C>(entityID))
-        {
-            return CComponentHandle<C>(entityID, &m_componentStorage);
-        }
+        // if(!hasComponent<C>(entity))
+        // {
+        //     throw std::runtime_error("Component does not exist");
+        // }
 
-        return CComponentHandle<C>();
+        return CComponentHandle<C>(entity, &m_componentStorage);
     }
 
     template< typename C >
-    void CEntityWorld::destroyComponent( entityslot_t entityID ) 
+    void CEntityWorld::destroyComponent(CEntity entity) 
     {
-        if(hasComponent<C>(entityID))
+        if(hasComponent<C>(entity))
         {
             // compute signatures //
-            const CEntitySignature oldSignature = m_entityRegistry.getEntitySignature( entityID ); // hasComponent() assures entity exists
+            const CEntitySignature oldSignature = m_componentStorage.signature(entity.slot); // hasComponent() assures entity exists
 
             CEntitySignature newSignature = oldSignature;
             newSignature.remove<C>();
 
-            m_componentStorage.erase<C>(entityID);
+            m_componentStorage.erase<C>(entity.slot);
 
-            updateQueriesOnEntityChange( entityID, &oldSignature, &newSignature );
+            updateQueriesOnEntityChange(entity.slot, &oldSignature, &newSignature );
         }
     }
 
@@ -175,15 +186,15 @@ namespace chestnut::ecs
         std::unique_ptr<internal::CEntityQueryGuard> guard = std::make_unique<internal::CEntityQueryGuard>(&m_componentStorage, requireSignature, rejectSignature);
 
 
-        std::vector< entityslot_t > vecEntitiesToFetchFrom = m_entityRegistry.findEntities( 
+        std::vector<CEntity> vecEntitiesToFetchFrom = findEntities( 
         [&guard]( const CEntitySignature& sign )
         {
             return guard->testQuery( sign );
         });
 
-        for (entityslot_t i = 0; i < vecEntitiesToFetchFrom.size(); i++)
+        for (const CEntity& entity: vecEntitiesToFetchFrom)
         {
-            guard->enqueueEntity(vecEntitiesToFetchFrom[i]);
+            guard->enqueueEntity(entity.slot);
         }
     
         CEntityQuery *query = &guard->getQuery();
@@ -228,12 +239,11 @@ namespace chestnut::ecs
     inline CEntityIterator CEntityWorld::EntityIteratorMethods::begin() noexcept
     {
         auto it = CEntityIterator(
-            &m_parent->m_entityRegistry, 
             &m_parent->m_componentStorage, 
             ENTITY_SLOT_MINIMAL
         );
 
-        if(!it.isValid() && it.canGoForward())
+        if(!it.isSlotTaken() && it.isInBounds())
         {
             ++it;
         }
@@ -244,9 +254,8 @@ namespace chestnut::ecs
     inline CEntityIterator CEntityWorld::EntityIteratorMethods::end() noexcept
     {
         auto it = CEntityIterator(
-            &m_parent->m_entityRegistry, 
             &m_parent->m_componentStorage, 
-            m_parent->m_entityRegistry.getHighestIdRegistered() + 1
+            (entityslot_t)m_parent->m_componentStorage.maxSlot() + 1
         );
 
         return it;
@@ -255,12 +264,11 @@ namespace chestnut::ecs
     inline CEntityConstIterator CEntityWorld::EntityIteratorMethods::cbegin() const noexcept
     {
         auto it = CEntityConstIterator(
-            &m_parent->m_entityRegistry, 
             &m_parent->m_componentStorage, 
             ENTITY_SLOT_MINIMAL
         );
 
-        if(!it.isValid() && it.canGoForward())
+        if(!it.isSlotTaken() && it.isInBounds())
         {
             ++it;
         }
@@ -271,9 +279,8 @@ namespace chestnut::ecs
     inline CEntityConstIterator CEntityWorld::EntityIteratorMethods::cend() const noexcept
     {
         auto it = CEntityConstIterator(
-            &m_parent->m_entityRegistry, 
             &m_parent->m_componentStorage, 
-            m_parent->m_entityRegistry.getHighestIdRegistered() + 1
+            (entityslot_t)m_parent->m_componentStorage.maxSlot() + 1
         );
 
         return it;
@@ -282,14 +289,26 @@ namespace chestnut::ecs
 
 
     
-    inline CEntitySignature CEntityWorld::getEntitySignature(entityslot_t entityID) const
+    inline CEntitySignature CEntityWorld::getEntitySignature(CEntity entity) const
     {
-        return m_entityRegistry.getEntitySignature(entityID);
+        return m_componentStorage.signature(entity.slot);
     }
 
-    inline std::vector< entityslot_t > CEntityWorld::findEntities(std::function< bool( const CEntitySignature& ) > pred ) const
+    inline std::vector<CEntity> CEntityWorld::findEntities(std::function<bool(const CEntitySignature&)> pred) const
     {
-        return m_entityRegistry.findEntities(pred);
+        std::vector<CEntity> v;
+
+        auto it = this->entityIterator.cbegin();
+        auto end = this->entityIterator.cend();
+        for(; it != end; ++it)
+        {
+            if (pred(it.signature()))
+            {
+                v.push_back(it.entity());
+            }
+        }
+
+        return v;
     }
     
 
@@ -297,7 +316,7 @@ namespace chestnut::ecs
 
 
 
-    inline void CEntityWorld::updateQueriesOnEntityChange( entityslot_t entity, const CEntitySignature* prevSignature, const CEntitySignature* currSignature )
+    inline void CEntityWorld::updateQueriesOnEntityChange( entityslot_t entitySlot, const CEntitySignature* prevSignature, const CEntitySignature* currSignature )
     {
         bool prevValid, currValid;
 
@@ -323,11 +342,11 @@ namespace chestnut::ecs
 
             if( !prevValid && currValid )
             {
-                guard->enqueueEntity( entity );
+                guard->enqueueEntity( entitySlot );
             }
             else if( prevValid && !currValid )
             {
-                guard->dequeueEntity( entity );
+                guard->dequeueEntity( entitySlot );
             }
         }
     }

@@ -15,19 +15,15 @@ namespace chestnut::ecs
     template<>
     class CCreateEntityCommand<> : public ICommand
     {
-    private:
-        bool m_canRecycleId;
-
     public:
-        CCreateEntityCommand(bool canRecycleId = true)
-        : m_canRecycleId(canRecycleId)
+        CCreateEntityCommand()
         {
 
         }
 
         void excecute(CEntityWorld& world) override
         {
-            world.createEntity(m_canRecycleId);
+            world.createEntity();
         }
 
         size_t size() const override
@@ -42,18 +38,17 @@ namespace chestnut::ecs
     private:
         using TupleType = std::tuple<C, CRest...>;
         TupleType m_data;
-        bool m_canRecycleId;
         
     public: 
-        CCreateEntityCommand(TupleType &&data, bool canRecycleId = true)
-        : m_data(std::move(data)), m_canRecycleId(canRecycleId)
+        CCreateEntityCommand(TupleType &&data)
+        : m_data(std::move(data))
         {
 
         }
 
         void excecute(CEntityWorld& world) override
         {
-            world.createEntityWithComponents(std::move(m_data), m_canRecycleId);
+            world.createEntityWithComponents(std::move(m_data));
         }
 
         size_t size() const override
@@ -67,33 +62,28 @@ namespace chestnut::ecs
     class IEntityCommand : public ICommand
     {
     protected:
-        entityslot_t m_entityId;
+        CEntity m_entity;
 
     public:
-        IEntityCommand(entityslot_t entityId) 
-        : m_entityId(entityId) 
+        IEntityCommand(CEntity entity) 
+        : m_entity(entity) 
         {
 
-        }
-
-        entityslot_t entity() const
-        {
-            return m_entityId;
         }
     };
 
     class CDestroyEntityCommand : public IEntityCommand
     {
     public:
-        CDestroyEntityCommand(entityslot_t entityId)
-        : IEntityCommand(entityId)
+        CDestroyEntityCommand(CEntity entity)
+        : IEntityCommand(entity)
         {
 
         }
 
         void excecute(CEntityWorld& world) override
         {
-            world.destroyEntity(m_entityId);
+            world.destroyEntity(m_entity);
         }
 
         size_t size() const override
@@ -111,15 +101,15 @@ namespace chestnut::ecs
         C m_data;
 
     public:
-        CCreateOrUpdateComponentCommand(entityslot_t id, C &&data)
-        : IEntityCommand(id), m_data(data)
+        CCreateOrUpdateComponentCommand(CEntity entity, C &&data)
+        : IEntityCommand(entity), m_data(data)
         {
 
         }
 
         void excecute(CEntityWorld& world) override
         {
-            world.createOrUpdateComponent(m_entityId, std::move(m_data));
+            world.createOrUpdateComponent(m_entity, std::move(m_data));
         }
 
         size_t size() const override
@@ -136,15 +126,15 @@ namespace chestnut::ecs
         F m_updater;
 
     public:
-        CUpdateComponentCommand(entityslot_t id, F&& updater)
-        : IEntityCommand(id), m_updater(std::move(updater))
+        CUpdateComponentCommand(CEntity entity, F&& updater)
+        : IEntityCommand(entity), m_updater(std::move(updater))
         {
             
         }
 
         void excecute(CEntityWorld& world) override
         {
-            auto handle = world.getComponent<C>(m_entityId);
+            auto handle = world.getComponent<C>(m_entity);
             if(handle)
             {
                 m_updater(*handle);
@@ -161,15 +151,15 @@ namespace chestnut::ecs
     class CDestroyComponentCommand : public IEntityCommand
     {
     public:
-        CDestroyComponentCommand(entityslot_t id)
-        : IEntityCommand(id)
+        CDestroyComponentCommand(CEntity entity)
+        : IEntityCommand(entity)
         {
 
         }
 
         void excecute(CEntityWorld& world) override
         {
-            world.destroyComponent<C>(m_entityId);
+            world.destroyComponent<C>(m_entity);
         }
 
         size_t size() const override
@@ -191,53 +181,38 @@ namespace chestnut::ecs
         {
             using TupleType = std::tuple<Cs...>;
             TupleType t = std::make_tuple(data...);
-            m_queue.insert(CCreateEntityCommand<Cs...>(std::forward<TupleType>(t), true));
+            m_queue.insert(CCreateEntityCommand<Cs...>(std::forward<TupleType>(t)));
             return *this;
         }
 
         CCommands& createEntity()
         {
-            m_queue.insert(CCreateEntityCommand<>(true));
+            m_queue.insert(CCreateEntityCommand<>());
             return *this;
         }
 
-        template<typename... Cs>
-        CCommands& createUniqueEntity(Cs&&... data)
-        {
-            using TupleType = std::tuple<Cs...>;
-            TupleType t = std::make_tuple(data...);
-            m_queue.insert(CCreateEntityCommand<Cs...>(std::forward<TupleType>(t), false));
-            return *this;
-        }
-
-        CCommands& createUniqueEntity()
-        {
-            m_queue.insert(CCreateEntityCommand<>(false));
-            return *this;
-        }
-
-        CCommands& destroyEntity(entityslot_t ent)
+        CCommands& destroyEntity(CEntity ent)
         {
             m_queue.insert(CDestroyEntityCommand(ent));
             return *this;
         }
 
         template<class C>
-        CCommands& createOrUpdateComponent(entityslot_t ent, C&& data)
+        CCommands& createOrUpdateComponent(CEntity ent, C&& data)
         {
             m_queue.insert(CCreateOrUpdateComponentCommand(ent, std::forward<C>(data)));
             return *this;
         }
 
         template<class C, class F>
-        CCommands& updateComponent(entityslot_t ent, F&& updater)
+        CCommands& updateComponent(CEntity ent, F&& updater)
         {
             m_queue.insert(CUpdateComponentCommand<C, F>(ent, std::forward<F>(updater)));
             return *this;
         }
 
         template<class C>
-        CCommands& destroyComponent(entityslot_t ent)
+        CCommands& destroyComponent(CEntity ent)
         {
             m_queue.insert(CDestroyComponentCommand<C>(ent));
             return *this;

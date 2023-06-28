@@ -14,7 +14,7 @@ TEST_CASE("Sparse set test")
         REQUIRE(set.sparse().size() == 0);
         REQUIRE(set.dense().size() == 0);
         REQUIRE(set.empty());
-        REQUIRE(set.size() == 0);
+        REQUIRE(set.denseSize() == 0);
     }
 
     SECTION("Initial sparse size constructor")
@@ -24,7 +24,7 @@ TEST_CASE("Sparse set test")
         REQUIRE(set.sparse().size() == 10);
         REQUIRE(set.dense().size() == 0);
         REQUIRE(set.empty());
-        REQUIRE(set.size() == 0);
+        REQUIRE(set.denseSize() == 0);
     }
 
 
@@ -41,7 +41,7 @@ TEST_CASE("Sparse set test")
         REQUIRE(testSet.contains(1));
         REQUIRE_FALSE(testSet.contains(2));
         REQUIRE_FALSE(testSet.empty());
-        REQUIRE(testSet.size() == 3);
+        REQUIRE(testSet.denseSize() == 3);
 
         REQUIRE(testSet.sparse().size() == 10);
         REQUIRE(testSet.sparse()[0] == 0);
@@ -92,7 +92,7 @@ TEST_CASE("Sparse set test")
         REQUIRE_FALSE(testSet.contains(1));
         REQUIRE_FALSE(testSet.contains(2));
         REQUIRE(testSet.contains(3));
-        REQUIRE(testSet.size() == 2);
+        REQUIRE(testSet.denseSize() == 2);
 
         REQUIRE(testSet.sparse()[0] == 0);
         REQUIRE(testSet.sparse()[1] == CSparseSet<int>::NIL_INDEX);
@@ -116,7 +116,7 @@ TEST_CASE("Sparse set test")
         testSet.clear();
 
         REQUIRE(testSet.empty());
-        REQUIRE(testSet.size() == 0);
+        REQUIRE(testSet.denseSize() == 0);
 
         REQUIRE(testSet.sparse()[0] == CSparseSet<int>::NIL_INDEX);
         REQUIRE(testSet.sparse()[1] == CSparseSet<int>::NIL_INDEX);

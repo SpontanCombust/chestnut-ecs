@@ -1,11 +1,11 @@
 #pragma once
 
-#include "types.hpp"
+#include "uuid.hpp"
 
 namespace chestnut::ecs
 {
     struct CIdentityComponent {
-        entityuuid_t uuid;
+        CUniqueIdentifier uuid;
     };
 
 } // namespace chestnut::ecs
