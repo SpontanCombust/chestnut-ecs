@@ -68,11 +68,11 @@ namespace chestnut::ecs
     {
         if(hasEntity(entity))
         {
-            tl::optional<CEntitySignature> signature = m_componentStorage.signature(entity.slot);
+            const CEntitySignature signature = m_componentStorage.signature(entity.slot);
 
-            if(!signature.has_value() || signature.value().isEmpty())
+            if(!signature.isEmpty())
             {
-                updateQueriesOnEntityChange(entity.slot, &signature.value(), nullptr);
+                updateQueriesOnEntityChange(entity.slot, &signature, nullptr);
                 m_componentStorage.eraseAll(entity.slot);
             }
 
@@ -93,19 +93,18 @@ namespace chestnut::ecs
         }
 
         // check if entity already owns the component
-        if(m_componentStorage.contains<C>(entity.slot))
+        if(!m_componentStorage.contains<C>(entity.slot))
         {
-            return tl::make_unexpected("Component already exists");
+            // make an updated signature for the entity
+            CEntitySignature oldSignature = m_componentStorage.signature(entity.slot);
+            CEntitySignature newSignature = oldSignature; 
+            newSignature.add<C>();
+            
+            // instantiate the actual new component
+            m_componentStorage.insert<C>(entity.slot, std::forward<C>(data));
+            updateQueriesOnEntityChange(entity.slot, &oldSignature, &newSignature );
         }
 
-        // make an updated signature for the entity
-        CEntitySignature oldSignature = m_componentStorage.signature(entity.slot).value();
-        CEntitySignature newSignature = oldSignature; 
-        newSignature.add<C>();
-        
-        // instantiate the actual new component
-        m_componentStorage.insert<C>(entity.slot, std::forward<C>(data));
-        updateQueriesOnEntityChange(entity.slot, &oldSignature, &newSignature );
 
         return CComponentHandle<C>(entity, &m_componentStorage);
     }
@@ -123,7 +122,7 @@ namespace chestnut::ecs
         if(!m_componentStorage.contains<C>(entity.slot))
         {
             // make an updated signature for the entity
-            CEntitySignature oldSignature = m_componentStorage.signature(entity.slot).value();
+            CEntitySignature oldSignature = m_componentStorage.signature(entity.slot);
             CEntitySignature newSignature = oldSignature; 
             newSignature.add<C>();
             
@@ -162,7 +161,7 @@ namespace chestnut::ecs
     {
         if(hasComponent<C>(entity))
         {
-            const CEntitySignature oldSignature = m_componentStorage.signature(entity.slot).value();
+            const CEntitySignature oldSignature = m_componentStorage.signature(entity.slot);
 
             CEntitySignature newSignature = oldSignature;
             newSignature.remove<C>();
@@ -287,6 +286,11 @@ namespace chestnut::ecs
     
     inline tl::optional<CEntitySignature> CEntityWorld::getEntitySignature(CEntity entity) const
     {
+        if (!hasEntity(entity))
+        {
+            return tl::nullopt;
+        }
+        
         return m_componentStorage.signature(entity.slot);
     }
 

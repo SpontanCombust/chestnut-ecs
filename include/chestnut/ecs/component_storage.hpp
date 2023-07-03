@@ -59,7 +59,7 @@ namespace chestnut::ecs::internal
 
         void eraseAll(entityslot_t slot) noexcept;
 
-        tl::optional<CEntitySignature> signature(entityslot_t slot) const noexcept;
+        CEntitySignature signature(entityslot_t slot) const noexcept;
 
     private:
         template<typename T>

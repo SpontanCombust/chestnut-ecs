@@ -128,7 +128,6 @@ TEST_CASE( "Entity world test - general" )
 
         auto foo = world.getComponent<Foo>(invalidated);
         REQUIRE_FALSE( foo.has_value() );
-        REQUIRE_THROWS( foo.value()->x = 4 );
     }
 
     SECTION( "Getting components" )
@@ -245,10 +244,10 @@ TEST_CASE( "Entity world test - general" )
     {
         CEntity ent = world.createEntity();
         auto handle = world.createComponent<Foo>(ent).value();
-        REQUIRE_NOTHROW(handle.get());
+        REQUIRE(handle.get().has_value());
 
         world.destroyComponent<Foo>(ent);
-        REQUIRE_THROWS(handle.get());
+        REQUIRE_FALSE(handle.get().has_value());
     }
 
     SECTION( "Destroying entities with components" )

@@ -185,20 +185,16 @@ TEST_CASE( "Component storage test" )
         storage.insert<BarComp>(2, {2});
         storage.insert<BazComp>(3, {3, 3});
 
-        REQUIRE(storage.signature(0).has_value());
-        auto sign0 = storage.signature(0).value();
+        auto sign0 = storage.signature(0);
         REQUIRE((sign0.has<FooComp>() && !sign0.has<BarComp, BazComp>()));
 
-        REQUIRE(storage.signature(1).has_value());
-        auto sign1 = storage.signature(1).value();
+        auto sign1 = storage.signature(1);
         REQUIRE((sign1.has<FooComp, BarComp>() && !sign1.has<BazComp>()));
 
-        REQUIRE(storage.signature(2).has_value());
-        auto sign2 = storage.signature(2).value();
+        auto sign2 = storage.signature(2);
         REQUIRE((sign2.has<BarComp>() && !sign2.has<FooComp, BazComp>()));
 
-        REQUIRE(storage.signature(3).has_value());
-        auto sign3 = storage.signature(3).value();
+        auto sign3 = storage.signature(3);
         REQUIRE((sign3.has<BazComp>() && !sign3.has<FooComp, BarComp>()));
     }
 }

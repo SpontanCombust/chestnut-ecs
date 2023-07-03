@@ -87,12 +87,14 @@ namespace chestnut::ecs
 
 
 
+        //TODO delete function
         // Returns null if entity doesn't exist
         // Returns existing component if it was already created before
         // Otherwise returns newly created component
         template<typename C>
         tl::expected<CComponentHandle<C>, std::string> createComponent(CEntity entity, C&& data = C());
 
+        //TODO rename to insertComponent
         // Returns null if entity doesn't exist
         template<typename C>
         tl::expected<CComponentHandle<C>, std::string> createOrUpdateComponent(CEntity entity, C&& data);

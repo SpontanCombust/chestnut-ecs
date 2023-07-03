@@ -86,9 +86,7 @@ TEST_CASE("Commands test")
         REQUIRE(foo);
         REQUIRE(foo->a == 4);
 
-        REQUIRE(world.getComponent<Bar>(ent3).has_value());
-        bar = world.getComponent<Bar>(ent3).value();
-        REQUIRE_FALSE(bar);
+        REQUIRE_FALSE(world.getComponent<Bar>(ent3).has_value());
     }
 
     SECTION("Update components")
@@ -130,9 +128,9 @@ TEST_CASE("Commands test")
 
         REQUIRE_FALSE(world.getComponent<Foo>(ent1).has_value());
 
-        REQUIRE(world.getComponent<Bar>(ent1).has_value());
-        auto bar = world.getComponent<Bar>(ent1).value();
-        REQUIRE_FALSE(bar);
+        REQUIRE_FALSE(world.getComponent<Bar>(ent1).has_value());
+        // auto bar = world.getComponent<Bar>(ent1).value();
+        // REQUIRE_FALSE(bar);
         
         REQUIRE(world.getComponent<Foo>(ent2).has_value());
         auto foo = world.getComponent<Foo>(ent2).value();

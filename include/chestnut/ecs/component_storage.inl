@@ -1,5 +1,4 @@
 #include "constants.hpp"
-#include "native_components.hpp"
 
 namespace chestnut::ecs::internal
 {
@@ -111,13 +110,8 @@ namespace chestnut::ecs::internal
         }   
     }
 
-    inline tl::optional<CEntitySignature> CComponentStorage::signature(entityslot_t slot) const noexcept
+    inline CEntitySignature CComponentStorage::signature(entityslot_t slot) const noexcept
     {
-        if (!getSparseSet<CIdentityComponent>().contains(slot))
-        {
-            return tl::nullopt;
-        }
-
         CEntitySignature sign;
 
         for(const auto& [typeIndex, sparseSetBase] : m_mapTypeToSparseSet)

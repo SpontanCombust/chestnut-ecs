@@ -66,13 +66,13 @@ namespace chestnut::ecs
 
         CEntitySignature signature() const
         {
-            auto sign = m_storagePtr->signature(m_currentSlot);
-            if (!sign.has_value())
+            auto ident = m_storagePtr->at<CIdentityComponent>(m_currentSlot);
+            if (!ident.has_value())
             {
-                throw std::runtime_error("Iterator invalidated");
+                throw std::runtime_error("Iterator invalidated: " + ident.error());
             }
-
-            return sign.value();
+            
+            return m_storagePtr->signature(m_currentSlot);
         }
 
 
@@ -217,13 +217,13 @@ namespace chestnut::ecs
 
         CEntitySignature signature() const
         {
-            auto sign = m_storagePtr->signature(m_currentSlot);
-            if (!sign.has_value())
+            auto ident = m_storagePtr->at<CIdentityComponent>(m_currentSlot);
+            if (!ident.has_value())
             {
-                throw std::runtime_error("Iterator invalidated");
+                throw std::runtime_error("Iterator invalidated: " + ident.error());
             }
 
-            return sign.value();
+            return m_storagePtr->signature(m_currentSlot);
         }
 
 
