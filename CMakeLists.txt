@@ -22,26 +22,40 @@ include(fetchcontent-offline)
 FetchContent_DisconnectedIfOffline()
 
 
+## ======================================== Options ========================================
+
+option(CHESTNUT_ECS_BUILD_TESTS "Build tests for chestnut-ecs project" OFF)
+
+# set test building on if this is the main project
+if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+    set(CHESTNUT_ECS_BUILD_TESTS ON)
+endif()
+
+
 ## ======================================== Library ========================================
 
+set(TYPELIST_BUILD_TESTS OFF CACHE STRING "")
 FetchContent_Declare(
     typelist
     GIT_REPOSITORY https://github.com/SpontanCombust/cpp-typelist
     GIT_TAG master
 )
 
+set(CTTI_BUILD_TESTS OFF CACHE STRING "")
 FetchContent_Declare(
     ctti
     GIT_REPOSITORY https://github.com/Manu343726/ctti
     GIT_TAG 0eb725e531aa3bb2f8222f3cff8fa9ac699a2d3a
 )
 
+set(EXPECTED_BUILD_TESTS OFF CACHE STRING "")
 FetchContent_Declare(
     expected
     GIT_REPOSITORY https://github.com/TartanLlama/expected
     GIT_TAG v1.1.0
 )
 
+set(OPTIONAL_BUILD_TESTS OFF CACHE STRING "")
 FetchContent_Declare(
     optional
     GIT_REPOSITORY https://github.com/TartanLlama/optional
@@ -52,43 +66,52 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(typelist ctti expected optional)
 
 
-add_library(${PROJECT_NAME} INTERFACE)
+add_library(chestnut_ecs INTERFACE)
 
-target_include_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(${PROJECT_NAME} INTERFACE typelist ctti expected optional)
+target_include_directories(chestnut_ecs INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_link_libraries(chestnut_ecs INTERFACE typelist ctti expected optional)
 
 
 
 
 ## ========================================== Tests ========================================
 
-FetchContent_Declare(
-    catch2
-    GIT_REPOSITORY https://github.com/catchorg/Catch2
-    GIT_TAG v2.13.7
-)
+if (CHESTNUT_ECS_BUILD_TESTS)
+    FetchContent_Declare(
+        catch2
+        GIT_REPOSITORY https://github.com/catchorg/Catch2
+        GIT_TAG v2.13.7
+    )
 
-FetchContent_MakeAvailable(catch2)
-list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/contrib)
+    FetchContent_MakeAvailable(catch2)
+    list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/contrib)
 
-find_package(Threads)
-
-
-
-add_executable(${PROJECT_NAME}_Test)
-
-add_subdirectory(tests)
-
-target_link_libraries(${PROJECT_NAME}_Test ${PROJECT_NAME})
-target_link_libraries(${PROJECT_NAME}_Test Catch2::Catch2 Threads::Threads)
-
-target_compile_options(${PROJECT_NAME}_Test PRIVATE
-    # 4834 - ignored [[nodiscard]] (warning coming from cpp-typelist)
-    $<$<CXX_COMPILER_ID:MSVC>: /wd4834 /W4>
-)
+    find_package(Threads)
 
 
 
-include(CTest)
-include(Catch)
-catch_discover_tests(${PROJECT_NAME}_Test)
+    add_executable(chestnut_ecs_test_auto)
+    target_link_libraries(chestnut_ecs_test_auto chestnut_ecs)
+    target_link_libraries(chestnut_ecs_test_auto Catch2::Catch2 Threads::Threads)
+    target_compile_options(chestnut_ecs_test_auto PRIVATE
+        # 4834 - ignored [[nodiscard]] (warning coming from cpp-typelist)
+        $<$<CXX_COMPILER_ID:MSVC>: /wd4834 /W4>
+    )
+
+    add_executable(chestnut_ecs_test_benchmarks)
+    target_link_libraries(chestnut_ecs_test_benchmarks chestnut_ecs)
+    target_link_libraries(chestnut_ecs_test_benchmarks Catch2::Catch2 Threads::Threads)
+    target_compile_options(chestnut_ecs_test_benchmarks PRIVATE
+        # 4834 - ignored [[nodiscard]] (warning coming from cpp-typelist)
+        $<$<CXX_COMPILER_ID:MSVC>: /wd4834 /W4>
+    )
+
+    add_subdirectory(tests)
+
+
+
+    include(CTest)
+    include(Catch)
+    catch_discover_tests(chestnut_ecs_test_auto)
+    catch_discover_tests(chestnut_ecs_test_benchmarks)
+endif()

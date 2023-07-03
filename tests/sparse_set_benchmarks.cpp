@@ -15,7 +15,7 @@ struct BigData {
     char a[1028];
 };
 
-TEST_CASE("Effieciency benchmarks - adding components", "[benchmark]")
+TEST_CASE("Sparse set benchmark - insertion", "[benchmark]")
 {
     SECTION("Small data")
     {
@@ -130,7 +130,7 @@ TEST_CASE("Effieciency benchmarks - adding components", "[benchmark]")
 }
 
 
-TEST_CASE("Effieciency benchmarks - finding components", "[benchmark]")
+TEST_CASE("Sparse set benchmark - lookup", "[benchmark]")
 {
     SECTION("Small data")
     {
@@ -257,7 +257,7 @@ TEST_CASE("Effieciency benchmarks - finding components", "[benchmark]")
     }
 }
 
-TEST_CASE("Effieciency benchmarks - removing components", "[benchmark]")
+TEST_CASE("Sparse set benchmark - removal", "[benchmark]")
 {
     SECTION("Small data")
     {
