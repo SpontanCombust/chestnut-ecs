@@ -4,7 +4,8 @@
 
 namespace chestnut::ecs
 {
-    struct CIdentityComponent {
+    struct CIdentityComponent 
+    {
         CUniqueIdentifier uuid;
     };
 

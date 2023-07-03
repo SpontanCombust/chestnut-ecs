@@ -61,36 +61,36 @@ inline size_t CSparseSet<T>::denseSize() const noexcept
 }
 
 template<typename T>
-inline T& CSparseSet<T>::at(size_t idx) 
+inline tl::expected<T*, std::string> CSparseSet<T>::at(size_t idx) 
 {
     if (idx >= this->m_sparse.size())
     {
-        throw std::runtime_error("Index " + std::to_string(idx) + " out of range");
+        return tl::make_unexpected("Index " + std::to_string(idx) + " out of range");
     }
     else if (this->m_sparse[idx] == NIL_INDEX)
     {
-        throw std::runtime_error("No value at index " + std::to_string(idx));
+        return tl::make_unexpected("No value at index " + std::to_string(idx));
     }
     else
     {
-        return this->m_dense[m_sparse[idx]].e;
+        return &this->m_dense[m_sparse[idx]].e;
     }
 }
 
 template<typename T>
-inline const T& CSparseSet<T>::at(size_t idx) const
+inline tl::expected<const T*, std::string> CSparseSet<T>::at(size_t idx) const
 {
     if (idx >= this->m_sparse.size())
     {
-        throw std::runtime_error("Index " + std::to_string(idx) + " out of range");
+        return tl::make_unexpected("Index " + std::to_string(idx) + " out of range");
     }
     else if (this->m_sparse[idx] == NIL_INDEX)
     {
-        throw std::runtime_error("No value at index " + std::to_string(idx));
+        return tl::make_unexpected("No value at index " + std::to_string(idx));
     }
     else
     {
-        return this->m_dense[m_sparse[idx]].e;
+        return &this->m_dense[m_sparse[idx]].e;
     }
 }
 

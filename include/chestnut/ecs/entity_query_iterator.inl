@@ -1,5 +1,6 @@
 #include <typelist.hpp>
 
+#include <exception>
 #include <tuple>
 
 namespace chestnut::ecs
@@ -14,10 +15,17 @@ namespace chestnut::ecs
             
         }
 
-        CEntity entity() const noexcept
+        CEntity entity() const
         {
             entityslot_t slot = this->slot();
-            CUniqueIdentifier uuid = m_query->m_storagePtr->at<CIdentityComponent>(slot).uuid;
+
+            auto identExp = m_query->m_storagePtr->at<CIdentityComponent>(slot);
+            if (!identExp.has_value())
+            {
+                throw std::runtime_error("Iterator invalidated: " + identExp.error());
+            }
+
+            CUniqueIdentifier uuid = identExp.value()->uuid;
             return CEntity(uuid, slot);
         }
 
@@ -28,7 +36,14 @@ namespace chestnut::ecs
             entityslot_t slot = this->slot();
             return TL::template for_each_and_collect<std::tuple>([&](auto t) -> typename decltype(t)::type& {
                 using T = typename decltype(t)::type;
-                return m_query->m_storagePtr->at<T>(slot);
+
+                auto compExp = m_query->m_storagePtr->at<T>(slot);
+                if (!compExp.has_value())
+                {
+                    throw std::runtime_error("Iterator invalidated: " + compExp.error());
+                }
+
+                return *compExp.value();
             });
         }
 

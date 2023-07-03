@@ -5,11 +5,21 @@
 
 using namespace chestnut::ecs::internal;
 
+struct FooComp
+{
+    int i;
+
+    inline bool operator==(const FooComp& other) const
+    {
+        return this->i == other.i;
+    }
+};
+
 TEST_CASE("Sparse set test")
 {
     SECTION("Default constructor")
     {
-        CSparseSet<int> set;
+        CSparseSet<FooComp> set;
 
         REQUIRE(set.sparse().size() == 0);
         REQUIRE(set.dense().size() == 0);
@@ -19,7 +29,7 @@ TEST_CASE("Sparse set test")
 
     SECTION("Initial sparse size constructor")
     {
-        CSparseSet<int> set(10);
+        CSparseSet<FooComp> set(10);
 
         REQUIRE(set.sparse().size() == 10);
         REQUIRE(set.dense().size() == 0);
@@ -29,13 +39,13 @@ TEST_CASE("Sparse set test")
 
 
 
-    CSparseSet<int> testSet(10);
+    CSparseSet<FooComp> testSet(10);
 
     SECTION("Insertion")
     {
-        testSet.insert(0, 1);
-        testSet.insert(1, 2);
-        testSet.insert(3, 3);
+        testSet.insert(0, FooComp{1});
+        testSet.insert(1, FooComp{2});
+        testSet.insert(3, FooComp{3});
 
         REQUIRE(testSet.contains(0));
         REQUIRE(testSet.contains(1));
@@ -50,29 +60,48 @@ TEST_CASE("Sparse set test")
         REQUIRE(testSet.sparse()[3] == 2);
 
         REQUIRE(testSet.dense().size() == 3);
-        REQUIRE(testSet.dense()[0].e == 1);
-        REQUIRE(testSet.dense()[1].e == 2);
-        REQUIRE(testSet.dense()[2].e == 3);
+        REQUIRE(testSet.dense()[0].e == FooComp{1});
+        REQUIRE(testSet.dense()[1].e == FooComp{2});
+        REQUIRE(testSet.dense()[2].e == FooComp{3});
     }
 
     SECTION("Lookup")
     {
-        testSet.insert(0, 1);
-        testSet.insert(1, 2);
-        testSet.insert(3, 3);
+        testSet.insert(0, FooComp{1});
+        testSet.insert(1, FooComp{2});
+        testSet.insert(3, FooComp{3});
 
-        REQUIRE(testSet.at(0) == 1);
-        REQUIRE(testSet.at(1) == 2);
-        REQUIRE_THROWS(testSet.at(2) == 3);
-        REQUIRE(testSet.at(3) == 3);
+        REQUIRE(testSet.at(0).has_value());
+        REQUIRE(*testSet.at(0).value() == FooComp{1});
+        REQUIRE(testSet.at(1).has_value());
+        REQUIRE(*testSet.at(1).value() == FooComp{2});
+        REQUIRE_FALSE(testSet.at(2).has_value());
+        REQUIRE(testSet.at(3).has_value());
+        REQUIRE(*testSet.at(3).value() == FooComp{3});
+    }
+
+    SECTION("Const lookup")
+    {
+        testSet.insert(0, FooComp{1});
+        testSet.insert(1, FooComp{2});
+        testSet.insert(3, FooComp{3});
+
+        const CSparseSet<FooComp>& constTestSet = testSet;
+        REQUIRE(constTestSet.at(0).has_value());
+        REQUIRE(*constTestSet.at(0).value() == FooComp{1});
+        REQUIRE(constTestSet.at(1).has_value());
+        REQUIRE(*constTestSet.at(1).value() == FooComp{2});
+        REQUIRE_FALSE(constTestSet.at(2).has_value());
+        REQUIRE(constTestSet.at(3).has_value());
+        REQUIRE(*constTestSet.at(3).value() == FooComp{3});
     }
 
     SECTION("Erasure")
     {
-        testSet.insert(0, 0);
-        testSet.insert(1, 1);
-        testSet.insert(2, 2);
-        testSet.insert(3, 3);
+        testSet.insert(0, FooComp{0});
+        testSet.insert(1, FooComp{1});
+        testSet.insert(2, FooComp{2});
+        testSet.insert(3, FooComp{3});
 
         // i: 0  1  2  3
         // d: 0  1  2  3
@@ -100,18 +129,18 @@ TEST_CASE("Sparse set test")
         REQUIRE(testSet.sparse()[3] == 1);
 
         REQUIRE(testSet.dense().size() == 2);
-        REQUIRE(testSet.dense()[0].e == 0);
-        REQUIRE(testSet.dense()[1].e == 3);
+        REQUIRE(testSet.dense()[0].e == FooComp{0});
+        REQUIRE(testSet.dense()[1].e == FooComp{3});
     }
 
 
 
     SECTION("Clearing")
     {
-        testSet.insert(0, 0);
-        testSet.insert(1, 1);
-        testSet.insert(2, 2);
-        testSet.insert(3, 3);
+        testSet.insert(0, FooComp{0});
+        testSet.insert(1, FooComp{1});
+        testSet.insert(2, FooComp{2});
+        testSet.insert(3, FooComp{3});
 
         testSet.clear();
 

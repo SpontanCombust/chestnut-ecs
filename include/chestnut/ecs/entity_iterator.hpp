@@ -35,19 +35,25 @@ namespace chestnut::ecs
 
         CEntity entity() const
         {
-            if (!isSlotTaken())
+            auto ident = m_storagePtr->at<CIdentityComponent>(m_currentSlot);
+            if (!ident.has_value())
             {
-                throw std::runtime_error("Iterator invalidated");
+                throw std::runtime_error("Iterator invalidated: " + ident.error());
             }
 
-            auto uuid = m_storagePtr->at<CIdentityComponent>(m_currentSlot).uuid;
-            return CEntity(uuid, m_currentSlot);
+            return CEntity(ident.value()->uuid, m_currentSlot);
         }
 
         template<typename T>
         T& get()
         {
-            return m_storagePtr->at<T>(m_currentSlot);
+            auto comp = m_storagePtr->at<T>(m_currentSlot);
+            if (!comp.has_value())
+            {
+                throw std::runtime_error("Iterator invalidated: " + comp.error());
+            }
+
+            return *comp.value();
         }
 
         template<typename T>
@@ -58,9 +64,15 @@ namespace chestnut::ecs
 
 
 
-        CEntitySignature signature() const noexcept
+        CEntitySignature signature() const
         {
-            return m_storagePtr->signature(m_currentSlot);
+            auto sign = m_storagePtr->signature(m_currentSlot);
+            if (!sign.has_value())
+            {
+                throw std::runtime_error("Iterator invalidated");
+            }
+
+            return sign.value();
         }
 
 
@@ -174,19 +186,25 @@ namespace chestnut::ecs
 
         CEntity entity() const
         {
-            if (!isSlotTaken())
+            auto ident = m_storagePtr->at<CIdentityComponent>(m_currentSlot);
+            if (!ident.has_value())
             {
-                throw std::runtime_error("Iterator out of bounds");
+                throw std::runtime_error("Iterator invalidated: " + ident.error());
             }
 
-            auto uuid = m_storagePtr->at<CIdentityComponent>(m_currentSlot).uuid;
-            return CEntity(uuid, m_currentSlot);
+            return CEntity(ident.value()->uuid, m_currentSlot);
         }
 
         template<typename T>
         const T& get() const
         {
-            return m_storagePtr->at<T>(m_currentSlot);
+            auto comp = m_storagePtr->at<T>(m_currentSlot);
+            if (!comp.has_value())
+            {
+                throw std::runtime_error("Iterator invalidated: " + comp.error());
+            }
+
+            return *comp.value();
         }
 
         template<typename T>
@@ -197,9 +215,15 @@ namespace chestnut::ecs
 
 
 
-        CEntitySignature signature() const noexcept
+        CEntitySignature signature() const
         {
-            return m_storagePtr->signature(m_currentSlot);
+            auto sign = m_storagePtr->signature(m_currentSlot);
+            if (!sign.has_value())
+            {
+                throw std::runtime_error("Iterator invalidated");
+            }
+
+            return sign.value();
         }
 
 

@@ -14,18 +14,15 @@ namespace chestnut::ecs
     template<typename C>
     inline bool CComponentHandle<C>::valid() const
     {
-        if (m_componentStorage->contains<CIdentityComponent>(this->owner.slot))
-        {
-            auto uuid = m_componentStorage->at<CIdentityComponent>(this->owner.slot).uuid;
-            if (uuid != this->owner.uuid)
-            {
-                return false;
-            }
+        auto uuid = m_componentStorage->at<CIdentityComponent>(this->owner.slot)
+                                       .map([](const auto& identComp) { return identComp->uuid; });
 
-            return m_componentStorage->contains<C>(this->owner.slot);
+        if (!uuid.has_value() || uuid.value() != this->owner.uuid)
+        {
+            return false;
         }
 
-        return false;
+        return m_componentStorage->contains<C>(this->owner.slot);
     }
 
     template<typename C>
@@ -36,39 +33,67 @@ namespace chestnut::ecs
     }
 
     template<typename C>
-    inline C& CComponentHandle<C>::get() 
+    inline tl::expected<C*, std::string> CComponentHandle<C>::get() 
     {
-        return m_componentStorage->at<C>(this->owner.slot);
+        auto uuid = m_componentStorage->at<CIdentityComponent>(this->owner.slot)
+                                       .map([](const auto& identComp) { return identComp->uuid; });
+        
+        if (!uuid.has_value() || uuid.value() != this->owner.uuid)
+        {
+            return tl::make_unexpected("Entity " + std::to_string(this->owner.uuid) + " is not alive");
+        }
+
+        auto component = m_componentStorage->at<C>(this->owner.slot);
+        if (!component.has_value())
+        {
+            return tl::make_unexpected("Entity does not have this component");
+        }
+
+        return component.value();
     }
 
     template<typename C>
-    inline const C& CComponentHandle<C>::get() const
+    inline tl::expected<const C*, std::string> CComponentHandle<C>::get() const
     {
-        return m_componentStorage->at<C>(this->owner.slot);
+        auto uuid = m_componentStorage->at<CIdentityComponent>(this->owner.slot)
+                                       .map([](const auto& identComp) { return identComp->uuid; });
+        
+        if (!uuid.has_value() || uuid.value() != this->owner.uuid)
+        {
+            return tl::make_unexpected("Entity " + std::to_string(this->owner.uuid) + " is not alive");
+        }
+
+        auto component = m_componentStorage->at<C>(this->owner.slot);
+        if (!component.has_value())
+        {
+            return tl::make_unexpected("Entity does not have this component");
+        }
+
+        return component.value();
     }
 
     template<typename C>
     inline C& CComponentHandle<C>::operator*() 
     {
-        return this->get();
+        return *this->get().value();
     }
 
     template<typename C>
     inline const C& CComponentHandle<C>::operator*() const
     {
-        return this->get();
+        return *this->get().value();
     }
 
     template<typename C>
     inline C* CComponentHandle<C>::operator->() 
     {
-        return &this->get();
+        return this->get().value();
     }
 
     template<typename C>
     inline const C* CComponentHandle<C>::operator->() const
     {
-        return &this->get();
+        return this->get().value();
     }
 
     template<typename C>

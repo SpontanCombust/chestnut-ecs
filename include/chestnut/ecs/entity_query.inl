@@ -29,7 +29,7 @@ inline const std::vector<CEntity> CEntityQuery::getEntities() const
 
     for(unsigned int slot : m_vecEntitySlots)
     {
-        CUniqueIdentifier uuid = m_storagePtr->at<CIdentityComponent>(slot).uuid;
+        CUniqueIdentifier uuid = m_storagePtr->at<CIdentityComponent>(slot).value()->uuid;
         v.push_back(CEntity(uuid, slot));
     }    
 

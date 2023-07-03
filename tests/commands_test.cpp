@@ -64,23 +64,30 @@ TEST_CASE("Commands test")
            .createOrUpdateComponent(ent2, Bar{7, 8})
            .getCommandQueue().execute(world);
 
-        auto foo = world.getComponent<Foo>(ent1);
+        REQUIRE(world.getComponent<Foo>(ent1).has_value());
+        auto foo = world.getComponent<Foo>(ent1).value();
         REQUIRE(foo);
         REQUIRE(foo->a == 6);
-        auto bar = world.getComponent<Bar>(ent1);
+
+        REQUIRE(world.getComponent<Bar>(ent1).has_value());
+        auto bar = world.getComponent<Bar>(ent1).value();
         REQUIRE(bar);
         REQUIRE((bar->a == 2 && bar->b == 3));
 
-        foo = world.getComponent<Foo>(ent2);
-        REQUIRE_FALSE(foo);
-        bar = world.getComponent<Bar>(ent2);
+        REQUIRE_FALSE(world.getComponent<Foo>(ent2).has_value());
+
+        REQUIRE(world.getComponent<Bar>(ent2).has_value());
+        bar = world.getComponent<Bar>(ent2).value();
         REQUIRE(bar);
         REQUIRE((bar->a == 7 && bar->b == 8));
 
-        foo = world.getComponent<Foo>(ent3);
+        REQUIRE(world.getComponent<Foo>(ent3).has_value());
+        foo = world.getComponent<Foo>(ent3).value();
         REQUIRE(foo);
         REQUIRE(foo->a == 4);
-        bar = world.getComponent<Bar>(ent3);
+
+        REQUIRE(world.getComponent<Bar>(ent3).has_value());
+        bar = world.getComponent<Bar>(ent3).value();
         REQUIRE_FALSE(bar);
     }
 
@@ -94,13 +101,15 @@ TEST_CASE("Commands test")
            .updateComponent<Bar>(ent2, [](Bar& bar) { bar.a = 33; })
            .getCommandQueue().execute(world);
 
-        auto foo = world.getComponent<Foo>(ent1);
+        REQUIRE(world.getComponent<Foo>(ent1).has_value());
+        auto foo = world.getComponent<Foo>(ent1).value();
         REQUIRE(foo);
         REQUIRE(foo->a == 11);
 
-        foo = world.getComponent<Foo>(ent2);
-        REQUIRE_FALSE(foo);
-        CComponentHandle<Bar> bar = world.getComponent<Bar>(ent2);
+        REQUIRE_FALSE(world.getComponent<Foo>(ent2).has_value());
+
+        REQUIRE(world.getComponent<Bar>(ent2).has_value());
+        CComponentHandle<Bar> bar = world.getComponent<Bar>(ent2).value();
         REQUIRE(bar);
         REQUIRE((bar->a == 33 && bar->b == 5));
     }
@@ -119,21 +128,21 @@ TEST_CASE("Commands test")
            .destroyComponent<Bar>(ent3)
            .getCommandQueue().execute(world);
 
-        auto foo = world.getComponent<Foo>(ent1);
-        REQUIRE_FALSE(foo);
-        auto bar = world.getComponent<Bar>(ent1);
+        REQUIRE_FALSE(world.getComponent<Foo>(ent1).has_value());
+
+        REQUIRE(world.getComponent<Bar>(ent1).has_value());
+        auto bar = world.getComponent<Bar>(ent1).value();
         REQUIRE_FALSE(bar);
         
-        foo = world.getComponent<Foo>(ent2);
+        REQUIRE(world.getComponent<Foo>(ent2).has_value());
+        auto foo = world.getComponent<Foo>(ent2).value();
         REQUIRE(foo);
         REQUIRE(foo->a == 5);
-        bar = world.getComponent<Bar>(ent2);
-        REQUIRE_FALSE(bar);
 
-        foo = world.getComponent<Foo>(ent3);
-        REQUIRE_FALSE(foo);
-        bar = world.getComponent<Bar>(ent3);
-        REQUIRE_FALSE(bar);
+        REQUIRE_FALSE(world.getComponent<Bar>(ent2).has_value());
+
+        REQUIRE_FALSE(world.getComponent<Foo>(ent3).has_value());
+        REQUIRE_FALSE(world.getComponent<Bar>(ent3).has_value());
     }
 
     SECTION("Clear queue")

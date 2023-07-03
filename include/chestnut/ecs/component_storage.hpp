@@ -4,7 +4,11 @@
 #include "types.hpp"
 #include "entity_signature.hpp"
 
+#include <tl/expected.hpp>
+#include <tl/optional.hpp>
+
 #include <memory>
+#include <string>
 #include <typeindex>
 #include <unordered_map>
 
@@ -22,10 +26,10 @@ namespace chestnut::ecs::internal
 
 
         template<typename T>
-        T& at(entityslot_t slot);
+        tl::expected<T*, std::string> at(entityslot_t slot);
 
         template<typename T>
-        const T& at(entityslot_t slot) const;
+        tl::expected<const T*, std::string> at(entityslot_t slot) const;
 
         
         template<typename T>
@@ -55,7 +59,7 @@ namespace chestnut::ecs::internal
 
         void eraseAll(entityslot_t slot) noexcept;
 
-        CEntitySignature signature(entityslot_t slot) const noexcept;
+        tl::optional<CEntitySignature> signature(entityslot_t slot) const noexcept;
 
     private:
         template<typename T>

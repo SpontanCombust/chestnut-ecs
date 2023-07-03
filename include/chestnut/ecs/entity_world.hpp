@@ -91,11 +91,11 @@ namespace chestnut::ecs
         // Returns existing component if it was already created before
         // Otherwise returns newly created component
         template<typename C>
-        CComponentHandle<C> createComponent(CEntity entity, C&& data = C());
+        tl::expected<CComponentHandle<C>, std::string> createComponent(CEntity entity, C&& data = C());
 
         // Returns null if entity doesn't exist
         template<typename C>
-        CComponentHandle<C> createOrUpdateComponent(CEntity entity, C&& data);
+        tl::expected<CComponentHandle<C>, std::string> createOrUpdateComponent(CEntity entity, C&& data);
 
         template<typename C>
         bool hasComponent(CEntity entity) const;
@@ -103,7 +103,7 @@ namespace chestnut::ecs
         // Returns null if entity doesn't exist or if it doesn't own that component
         // Otherwise returns component owned by the entity
         template<typename C>
-        CComponentHandle<C> getComponent(CEntity entity) const;
+        tl::expected<CComponentHandle<C>, std::string> getComponent(CEntity entity) const;
 
         template<typename C>
         void destroyComponent(CEntity entity);
@@ -137,7 +137,7 @@ namespace chestnut::ecs
         } entityIterator;
 
 
-        CEntitySignature getEntitySignature(CEntity entity) const;
+        tl::optional<CEntitySignature> getEntitySignature(CEntity entity) const;
 
         // Simpler form of querying for entities, where you only get their IDs when
         // Use this only when you'll be looking for entities non-frequently. Otherwise use regular queries

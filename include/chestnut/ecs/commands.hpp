@@ -134,11 +134,8 @@ namespace chestnut::ecs
 
         void excecute(CEntityWorld& world) override
         {
-            auto handle = world.getComponent<C>(m_entity);
-            if(handle)
-            {
-                m_updater(*handle);
-            }
+            world.getComponent<C>(m_entity)
+                 .map([this] (auto handle) { m_updater(*handle); });
         }
 
         size_t size() const override

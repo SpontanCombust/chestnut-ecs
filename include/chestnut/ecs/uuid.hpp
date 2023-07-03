@@ -2,9 +2,11 @@
 
 #include <cstdint>
 #include <random>
+#include <sstream>
 
 namespace chestnut::ecs
 {
+    //TODO test
     class CUniqueIdentifier
     {
     public:
@@ -54,6 +56,13 @@ namespace std
             return uuid.val;
         }
     };
+
+    inline std::string to_string(const chestnut::ecs::CUniqueIdentifier& uuid)
+    {
+        std::stringstream ss;
+        ss << std::hex << uuid.val;
+        return ss.str();
+    }
 
 } // namespace std
 

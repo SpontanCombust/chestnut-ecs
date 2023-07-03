@@ -1,8 +1,9 @@
 #pragma once
 
 #include <string>
-#include <type_traits>
 #include <vector>
+
+#include <tl/expected.hpp>
 
 
 namespace chestnut::ecs::internal
@@ -50,8 +51,9 @@ namespace chestnut::ecs::internal
         const std::vector<SDenseElement>& dense() const noexcept;
         size_t denseSize() const noexcept;
 
-        T& at(size_t idx);
-        const T& at(size_t idx) const;
+        tl::expected<T*, std::string> at(size_t idx);
+        // const T* instead of reference_wrapper<const T>, because tl::expected refused to cooperate using the latter
+        tl::expected<const T*, std::string> at(size_t idx) const;
 
         bool empty() const noexcept;
 

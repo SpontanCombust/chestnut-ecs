@@ -15,6 +15,11 @@
 #include "component_storage.hpp"
 #include "entity.hpp"
 
+#include <tl/expected.hpp>
+
+#include <string>
+
+
 namespace chestnut::ecs
 {
     /**
@@ -61,7 +66,7 @@ namespace chestnut::ecs
          * @throws if handle or component is invalid
          */
 
-        C& get();
+        tl::expected<C*, std::string> get();
         /**
          * @brief Returns a const reference to the held component
          * 
@@ -69,7 +74,7 @@ namespace chestnut::ecs
          * 
          * @throws if handle or component is invalid
          */
-        const C& get() const;
+        tl::expected<const C*, std::string> get() const;
 
         /**
          * @brief Overloaded dereference operator

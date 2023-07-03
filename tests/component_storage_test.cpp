@@ -7,18 +7,33 @@ using namespace chestnut::ecs::internal;
 
 struct FooComp
 {
-    int i;
+    int i = 0;
+
+    inline bool operator==(const FooComp& other) const
+    {
+        return this->i == other.i;
+    }
 };
 
 struct BarComp
 {
-    char c;
+    char c = 0;
+
+    inline bool operator==(const BarComp& other) const
+    {
+        return this->c == other.c;
+    }
 };
 
 struct BazComp
 {
-    short s1;
-    short s2;
+    short s1 = 0;
+    short s2 = 0;
+
+    inline bool operator==(const BazComp& other) const
+    {
+        return this->s1 == other.s1 && this->s2 == other.s2;
+    }
 };
 
 
@@ -74,12 +89,48 @@ TEST_CASE( "Component storage test" )
         storage.insert<BarComp>(2, {2});
         storage.insert<BazComp>(3, {3, 3});
 
-        REQUIRE(storage.at<FooComp>(0).i == 0);
-        REQUIRE(storage.at<FooComp>(1).i == 1);
-        REQUIRE(storage.at<BarComp>(1).c == BarComp{}.c);
-        REQUIRE(storage.at<BarComp>(2).c == 2);
-        REQUIRE_THROWS(storage.at<BazComp>(2));
-        REQUIRE((storage.at<BazComp>(3).s1 == 3 && storage.at<BazComp>(3).s2 == 3));
+        SECTION("Mutable")
+        {
+            REQUIRE(storage.at<FooComp>(0).has_value());
+            REQUIRE(*storage.at<FooComp>(0).value() == FooComp{0});
+
+            REQUIRE(storage.at<FooComp>(1).has_value());
+            REQUIRE(*storage.at<FooComp>(1).value() == FooComp{1});
+
+            REQUIRE(storage.at<BarComp>(1).has_value());
+            REQUIRE(*storage.at<BarComp>(1).value() == BarComp{});
+
+            REQUIRE(storage.at<BarComp>(2).has_value());
+            REQUIRE(*storage.at<BarComp>(2).value() == BarComp{2});
+
+            REQUIRE_FALSE(storage.at<BazComp>(2).has_value());
+
+            REQUIRE(storage.at<BazComp>(3).has_value());
+            REQUIRE(*storage.at<BazComp>(3).value() == BazComp{3, 3});
+        }
+
+        SECTION("Const")
+        {
+            const auto& constStorage = storage;
+
+            REQUIRE(constStorage.at<FooComp>(0).has_value());
+            REQUIRE(*constStorage.at<FooComp>(0).value() == FooComp{0});
+
+            REQUIRE(constStorage.at<FooComp>(1).has_value());
+            REQUIRE(*constStorage.at<FooComp>(1).value() == FooComp{1});
+
+            REQUIRE(constStorage.at<BarComp>(1).has_value());
+            REQUIRE(*constStorage.at<BarComp>(1).value() == BarComp{});
+
+            REQUIRE(constStorage.at<BarComp>(2).has_value());
+            REQUIRE(*constStorage.at<BarComp>(2).value() == BarComp{2});
+
+            REQUIRE_FALSE(constStorage.at<BazComp>(2).has_value());
+
+            REQUIRE(constStorage.at<BazComp>(3).has_value());
+            REQUIRE(constStorage.at<BazComp>(3).has_value());
+            REQUIRE(*constStorage.at<BazComp>(3).value() == BazComp{3, 3});   
+        }
     }
 
     SECTION("Erase and clear")
@@ -134,16 +185,20 @@ TEST_CASE( "Component storage test" )
         storage.insert<BarComp>(2, {2});
         storage.insert<BazComp>(3, {3, 3});
 
-        auto sign0 = storage.signature(0);
+        REQUIRE(storage.signature(0).has_value());
+        auto sign0 = storage.signature(0).value();
         REQUIRE((sign0.has<FooComp>() && !sign0.has<BarComp, BazComp>()));
 
-        auto sign1 = storage.signature(1);
+        REQUIRE(storage.signature(1).has_value());
+        auto sign1 = storage.signature(1).value();
         REQUIRE((sign1.has<FooComp, BarComp>() && !sign1.has<BazComp>()));
 
-        auto sign2 = storage.signature(2);
+        REQUIRE(storage.signature(2).has_value());
+        auto sign2 = storage.signature(2).value();
         REQUIRE((sign2.has<BarComp>() && !sign2.has<FooComp, BazComp>()));
 
-        auto sign3 = storage.signature(3);
+        REQUIRE(storage.signature(3).has_value());
+        auto sign3 = storage.signature(3).value();
         REQUIRE((sign3.has<BazComp>() && !sign3.has<FooComp, BarComp>()));
     }
 }

@@ -1,4 +1,5 @@
 #include "constants.hpp"
+#include "native_components.hpp"
 
 namespace chestnut::ecs::internal
 {
@@ -16,16 +17,15 @@ namespace chestnut::ecs::internal
 
 
     template<typename T>
-    inline T& CComponentStorage::at(entityslot_t slot) 
+    inline tl::expected<T*, std::string> CComponentStorage::at(entityslot_t slot) 
     {
         return getSparseSet<T>().at(slot);
     }
 
     template<typename T>
-    inline const T& CComponentStorage::at(entityslot_t slot) const
+    inline tl::expected<const T*, std::string> CComponentStorage::at(entityslot_t slot) const
     {
-        const auto& ss = getSparseSet<T>();
-        return ss.at(slot);
+        return getSparseSet<T>().at(slot);
     }
 
     template<typename T>
@@ -111,8 +111,13 @@ namespace chestnut::ecs::internal
         }   
     }
 
-    inline CEntitySignature CComponentStorage::signature(entityslot_t slot) const noexcept
+    inline tl::optional<CEntitySignature> CComponentStorage::signature(entityslot_t slot) const noexcept
     {
+        if (!getSparseSet<CIdentityComponent>().contains(slot))
+        {
+            return tl::nullopt;
+        }
+
         CEntitySignature sign;
 
         for(const auto& [typeIndex, sparseSetBase] : m_mapTypeToSparseSet)

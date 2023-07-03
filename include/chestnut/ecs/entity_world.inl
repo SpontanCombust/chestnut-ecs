@@ -68,11 +68,11 @@ namespace chestnut::ecs
     {
         if(hasEntity(entity))
         {
-            const CEntitySignature signature = m_componentStorage.signature(entity.slot);
+            tl::optional<CEntitySignature> signature = m_componentStorage.signature(entity.slot);
 
-            if(!signature.isEmpty())
+            if(!signature.has_value() || signature.value().isEmpty())
             {
-                updateQueriesOnEntityChange(entity.slot, &signature, nullptr);
+                updateQueriesOnEntityChange(entity.slot, &signature.value(), nullptr);
                 m_componentStorage.eraseAll(entity.slot);
             }
 
@@ -84,24 +84,22 @@ namespace chestnut::ecs
 
 
     template <typename C>
-    inline CComponentHandle<C> CEntityWorld::createComponent(CEntity entity, C&& data)
+    inline tl::expected<CComponentHandle<C>, std::string> CEntityWorld::createComponent(CEntity entity, C&& data)
     {
         // check if entity exists at all
         if( !hasEntity(entity) )
         {
-            // throw std::runtime_error("No such entity found");
-            return CComponentHandle<C>(entity, &m_componentStorage);
+            return tl::make_unexpected("No such entity found");
         }
 
         // check if entity already owns the component
         if(m_componentStorage.contains<C>(entity.slot))
         {
-            // throw std::runtime_error("Component already exists");
-            return CComponentHandle<C>(entity, &m_componentStorage);
+            return tl::make_unexpected("Component already exists");
         }
 
         // make an updated signature for the entity
-        CEntitySignature oldSignature = m_componentStorage.signature(entity.slot);
+        CEntitySignature oldSignature = m_componentStorage.signature(entity.slot).value();
         CEntitySignature newSignature = oldSignature; 
         newSignature.add<C>();
         
@@ -113,20 +111,19 @@ namespace chestnut::ecs
     }
 
     template <typename C>
-    inline CComponentHandle<C> CEntityWorld::createOrUpdateComponent(CEntity entity, C &&data)
+    inline tl::expected<CComponentHandle<C>, std::string> CEntityWorld::createOrUpdateComponent(CEntity entity, C &&data)
     {
         // check if entity exists at all
         if( !hasEntity(entity) )
         {
-            // throw std::runtime_error("No such entity found");
-            return CComponentHandle<C>(entity, &m_componentStorage);
+            return tl::make_unexpected("No such entity found");
         }
 
         // check if entity already owns the component
         if(!m_componentStorage.contains<C>(entity.slot))
         {
             // make an updated signature for the entity
-            CEntitySignature oldSignature = m_componentStorage.signature(entity.slot);
+            CEntitySignature oldSignature = m_componentStorage.signature(entity.slot).value();
             CEntitySignature newSignature = oldSignature; 
             newSignature.add<C>();
             
@@ -150,12 +147,12 @@ namespace chestnut::ecs
     }
 
     template< typename C >
-    inline CComponentHandle<C> CEntityWorld::getComponent(CEntity entity) const
+    inline tl::expected<CComponentHandle<C>, std::string> CEntityWorld::getComponent(CEntity entity) const
     {
-        // if(!hasComponent<C>(entity))
-        // {
-        //     throw std::runtime_error("Component does not exist");
-        // }
+        if(!hasComponent<C>(entity))
+        {
+            return tl::make_unexpected("Component does not exist");
+        }
 
         return CComponentHandle<C>(entity, &m_componentStorage);
     }
@@ -165,8 +162,7 @@ namespace chestnut::ecs
     {
         if(hasComponent<C>(entity))
         {
-            // compute signatures //
-            const CEntitySignature oldSignature = m_componentStorage.signature(entity.slot); // hasComponent() assures entity exists
+            const CEntitySignature oldSignature = m_componentStorage.signature(entity.slot).value();
 
             CEntitySignature newSignature = oldSignature;
             newSignature.remove<C>();
@@ -289,7 +285,7 @@ namespace chestnut::ecs
 
 
     
-    inline CEntitySignature CEntityWorld::getEntitySignature(CEntity entity) const
+    inline tl::optional<CEntitySignature> CEntityWorld::getEntitySignature(CEntity entity) const
     {
         return m_componentStorage.signature(entity.slot);
     }
