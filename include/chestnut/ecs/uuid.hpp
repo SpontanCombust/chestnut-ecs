@@ -6,7 +6,6 @@
 
 namespace chestnut::ecs
 {
-    //TODO test
     class CUniqueIdentifier
     {
     public:
