@@ -70,7 +70,7 @@ namespace chestnut::ecs
         {
             const CEntitySignature signature = m_componentStorage.signature(entity.slot);
 
-            if(!signature.isEmpty())
+            if(!signature.empty())
             {
                 updateQueriesOnEntityChange(entity.slot, &signature, nullptr);
                 m_componentStorage.eraseAll(entity.slot);
@@ -200,7 +200,7 @@ namespace chestnut::ecs
 
     inline CEntityQuery *CEntityWorld::createQuery(const CEntitySignature& requireSignature)
     {
-        return this->createQuery(requireSignature, makeEntitySignature<>());
+        return this->createQuery(requireSignature, CEntitySignature());
     }
 
     inline SEntityQueryUpdateInfo CEntityWorld::queryEntities( CEntityQuery *query ) const

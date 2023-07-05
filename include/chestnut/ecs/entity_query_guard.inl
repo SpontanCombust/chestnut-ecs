@@ -66,7 +66,8 @@ namespace chestnut::ecs::internal
 
     inline bool CEntityQueryGuard::testQuery( const CEntitySignature& signature ) const
     {
-        return signature.hasAllFrom(m_targetQuery.m_requireSignature) && !signature.hasAnyFrom(m_targetQuery.m_rejectSignature);
+        return signature.has(m_targetQuery.m_requireSignature) 
+            && (m_targetQuery.m_rejectSignature & signature).empty();
     }
 
     inline const CEntityQuery& CEntityQueryGuard::getQuery() const

@@ -2,6 +2,9 @@
 
 #include "../include/chestnut/ecs/entity_signature.hpp"
 
+#include <set>
+
+
 using namespace chestnut::ecs;
 
 struct Foo {};
@@ -10,7 +13,7 @@ struct Baz {};
 
 TEST_CASE( "Entity signature test" )
 {
-    SECTION( "Adding types to the signature" )
+    SECTION( "Adding types" )
     {
         CEntitySignature sign1, sign2;
 
@@ -18,6 +21,8 @@ TEST_CASE( "Entity signature test" )
         sign1.add<Foo,Bar>();
         REQUIRE( sign1.has<Foo, Bar>() );
         REQUIRE_FALSE( sign1.has<Baz>() );
+        sign1.add<Foo>(); // repeat type
+        REQUIRE( sign1.size() == 2);
 
         sign2.add( typeid(Foo) );
         REQUIRE( sign2.has( typeid(Foo) ) );
@@ -32,7 +37,7 @@ TEST_CASE( "Entity signature test" )
         REQUIRE( sign1 == sign2 );
     }
 
-    SECTION( "Removing types from the signature" )
+    SECTION( "Removing types" )
     {
         CEntitySignature signature;
 
@@ -51,13 +56,13 @@ TEST_CASE( "Entity signature test" )
     {
         CEntitySignature signature;
 
-        REQUIRE( signature.isEmpty() );
+        REQUIRE( signature.empty() );
         
         signature.add<Foo>();
-        REQUIRE_FALSE( signature.isEmpty() );
+        REQUIRE_FALSE( signature.empty() );
     }
 
-    SECTION( "Clear signature" )
+    SECTION( "Clear" )
     {
         CEntitySignature signature;
 
@@ -65,24 +70,24 @@ TEST_CASE( "Entity signature test" )
 
         signature.clear();
 
-        REQUIRE( signature.isEmpty() );
+        REQUIRE( signature.empty() );
     }
 
-    SECTION( "Signature size" )
+    SECTION( "Size" )
     {
         CEntitySignature signature;
 
         signature.add<Foo, Bar, Bar, Baz>(); // Bar repeat
-        REQUIRE( signature.getSize() == 3 );
+        REQUIRE( signature.size() == 3 );
 
         signature.remove<Bar>();
-        REQUIRE( signature.getSize() == 2 );
+        REQUIRE( signature.size() == 2 );
 
         signature.clear();
-        REQUIRE( signature.getSize() == 0 );
+        REQUIRE( signature.size() == 0 );
     }
 
-    SECTION( "Signature sum" )
+    SECTION( "Sum" )
     {
         CEntitySignature sign1, sign2, sign3;
         CEntitySignature signSum;
@@ -100,7 +105,7 @@ TEST_CASE( "Entity signature test" )
         REQUIRE( signSum.has<Foo, Bar, Baz>() );
     }
 
-    SECTION( "Signature difference" )
+    SECTION( "Difference" )
     {
         CEntitySignature sign1, sign2, sign3;
         CEntitySignature signDiff;
@@ -116,12 +121,12 @@ TEST_CASE( "Entity signature test" )
 
         signDiff -= sign3;
         REQUIRE( ( !signDiff.has<Foo>() && !signDiff.has<Bar>() && !signDiff.has<Baz>() ) );
-        REQUIRE( ( signDiff.isEmpty() ) );
+        REQUIRE( ( signDiff.empty() ) );
     }
 
-    SECTION( "Signature being a part of other signature" )
+    SECTION( "Intersection" )
     {
-        CEntitySignature sign1, sign2;
+        CEntitySignature sign1, sign2, sign3, sign4;
 
         sign1.add( typeid(Foo) );
         sign1.add( typeid(Bar) );
@@ -130,8 +135,14 @@ TEST_CASE( "Entity signature test" )
         sign2.add( typeid(Bar) );
         sign2.add( typeid(Baz) );
 
-        REQUIRE( sign2.hasAllFrom( sign1 ) );
-        REQUIRE_FALSE( sign1.hasAllFrom( sign2 ) );
+        sign3.add( typeid(Bar) );
+        sign3.add( typeid(Baz) );
+
+        // sign4 is empty
+
+        REQUIRE( (sign1 & sign2) == sign1 );
+        REQUIRE( (sign1 & sign2 & sign3) == CEntitySignature::from<Bar>() );
+        REQUIRE( (sign1 & sign2 & sign3 & sign4).empty() );
     }
 
     SECTION("Make signature in-place")
@@ -141,16 +152,39 @@ TEST_CASE( "Entity signature test" )
         sign1.add(typeid(Foo));
         sign1.add(typeid(Bar));
 
-        // sign2 is empty
+        sign2.add(typeid(Baz));
 
-        CEntitySignature sign1t1 = makeEntitySignature<Foo, Bar>();
-        CEntitySignature sign2t1 = makeEntitySignature();
+        CEntitySignature sign1t1 = CEntitySignature::from<Foo, Bar>();
+        CEntitySignature sign2t1 = CEntitySignature::from<Baz>();
         REQUIRE(sign1 == sign1t1);
         REQUIRE(sign2 == sign2t1);
 
         CEntitySignature sign1t2 = CEntitySignature::from<Foo, Bar>();
-        CEntitySignature sign2t2 = CEntitySignature::from();
+        CEntitySignature sign2t2 = CEntitySignature::from<Baz>();
         REQUIRE(sign1 == sign1t2);
         REQUIRE(sign2 == sign2t2);
+    }
+
+    SECTION("iterator")
+    {
+        std::set<std::type_index> orderedSet;
+
+        orderedSet.insert(typeid(Foo));
+        orderedSet.insert(typeid(Bar));
+        orderedSet.insert(typeid(short));
+        orderedSet.insert(typeid(Baz));
+        orderedSet.insert(typeid(int));
+
+        auto sign = CEntitySignature::from<Foo, Baz, int, short, Bar>();
+
+
+        auto setIt = orderedSet.begin();
+        auto signIt = sign.begin();
+
+        for(int i = 0; i < 5; ++i, ++setIt, ++signIt)
+        {
+            REQUIRE(*setIt == *signIt);
+        }
+        REQUIRE(signIt == sign.end());
     }
 }

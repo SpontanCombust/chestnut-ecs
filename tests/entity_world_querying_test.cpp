@@ -89,7 +89,7 @@ TEST_CASE( "Entity world test - querying" )
 
     SECTION( "Query entities with Foo" )
     {
-        auto q = world.createQuery( makeEntitySignature<Foo>(), makeEntitySignature<>() );
+        auto q = world.createQuery( CEntitySignature::from<Foo>(), CEntitySignature() );
         auto updateInfo = world.queryEntities(q);
 
         REQUIRE(updateInfo.added == 40);
@@ -115,7 +115,7 @@ TEST_CASE( "Entity world test - querying" )
 
     SECTION( "Query entities with Foo, Bar and Baz" )
     {
-        auto q = world.createQuery( makeEntitySignature<Foo, Bar, Baz>(), makeEntitySignature<>() );
+        auto q = world.createQuery( CEntitySignature::from<Foo, Bar, Baz>(), CEntitySignature() );
         auto updateInfo = world.queryEntities(q);
 
         REQUIRE(updateInfo.added == 10);
@@ -143,7 +143,7 @@ TEST_CASE( "Entity world test - querying" )
 
     SECTION( "Query entities with Baz but no Foo" )
     {
-        auto q = world.createQuery( makeEntitySignature<Baz>(), makeEntitySignature<Foo>() );
+        auto q = world.createQuery( CEntitySignature::from<Baz>(), CEntitySignature::from<Foo>() );
         auto updateInfo = world.queryEntities(q);
 
         REQUIRE(updateInfo.added == 10);
@@ -164,7 +164,7 @@ TEST_CASE( "Entity world test - querying" )
 
     SECTION("Invalid query iterator")
     {
-        auto q = world.createQuery( makeEntitySignature<Foo>(), makeEntitySignature<Bar>() );
+        auto q = world.createQuery( CEntitySignature::from<Foo>(), CEntitySignature::from<Bar>() );
         auto updateInfo = world.queryEntities(q);
 
         REQUIRE_NOTHROW(q->begin<Foo>());
@@ -182,7 +182,7 @@ TEST_CASE( "Entity world test - querying" )
 
     SECTION("Query sequence")
     {
-        auto q = world.createQuery( makeEntitySignature<Baz>(), makeEntitySignature<Foo>() );
+        auto q = world.createQuery( CEntitySignature::from<Baz>(), CEntitySignature::from<Foo>() );
 
         auto updateInfo = world.queryEntities(q);
 
@@ -214,7 +214,7 @@ TEST_CASE( "Entity world test - querying" )
 
     SECTION( "Query non-existing entities" )
     {
-        auto q = world.createQuery( makeEntitySignature<Bar>(), makeEntitySignature<Foo, Baz>() );
+        auto q = world.createQuery( CEntitySignature::from<Bar>(), CEntitySignature::from<Foo, Baz>() );
 
         world.queryEntities(q);
 
@@ -225,7 +225,7 @@ TEST_CASE( "Entity world test - querying" )
 
     SECTION( "Use forEach" )
     {
-        auto q = world.createQuery( makeEntitySignature<Bar>() );
+        auto q = world.createQuery( CEntitySignature::from<Bar>() );
         world.queryEntities(q);
 
         REQUIRE( q->getEntityCount() == 30 );  
@@ -241,7 +241,7 @@ TEST_CASE( "Entity world test - querying" )
 
     SECTION( "Sort the query" ) 
     {
-        auto q = world.createQuery( makeEntitySignature<Foo>() );
+        auto q = world.createQuery( CEntitySignature::from<Foo>() );
         world.queryEntities(q);
 
         REQUIRE( q->getEntityCount() == 40 );

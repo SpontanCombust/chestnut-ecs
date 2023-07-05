@@ -1,176 +1,220 @@
-#include <typelist.hpp>
 #include "entity_signature.hpp"
 
+#include <algorithm>
+
 namespace chestnut::ecs
-{    
-    template <typename... Types>
-    inline CEntitySignature CEntitySignature::from()
+{
+    inline CEntitySignature::CEntitySignature()
+    : m_vecTypes()
     {
-        CEntitySignature sign;
-        sign.add<Types...>();
-        return sign;
+
     }
 
-    inline void CEntitySignature::add( std::type_index compType ) 
+    inline void CEntitySignature::addImpl(std::type_index type)
     {
-        m_setComponentTypes.insert( compType );
+        auto it = std::find(this->m_vecTypes.begin(), this->m_vecTypes.end(), type);
+        if (it == this->m_vecTypes.end())
+            this->m_vecTypes.push_back(type);
     }
 
-    inline void CEntitySignature::remove( std::type_index compType ) 
+    inline void CEntitySignature::removeImpl(std::type_index type)
     {
-        m_setComponentTypes.erase( compType );
+        auto it = std::find(this->m_vecTypes.begin(), this->m_vecTypes.end(), type);
+        if (it != this->m_vecTypes.end())
+            this->m_vecTypes.erase(it);
     }
 
-    inline bool CEntitySignature::has( std::type_index compType ) const
+    inline void CEntitySignature::sort()
     {
-        auto it = m_setComponentTypes.find( compType );
-        if( it != m_setComponentTypes.end() )
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        std::sort(this->m_vecTypes.begin(), this->m_vecTypes.end());
     }
 
-    inline void CEntitySignature::addFrom( const CEntitySignature& otherSign ) 
+    inline CEntitySignature& chestnut::ecs::CEntitySignature::add(std::type_index type)
     {
-        for( std::type_index type : otherSign.m_setComponentTypes )
-        {
-            m_setComponentTypes.insert( type );
-        }
-    }
-
-    inline void CEntitySignature::removeFrom( const CEntitySignature& otherSign ) 
-    {
-        for( std::type_index type : otherSign.m_setComponentTypes )
-        {
-            m_setComponentTypes.erase( type );
-        }
-    }
-
-    inline bool CEntitySignature::hasAllFrom( const CEntitySignature& otherSign ) const
-    {
-        bool areAllPresent = true;
-
-        for( std::type_index type : otherSign.m_setComponentTypes )
-        {
-            if( !has( type ) )
-            {
-                areAllPresent = false;
-                break;
-            }
-        }
-
-        return areAllPresent;
-    }
-
-    inline bool CEntitySignature::hasAnyFrom( const CEntitySignature& otherSign ) const
-    {
-        for( std::type_index type : otherSign.m_setComponentTypes )
-        {
-            if( has( type ) )
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    inline void CEntitySignature::clear() 
-    {
-        m_setComponentTypes.clear();
-    }
-
-    inline bool CEntitySignature::isEmpty() const
-    {
-        return m_setComponentTypes.empty();
-    }
-
-    inline int CEntitySignature::getSize() const
-    {
-        return (int)m_setComponentTypes.size();
-    }
-
-    inline CEntitySignature& CEntitySignature::operator+=( const CEntitySignature& other ) 
-    {
-        addFrom( other );
+        this->addImpl(type);
+        this->sort();
         return *this;
     }
 
-    inline CEntitySignature& CEntitySignature::operator-=(const CEntitySignature& other) 
+    inline CEntitySignature& CEntitySignature::remove(std::type_index type)
     {
-        removeFrom( other );
+        this->removeImpl(type);
+        this->sort();
         return *this;
     }
 
-    inline CEntitySignature operator+( const CEntitySignature& lhs, const CEntitySignature& rhs )
+    inline bool CEntitySignature::has(std::type_index type) const
     {
-        CEntitySignature newSign = lhs;
-        newSign.addFrom( rhs );
-        return newSign;
+        return std::binary_search(this->m_vecTypes.begin(), this->m_vecTypes.end(), type);
     }
 
-    inline CEntitySignature operator-( const CEntitySignature& lhs, const CEntitySignature& rhs )
+
+    inline CEntitySignature& CEntitySignature::add(const CEntitySignature &other)
     {
-        CEntitySignature newSign = lhs;
-        newSign.removeFrom( rhs );
-        return newSign;
+        std::vector<std::type_index> result;
+        std::set_union(this->m_vecTypes.begin(), this->m_vecTypes.end(),
+                       other.m_vecTypes.begin(), other.m_vecTypes.end(),
+                       std::back_inserter(result));
+        this->m_vecTypes = std::move(result);
+
+        return *this;
     }
 
-    inline bool operator==( const CEntitySignature& lhs, const CEntitySignature& rhs )
+    inline CEntitySignature& CEntitySignature::remove(const CEntitySignature &other)
     {
-        return lhs.m_setComponentTypes == rhs.m_setComponentTypes;
+        std::vector<std::type_index> result;
+        std::set_difference(this->m_vecTypes.begin(), this->m_vecTypes.end(),
+                            other.m_vecTypes.begin(), other.m_vecTypes.end(),
+                            std::back_inserter(result));   
+        this->m_vecTypes = std::move(result);
+
+        return *this;
     }
 
-    inline bool operator!=( const CEntitySignature& lhs, const CEntitySignature& rhs )
+    inline bool CEntitySignature::has(const CEntitySignature &other) const
     {
-        return lhs.m_setComponentTypes != rhs.m_setComponentTypes;
-    }
-
-    template <typename... Types>
-    void CEntitySignature::add()
-    {
-        using list = tl::type_list<Types...>;
-        list::for_each( [&](auto t)
+        for(std::type_index type : other.m_vecTypes)
         {
-            add( typeid( typename decltype(t)::type ) );
-        });
+            if (!this->has(type))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
-    template< typename ...Types >
-    void CEntitySignature::remove() 
+
+    inline CEntitySignature &CEntitySignature::clear()
     {
-        using list = tl::type_list<Types...>;
-        list::for_each( [&](auto t)
-        {
-            remove( typeid( typename decltype(t)::type ) );
-        });
+        this->m_vecTypes.clear();
+        return *this;
     }
 
-    template< typename ...Types >
-    bool CEntitySignature::has() const
+    inline bool CEntitySignature::empty() const
     {
-        bool _has = true;
-
-        using list = tl::type_list<Types...>;
-        list::for_each( [&](auto t)
-        {
-            _has = _has && has( typeid( typename decltype(t)::type ) );
-        });
-
-        return _has;
+        return this->m_vecTypes.empty();
     }
-    
 
-    template< typename ...Types >
-    CEntitySignature makeEntitySignature()
+    inline size_t CEntitySignature::size() const
+    {
+        return this->m_vecTypes.size();
+    }
+
+
+
+
+    template<typename Type, typename ...Rest>
+    inline static CEntitySignature CEntitySignature::from()
     {
         CEntitySignature sign;
-        sign.add<Types...>();
+        sign.add<Type, Rest...>();
         return sign;
+    }
+
+
+    template<typename Type, typename ...Rest>
+    inline CEntitySignature& CEntitySignature::add()
+    {
+        this->addImpl(typeid(Type));
+        return this->add<Rest...>();
+    }
+
+    template<typename ...Rest>
+    inline std::enable_if_t<sizeof...(Rest) == 0, CEntitySignature&> CEntitySignature::add()
+    {
+        this->sort();
+        return *this;
+    }
+
+    template<typename Type, typename ...Rest>
+    inline CEntitySignature& CEntitySignature::remove()
+    {
+        this->removeImpl(typeid(Type));
+        return this->remove<Rest...>();
+    }
+
+    template<typename ...Rest>
+    inline std::enable_if_t<sizeof...(Rest) == 0, CEntitySignature&> CEntitySignature::remove()
+    {
+        this->sort();
+        return *this;
+    }
+
+    template<typename Type, typename ...Rest>
+    inline bool CEntitySignature::has() const
+    {
+        return this->has(typeid(Type)) && this->has<Rest...>();
+    }
+
+    template<typename ...Types>
+    inline std::enable_if_t<sizeof...(Types) == 0, bool> CEntitySignature::has() const
+    {
+        return true;
+    }
+
+
+
+
+    inline bool CEntitySignature::operator==(const CEntitySignature& other) const
+    {
+        return this->m_vecTypes == other.m_vecTypes;
+    }
+
+    inline bool CEntitySignature::operator!=(const CEntitySignature& other) const
+    {
+        return this->m_vecTypes != other.m_vecTypes;
+    }
+
+
+    inline CEntitySignature& CEntitySignature::operator+=(const CEntitySignature& other)
+    {
+        return this->add(other);
+    }
+
+    inline CEntitySignature& CEntitySignature::operator-=(const CEntitySignature& other)
+    {
+        return this->remove(other);
+    }
+
+    inline CEntitySignature CEntitySignature::operator+(const CEntitySignature &other) const
+    {
+        CEntitySignature sign = *this;
+        sign.add(other);
+        return sign;
+    }
+
+    inline CEntitySignature CEntitySignature::operator-(const CEntitySignature &other) const
+    {
+        CEntitySignature sign = *this;
+        sign.remove(other);
+        return sign;
+    }
+
+    inline CEntitySignature CEntitySignature::operator&(const CEntitySignature &other) const
+    {
+        std::vector<std::type_index> result;
+        std::set_intersection(this->m_vecTypes.begin(), this->m_vecTypes.end(),
+                              other.m_vecTypes.begin(), other.m_vecTypes.end(),
+                              std::back_inserter(result));
+
+        CEntitySignature sign;
+        sign.m_vecTypes = std::move(result);
+        
+        return sign;
+    }
+
+
+
+
+    inline CEntitySignature::Iterator CEntitySignature::begin() const
+    {
+        return this->m_vecTypes.cbegin();
+    }
+
+    inline CEntitySignature::Iterator CEntitySignature::end() const
+    {
+        return this->m_vecTypes.cend();
     }
 
 } // namespace chestnut::ecs

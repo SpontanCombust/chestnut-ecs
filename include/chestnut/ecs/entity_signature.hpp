@@ -14,208 +14,82 @@
 
 #include <string>
 #include <typeindex>
-#include <unordered_set>
+#include <type_traits> // enable_if
+#include <vector>
 
 namespace chestnut::ecs
 {
-    //TODO implement iterator
     /**
      * @brief Class used to record component types that entity is comprised of
      */
     class CEntitySignature
     {
     public:
-        //TODO replace with std::vector and use binary search
-        /**
-         * @brief Set of std::type_index component types
-         */
-        std::unordered_set< std::type_index > m_setComponentTypes;
+        using Iterator = std::vector<std::type_index>::const_iterator;
 
-    public:
-        /**
-         * @brief Creates signature in place using given types
-         * 
-         * @tparam Types types of components
-         * @return CEntitySignature created signature
-         */
-        template<typename ...Types>
+        CEntitySignature();
+
+        CEntitySignature& add(std::type_index type);
+        CEntitySignature& remove(std::type_index type);
+        bool has(std::type_index type) const;
+
+        CEntitySignature& add(const CEntitySignature& other);
+        CEntitySignature& remove(const CEntitySignature& other);
+        bool has(const CEntitySignature& other) const;
+
+        CEntitySignature& clear();
+        bool empty() const;
+        size_t size() const;
+
+
+
+        template<typename Type, typename ...Rest>
         static CEntitySignature from();
 
-        /**
-         * @brief Adds types to signature
-         * 
-         * @details If type already is in signature, nothing changes. 
-         * 
-         * @tparam Types component types
-         */
-        template< typename ...Types >
-        void add();
+        
+        template<typename Type, typename ...Rest>
+        CEntitySignature& add();
 
-        /**
-         * @brief Removes types from signature
-         * 
-         * @tparam Types component types
-         */
-        template< typename ...Types >
-        void remove();
+        template<typename ...Rest>
+        std::enable_if_t<sizeof...(Rest) == 0, CEntitySignature&> add();
 
-        /**
-         * @brief Checks if all given types are in the signature
-         * 
-         * @tparam Types component types
-         * @return true if all given types are present
-         * @return false if at least one of given types is not present
-         */
-        template< typename ...Types >
+
+        template<typename Type, typename ...Rest>
+        CEntitySignature& remove();
+
+        template<typename ...Rest>
+        std::enable_if_t<sizeof...(Rest) == 0, CEntitySignature&> remove();
+
+
+        template<typename Type, typename ...Rest>
         bool has() const;
 
-
-        /**
-         * @brief Adds type to signature, non-generic method variant
-         * 
-         * @details If type already is in signature, nothing changes. 
-         * 
-         * @param compType type of component
-         */
-        void add( std::type_index compType );
-
-        /**
-         * @brief Removes type form signature, non-generic method version
-         * 
-         * @param compType type of component
-         */
-        void remove( std::type_index compType );
-
-        /**
-         * @brief Checks if given component type is in signature
-         * 
-         * @param compType component type
-         * @return true if type is in signature
-         * @return false otherwise
-         */
-        bool has( std::type_index compType ) const;
-
-        
-        /**
-         * @brief Adds types from other signature
-         * 
-         * @param otherSign other signature 
-         */
-        void addFrom( const CEntitySignature& otherSign );
-
-        /**
-         * @brief Removes types that are mutual to this signature and otherSign signature 
-         * 
-         * @param otherSign other signature
-         */
-        void removeFrom( const CEntitySignature& otherSign );
-        
-		/**
-		 * @brief Checks if signature contains all types that are in otherSign
-		 * 
-		 * @param otherSign other signature
-		 * @return true if all types from otherSign are present
-		 * @return false if at least one type is not present
-		 */
-        bool hasAllFrom( const CEntitySignature& otherSign ) const;
-
-        /**
-         * @brief Checks if signature contains any of the types that are in otherSign
-         * 
-         * @param otherSign other signature
-         * @return true if at least one type from otherSign is present
-         * @return false if none of the types in otherSign are present
-         */
-        bool hasAnyFrom( const CEntitySignature& otherSign ) const;
+        template<typename ...Types>
+        std::enable_if_t<sizeof...(Types) == 0, bool> has() const;
 
 
-		/**
-		 * @brief Remove all types from signature
-		 */
-        void clear();
+        bool operator==(const CEntitySignature& other) const;
+        bool operator!=(const CEntitySignature& other) const;
+
+        CEntitySignature& operator+=(const CEntitySignature& other); // equivalent to add(CEntitySignature)
+        CEntitySignature& operator-=(const CEntitySignature& other); // equivalent to remove(CEntitySignature)
 
 
-		/**
-		 * @brief Check if signature consists of at least one type
-		 * 
-		 * @return true if signature is empty
-		 * @return false otherwise
-		 */
-        bool isEmpty() const;
-
-		/**
-		 * @brief Get the number of types in the signature
-		 * 
-		 * @return number of types in signature 
-		 */
-        int getSize() const;
+        CEntitySignature operator+(const CEntitySignature& other) const; // union
+        CEntitySignature operator-(const CEntitySignature& other) const; // difference
+        CEntitySignature operator&(const CEntitySignature& other) const; // intersection
 
 
-		/**
-		 * @brief Overloaded addition assignment operator; calls addFrom
-		 * 
-		 * @param other other signature
-		 * @return CEntitySignature& reference to this
-		 */
-        CEntitySignature& operator+=( const CEntitySignature& other );
+        Iterator begin() const;
+        Iterator end() const;
 
-		/**
-		 * @brief Overloaded subtraction assignment operator; calls removeFrom
-		 * 
-		 * @param other other signature
-		 * @return CEntitySignature& reference to this
-		 */
-        CEntitySignature& operator-=( const CEntitySignature& other );
+    private:
+        std::vector<std::type_index> m_vecTypes;
+
+        void addImpl(std::type_index type);
+        void removeImpl(std::type_index type);
+        void sort();
     };
-
-	/**
-	 * @brief Returns the sum of two signatures
-	 * 
-	 * @param lhs left-hand-side signature
-	 * @param rhs right-hand-side signature
-	 * @return CEntitySignature signature sum 
-	 */
-    CEntitySignature operator+( const CEntitySignature& lhs, const CEntitySignature& rhs );
-
-	/**
-	 * @brief Returns the difference of two signatures
-	 * 
-	 * @param lhs left-hand-side signature
-	 * @param rhs right-hand-side signature
-	 * @return CEntitySignature signature difference
-	 */
-    CEntitySignature operator-( const CEntitySignature& lhs, const CEntitySignature& rhs );
-
-	/**
-	 * @brief Checks if two signatures are the same
-	 * 
-	 * @param lhs left-hand-side signature
-	 * @param rhs right-hand-side signature
-	 * @return true if both signatures are the same
-	 * @return false otherwise
-	 */
-    bool operator==( const CEntitySignature& lhs, const CEntitySignature& rhs );
-
-	/**
-	 * @brief Checks if two signatures are different
-	 * 
-	 * @param lhs left-hand-side signature
-	 * @param rhs right-hand-side signature
-	 * @return true if both signatures are different
-	 * @return false otherwise
-	 */
-	bool operator!=( const CEntitySignature& lhs, const CEntitySignature& rhs );
-
-
-    //TODO remove in 2.0
-	/**
-	 * @brief Creates signature in place using given types
-	 * 
-	 * @tparam Types types of components
-	 * @return CEntitySignature created signature
-	 */
-    template< typename ...Types >
-    CEntitySignature makeEntitySignature();
 
 } // namespace chestnut::ecs
 

@@ -52,9 +52,9 @@ CEntityQuery::Iterator<Types...> CEntityQuery::begin()
         throw std::runtime_error("All types supplied must be in query's 'require' signature");
     }
 
-    CEntitySignature sign = makeEntitySignature<Types...>();
+    CEntitySignature sign = CEntitySignature::from<Types...>();
 
-    if(m_rejectSignature.hasAnyFrom(sign))
+    if(!(sign & m_rejectSignature).empty())
     {
         throw std::runtime_error("None of the supplied types should be in query's 'reject' signature");
     }
@@ -70,9 +70,9 @@ CEntityQuery::Iterator<Types...> CEntityQuery::end()
         throw std::runtime_error("All types supplied must be in query's 'require' signature");
     }
 
-    CEntitySignature sign = makeEntitySignature<Types...>();
+    CEntitySignature sign = CEntitySignature::from<Types...>();
 
-    if(m_rejectSignature.hasAnyFrom(sign))
+    if(!(sign & m_rejectSignature).empty())
     {
         throw std::runtime_error("None of the supplied types should be in query's 'reject' signature");
     }

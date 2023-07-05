@@ -360,20 +360,20 @@ TEST_CASE("Entity iterator test")
         auto it = begin;
         REQUIRE(it.entity() == vecEntsFoo[1]);
         REQUIRE(it.contains<Foo>());
-        REQUIRE(it.signature() == makeEntitySignature<CIdentityComponent, Foo>());
+        REQUIRE(it.signature() == CEntitySignature::from<CIdentityComponent, Foo>());
         REQUIRE_NOTHROW(it.get<Foo>());
 
         it++;
         REQUIRE(it.entity() == vecEntsFoo[2]);
         REQUIRE(it.contains<Foo>());
-        REQUIRE(it.signature() == makeEntitySignature<CIdentityComponent, Foo>());
+        REQUIRE(it.signature() == CEntitySignature::from<CIdentityComponent, Foo>());
         REQUIRE_NOTHROW(it.get<Foo>());
 
         it++;
         REQUIRE(it.entity() == vecEntsBarBaz[0]);
         REQUIRE(it.contains<Bar>());
         REQUIRE(it.contains<Baz>());
-        REQUIRE(it.signature() == makeEntitySignature<CIdentityComponent, Bar, Baz>());
+        REQUIRE(it.signature() == CEntitySignature::from<CIdentityComponent, Bar, Baz>());
         REQUIRE_NOTHROW(it.get<Bar>());
         REQUIRE_NOTHROW(it.get<Baz>());
 
@@ -381,7 +381,7 @@ TEST_CASE("Entity iterator test")
         REQUIRE(it.entity() == vecEntsBarBaz[3]);
         REQUIRE(it.contains<Bar>());
         REQUIRE(it.contains<Baz>());
-        REQUIRE(it.signature() == makeEntitySignature<CIdentityComponent, Bar, Baz>());
+        REQUIRE(it.signature() == CEntitySignature::from<CIdentityComponent, Bar, Baz>());
         REQUIRE_NOTHROW(it.get<Bar>());
         REQUIRE_NOTHROW(it.get<Baz>());
 
@@ -410,20 +410,20 @@ TEST_CASE("Entity iterator test")
         auto it = begin;
         REQUIRE(it.entity() == vecEntsFoo[1]);
         REQUIRE(it.contains<Foo>());
-        REQUIRE(it.signature() == makeEntitySignature<CIdentityComponent, Foo>());
+        REQUIRE(it.signature() == CEntitySignature::from<CIdentityComponent, Foo>());
         REQUIRE_NOTHROW(it.get<Foo>());
 
         it++;
         REQUIRE(it.entity() == vecEntsFoo[2]);
         REQUIRE(it.contains<Foo>());
-        REQUIRE(it.signature() == makeEntitySignature<CIdentityComponent, Foo>());
+        REQUIRE(it.signature() == CEntitySignature::from<CIdentityComponent, Foo>());
         REQUIRE_NOTHROW(it.get<Foo>());
 
         it++;
         REQUIRE(it.entity() == vecEntsBarBaz[0]);
         REQUIRE(it.contains<Bar>());
         REQUIRE(it.contains<Baz>());
-        REQUIRE(it.signature() == makeEntitySignature<CIdentityComponent, Bar, Baz>());
+        REQUIRE(it.signature() == CEntitySignature::from<CIdentityComponent, Bar, Baz>());
         REQUIRE_NOTHROW(it.get<Bar>());
         REQUIRE_NOTHROW(it.get<Baz>());
 
@@ -431,7 +431,7 @@ TEST_CASE("Entity iterator test")
         REQUIRE(it.entity() == vecEntsBarBaz[3]);
         REQUIRE(it.contains<Bar>());
         REQUIRE(it.contains<Baz>());
-        REQUIRE(it.signature() == makeEntitySignature<CIdentityComponent, Bar, Baz>());
+        REQUIRE(it.signature() == CEntitySignature::from<CIdentityComponent, Bar, Baz>());
         REQUIRE_NOTHROW(it.get<Bar>());
         REQUIRE_NOTHROW(it.get<Baz>());
 
