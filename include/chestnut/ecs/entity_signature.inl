@@ -105,7 +105,7 @@ namespace chestnut::ecs
 
 
     template<typename Type, typename ...Rest>
-    inline static CEntitySignature CEntitySignature::from()
+    inline CEntitySignature CEntitySignature::from()
     {
         CEntitySignature sign;
         sign.add<Type, Rest...>();

@@ -51,7 +51,7 @@ TEST_CASE( "Entity world test - querying" )
     {
         CEntity ent = world.createEntity();
         world.insertComponent(ent, Bar{i});
-        world.insertComponent(ent, Baz{(char)i + 1, (char)i + 2});
+        world.insertComponent(ent, Baz{char(i + 1), short(i + 2)});
         vEnts.push_back(ent);
     }
     // 10 with Foo and Baz
@@ -59,7 +59,7 @@ TEST_CASE( "Entity world test - querying" )
     {
         CEntity ent = world.createEntity();
         world.insertComponent(ent, Foo{i});
-        world.insertComponent(ent, Baz{(char)i + 1, (char)i + 2});
+        world.insertComponent(ent, Baz{char(i + 1), short(i + 2)});
         vEnts.push_back(ent);
     }
     // 10 with Foo, Bar and Baz
@@ -68,7 +68,7 @@ TEST_CASE( "Entity world test - querying" )
         CEntity ent = world.createEntity();
         world.insertComponent(ent, Foo{i});
         world.insertComponent(ent, Bar{i + 1});
-        world.insertComponent(ent, Baz{(char)i + 2, (char)i + 3});
+        world.insertComponent(ent, Baz{char(i + 2), short(i + 3)});
         vEnts.push_back(ent);
     }
     
@@ -162,7 +162,7 @@ TEST_CASE( "Entity world test - querying" )
     SECTION("Invalid query iterator")
     {
         auto q = world.createQuery( CEntitySignature::from<Foo>(), CEntitySignature::from<Bar>() );
-        auto updateInfo = world.queryEntities(q);
+        world.queryEntities(q);
 
         REQUIRE_NOTHROW(q->begin<Foo>());
         REQUIRE_NOTHROW(q->end<Foo>());

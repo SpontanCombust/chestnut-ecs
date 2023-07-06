@@ -278,7 +278,7 @@ TEST_CASE( "Entity world test - general" )
         {
             CEntity ent = world.createEntity();
             world.insertComponent(ent, Bar{(long)ent.slot});
-            world.insertComponent(ent, Baz{(char)ent.slot + 1});
+            world.insertComponent(ent, Baz{char(ent.slot + 1)});
             vecBarBaz.push_back( ent );
         }
 

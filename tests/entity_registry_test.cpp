@@ -37,7 +37,7 @@ TEST_CASE( "Entity registry test" )
     {
         /*auto ent1 = */registry.registerNewEntity();
         auto ent2 = registry.registerNewEntity();
-        auto ent3 = registry.registerNewEntity();
+        /*auto ent3 = */registry.registerNewEntity();
 
         registry.unregisterEntity(ent2.uuid);
         auto ent4 = registry.registerNewEntity();
