@@ -34,13 +34,6 @@ endif()
 
 ## ======================================== Library ========================================
 
-set(TYPELIST_BUILD_TESTS OFF CACHE STRING "")
-FetchContent_Declare(
-    typelist
-    GIT_REPOSITORY https://github.com/SpontanCombust/cpp-typelist
-    GIT_TAG master
-)
-
 set(CTTI_BUILD_TESTS OFF CACHE STRING "")
 FetchContent_Declare(
     ctti
@@ -63,13 +56,13 @@ FetchContent_Declare(
 )
 
 
-FetchContent_MakeAvailable(typelist ctti expected optional)
+FetchContent_MakeAvailable(ctti expected optional)
 
 
 add_library(chestnut_ecs INTERFACE)
 
 target_include_directories(chestnut_ecs INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(chestnut_ecs INTERFACE typelist ctti expected optional)
+target_link_libraries(chestnut_ecs INTERFACE ctti expected optional)
 
 
 

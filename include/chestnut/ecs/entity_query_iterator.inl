@@ -1,5 +1,3 @@
-#include <typelist.hpp>
-
 #include <exception>
 #include <tuple>
 
@@ -31,20 +29,7 @@ namespace chestnut::ecs
 
         std::tuple<Types&...> operator*()
         {
-            using TL = tl::type_list<Types...>;
-
-            entityslot_t slot = this->slot();
-            return TL::template for_each_and_collect<std::tuple>([&](auto t) -> typename decltype(t)::type& {
-                using T = typename decltype(t)::type;
-
-                auto compExp = m_query->m_storagePtr->at<T>(slot);
-                if (!compExp.has_value())
-                {
-                    throw std::runtime_error("Iterator invalidated: " + compExp.error());
-                }
-
-                return *compExp.value();
-            });
+            return std::tie(this->fetchComponent<Types>()...);
         }
 
         Iterator& operator++() noexcept
@@ -105,6 +90,19 @@ namespace chestnut::ecs
         inline entityslot_t slot() const
         {
             return m_query->m_vecEntitySlots[m_currentQueryIdx];
+        }
+
+        // can throw exception
+        template<typename T>
+        T& fetchComponent()
+        {
+            auto compExp = m_query->m_storagePtr->at<T>(this->slot());
+            if (!compExp.has_value())
+            {
+                throw std::runtime_error("Iterator invalidated: " + compExp.error());
+            }
+
+            return *compExp.value();
         }
     };
 
