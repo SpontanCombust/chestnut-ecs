@@ -35,9 +35,9 @@ TEST_CASE( "Entity world test - general" )
         CEntity e2 = world.createEntity();
         CEntity e3 = world.createEntity();
 
-        REQUIRE( world.hasEntity(e1) );
-        REQUIRE( world.hasEntity(e2) );
-        REQUIRE( world.hasEntity(e3) );
+        REQUIRE( world.isEntityAlive(e1) );
+        REQUIRE( world.isEntityAlive(e2) );
+        REQUIRE( world.isEntityAlive(e3) );
     }
 
     SECTION( "Destroying empty entities" )
@@ -46,15 +46,15 @@ TEST_CASE( "Entity world test - general" )
         CEntity e2 = world.createEntity();
         CEntity e3 = world.createEntity();
 
-        REQUIRE( world.hasEntity(e1) );
-        REQUIRE( world.hasEntity(e2) );
-        REQUIRE( world.hasEntity(e3) );
+        REQUIRE( world.isEntityAlive(e1) );
+        REQUIRE( world.isEntityAlive(e2) );
+        REQUIRE( world.isEntityAlive(e3) );
 
         world.destroyEntity( e2 );
 
-        REQUIRE( world.hasEntity(e1) );
-        REQUIRE_FALSE( world.hasEntity(e2) );
-        REQUIRE( world.hasEntity(e3) );
+        REQUIRE( world.isEntityAlive(e1) );
+        REQUIRE_FALSE( world.isEntityAlive(e2) );
+        REQUIRE( world.isEntityAlive(e3) );
     }
 
     SECTION( "ID recycling" )
@@ -80,28 +80,20 @@ TEST_CASE( "Entity world test - general" )
         CEntity invalidated = world.createEntity();
         world.destroyEntity(invalidated);
         // try create component for nonexistant entity
-        REQUIRE_FALSE( world.createComponent<Foo>(invalidated) );
+        REQUIRE_FALSE( world.insertComponent(invalidated, Foo{}) );
 
 
         CEntity ent = world.createEntity();
 
-        REQUIRE(world.createComponent<Foo>( ent ).has_value());
-        auto foo = world.createComponent<Foo>( ent ).value();
+        REQUIRE(world.insertComponent(ent, Foo{}).has_value());
+        auto foo = world.insertComponent(ent, Foo{}).value();
         REQUIRE( foo );
         REQUIRE( foo.owner == ent );
 
-        foo->x = 1;
-
-        // check if returns already created component on repeated create
-        REQUIRE(world.createComponent<Foo>( ent ).has_value());
-        foo = world.createComponent<Foo>( ent ).value();
-        REQUIRE( foo->x == 1 );
-
         REQUIRE( world.hasComponent<Foo>( ent ) );
 
-
         // create with arg
-        auto bar = world.createComponent(ent, Bar {3});
+        auto bar = world.insertComponent(ent, Bar {3});
         REQUIRE(bar.has_value());
         REQUIRE(bar.value());
         REQUIRE(bar.value()->y == 3);
@@ -110,12 +102,12 @@ TEST_CASE( "Entity world test - general" )
     SECTION("Creating or updating components")
     {
         CEntity ent = world.createEntity();
-        auto foo = world.createOrUpdateComponent<Foo>(ent, Foo {8});
+        auto foo = world.insertComponent<Foo>(ent, Foo {8});
         REQUIRE(foo.has_value());
         REQUIRE(foo.value());
         REQUIRE(foo.value()->x == 8);
 
-        foo = world.createOrUpdateComponent<Foo>(ent, Foo {11});
+        foo = world.insertComponent<Foo>(ent, Foo {11});
         REQUIRE(foo.has_value());
         REQUIRE(foo.value());
         REQUIRE(foo.value()->x == 11);
@@ -136,16 +128,16 @@ TEST_CASE( "Entity world test - general" )
         CEntity ent2 = world.createEntity();
         CEntity ent3 = world.createEntity();
 
-        auto foo = world.createComponent<Foo>( ent1 ).value();
+        auto foo = world.insertComponent(ent1, Foo{}).value();
         foo->x = 1;
 
-        foo = world.createComponent<Foo>( ent2 ).value();
+        foo = world.insertComponent(ent2, Foo{}).value();
         foo->x = 2;
-        auto baz = world.createComponent<Baz>( ent2, Baz {3, 4} ).value();
+        auto baz = world.insertComponent( ent2, Baz{3, 4}).value();
 
         // test out inner value assignment operator
-        auto bar = world.createComponent<Bar>( ent3, Bar{5} ).value();
-        baz = world.createComponent<Baz>( ent3 ).value();
+        auto bar = world.insertComponent( ent3, Bar{5} ).value();
+        baz = world.insertComponent(ent3, Baz{}).value();
         baz = Baz{6, 7};
 
 
@@ -195,7 +187,7 @@ TEST_CASE( "Entity world test - general" )
     SECTION("Creating entities with data")
     {
         // one component
-        CEntity ent2 = world.createEntityWithComponents(Foo{1});
+        CEntity ent2 = world.createEntity(Foo{1});
         REQUIRE(world.getEntitySignature(ent2).has_value());
         CEntitySignature sign2 = world.getEntitySignature(ent2).value();
         REQUIRE(sign2 == CEntitySignature::from<CIdentityComponent, Foo>());
@@ -204,7 +196,7 @@ TEST_CASE( "Entity world test - general" )
         REQUIRE(foo->x == 1);
 
         // many components
-        CEntity ent3 = world.createEntityWithComponents(std::make_tuple(Foo{1}, Bar{16}, Baz{21, 37}));
+        CEntity ent3 = world.createEntity(Foo{1}, Bar{16}, Baz{21, 37});
         REQUIRE(world.getEntitySignature(ent3).has_value());
         CEntitySignature sign3 = world.getEntitySignature(ent3).value();
         REQUIRE(sign3 == CEntitySignature::from<CIdentityComponent, Foo, Bar, Baz>());
@@ -223,11 +215,11 @@ TEST_CASE( "Entity world test - general" )
         CEntity ent2 = world.createEntity();
 
 
-        world.createComponent<Foo>( ent1 );
-        world.createComponent<Bar>( ent1 );
+        world.insertComponent(ent1, Foo{});
+        world.insertComponent(ent1, Bar{});
 
-        world.createComponent<Bar>( ent2 );
-        world.createComponent<Baz>( ent2 );
+        world.insertComponent(ent2, Bar{});
+        world.insertComponent(ent2, Baz{});
 
 
         world.destroyComponent<Bar>( ent1 );
@@ -243,7 +235,7 @@ TEST_CASE( "Entity world test - general" )
     SECTION("Accessing invalid handle")
     {
         CEntity ent = world.createEntity();
-        auto handle = world.createComponent<Foo>(ent).value();
+        auto handle = world.insertComponent(ent, Foo{}).value();
         REQUIRE(handle.get().has_value());
 
         world.destroyComponent<Foo>(ent);
@@ -254,9 +246,9 @@ TEST_CASE( "Entity world test - general" )
     {
         CEntity ent = world.createEntity();
 
-        world.createComponent<Foo>( ent );
-        world.createComponent<Bar>( ent );
-        world.createComponent<Baz>( ent );
+        world.insertComponent(ent, Foo{});
+        world.insertComponent(ent, Bar{});
+        world.insertComponent(ent, Baz{});
 
         world.destroyEntity( ent );
 
@@ -264,7 +256,7 @@ TEST_CASE( "Entity world test - general" )
         REQUIRE_FALSE( world.hasComponent<Foo>( ent ) );
         REQUIRE_FALSE( world.hasComponent<Bar>( ent ) );
         REQUIRE_FALSE( world.hasComponent<Baz>( ent ) );
-        REQUIRE_FALSE( world.hasEntity( ent ) );
+        REQUIRE_FALSE( world.isEntityAlive( ent ) );
     }
 
 
@@ -277,16 +269,16 @@ TEST_CASE( "Entity world test - general" )
         for (size_t i = 0; i < 10; i++)
         {
             CEntity ent = world.createEntity();
-            world.createComponent<Foo>( ent ).value()->x = (int)ent.slot;
-            world.createComponent<Bar>( ent ).value()->y = (long)ent.slot + 1;
+            world.insertComponent(ent, Foo{(int)ent.slot});
+            world.insertComponent(ent, Bar{(long)ent.slot + 1});
             vecFooBar.push_back( ent );
         }
         // 10 with Bar and Baz
         for (size_t i = 0; i < 10; i++)
         {
             CEntity ent = world.createEntity();
-            world.createComponent<Bar>( ent ).value()->y = (long)ent.slot;
-            world.createComponent<Baz>( ent ).value()->z = (char)ent.slot + 1;
+            world.insertComponent(ent, Bar{(long)ent.slot});
+            world.insertComponent(ent, Baz{(char)ent.slot + 1});
             vecBarBaz.push_back( ent );
         }
 
@@ -334,7 +326,7 @@ TEST_CASE("Entity iterator test")
     for (size_t i = 0; i < 4; i++)
     {
         auto ent = world.createEntity();
-        world.createComponent<Foo>(ent);
+        world.insertComponent(ent, Foo{});
         vecEntsFoo.push_back(ent);
     }
 
@@ -342,8 +334,8 @@ TEST_CASE("Entity iterator test")
     for (size_t i = 0; i < 4; i++)
     {
         auto ent = world.createEntity();
-        world.createComponent<Bar>(ent);
-        world.createComponent<Baz>(ent);
+        world.insertComponent(ent, Bar{});
+        world.insertComponent(ent, Baz{});
         vecEntsBarBaz.push_back(ent);
     }
 

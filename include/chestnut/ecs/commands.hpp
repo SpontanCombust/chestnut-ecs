@@ -10,7 +10,31 @@
 namespace chestnut::ecs
 {
     template<class ...Cs>
-    class CCreateEntityCommand;
+    class CCreateEntityCommand : public ICommand
+    {
+    private:
+        using TupleType = std::tuple<Cs...>;
+        TupleType m_data;
+        
+    public: 
+        CCreateEntityCommand(Cs&&... data)
+        : m_data(data...)
+        {
+
+        }
+
+        void excecute(CEntityWorld& world) override
+        {
+            std::apply([&world](auto&&... args) {
+                world.createEntity(std::move(args)...);
+            }, m_data);
+        }
+
+        size_t size() const override
+        {
+            return sizeof(CCreateEntityCommand<Cs...>);
+        }
+    };
     
     template<>
     class CCreateEntityCommand<> : public ICommand
@@ -29,31 +53,6 @@ namespace chestnut::ecs
         size_t size() const override
         {
             return sizeof(CCreateEntityCommand<>);
-        }
-    };
-
-    template<class C, class... CRest>
-    class CCreateEntityCommand<C, CRest...> : public ICommand
-    {
-    private:
-        using TupleType = std::tuple<C, CRest...>;
-        TupleType m_data;
-        
-    public: 
-        CCreateEntityCommand(TupleType &&data)
-        : m_data(std::move(data))
-        {
-
-        }
-
-        void excecute(CEntityWorld& world) override
-        {
-            world.createEntityWithComponents(std::move(m_data));
-        }
-
-        size_t size() const override
-        {
-            return sizeof(CCreateEntityCommand<C, CRest...>);
         }
     };
 
@@ -95,13 +94,13 @@ namespace chestnut::ecs
 
 
     template<class C>
-    class CCreateOrUpdateComponentCommand : public IEntityCommand
+    class CInsertComponentCommand : public IEntityCommand
     {
     private:
         C m_data;
 
     public:
-        CCreateOrUpdateComponentCommand(CEntity entity, C &&data)
+        CInsertComponentCommand(CEntity entity, C &&data)
         : IEntityCommand(entity), m_data(data)
         {
 
@@ -109,12 +108,12 @@ namespace chestnut::ecs
 
         void excecute(CEntityWorld& world) override
         {
-            world.createOrUpdateComponent(m_entity, std::move(m_data));
+            world.insertComponent(m_entity, std::move(m_data));
         }
 
         size_t size() const override
         {
-            return sizeof(CCreateOrUpdateComponentCommand);
+            return sizeof(CInsertComponentCommand);
         }
     };
 
@@ -176,9 +175,7 @@ namespace chestnut::ecs
         template<typename... Cs>
         CCommands& createEntity(Cs&&... data)
         {
-            using TupleType = std::tuple<Cs...>;
-            TupleType t = std::make_tuple(data...);
-            m_queue.insert(CCreateEntityCommand<Cs...>(std::forward<TupleType>(t)));
+            m_queue.insert(CCreateEntityCommand<Cs...>(std::forward<Cs>(data)...));
             return *this;
         }
 
@@ -195,9 +192,9 @@ namespace chestnut::ecs
         }
 
         template<class C>
-        CCommands& createOrUpdateComponent(CEntity ent, C&& data)
+        CCommands& insertComponent(CEntity ent, C&& data)
         {
-            m_queue.insert(CCreateOrUpdateComponentCommand(ent, std::forward<C>(data)));
+            m_queue.insert(CInsertComponentCommand(ent, std::forward<C>(data)));
             return *this;
         }
 

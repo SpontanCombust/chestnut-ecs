@@ -35,43 +35,40 @@ TEST_CASE( "Entity world test - querying" )
     for (int i = 0; i < 10; i++)
     {
         CEntity ent = world.createEntity();
-        world.createComponent<Foo>( ent ).value()->x = i;
+        world.insertComponent(ent, Foo{i});
         vEnts.push_back(ent);
     }
     // 10 with Foo and Bar
     for (int i = 10; i < 20; i++)
     {
         CEntity ent = world.createEntity();
-        world.createComponent<Foo>( ent ).value()->x = i;
-        world.createComponent<Bar>( ent ).value()->y = i + 1;
+        world.insertComponent(ent, Foo{i});
+        world.insertComponent(ent, Bar{i + 1});
         vEnts.push_back(ent);
     }
     // 10 with Bar and Baz
     for (int i = 20; i < 30; i++)
     {
         CEntity ent = world.createEntity();
-        world.createComponent<Bar>( ent ).value()->y = i;
-        world.createComponent<Baz>( ent ).value()->z = (char)i + 1;
-        world.createComponent<Baz>( ent ).value()->w = (char)i + 2;
+        world.insertComponent(ent, Bar{i});
+        world.insertComponent(ent, Baz{(char)i + 1, (char)i + 2});
         vEnts.push_back(ent);
     }
     // 10 with Foo and Baz
     for (int i = 30; i < 40; i++)
     {
         CEntity ent = world.createEntity();
-        world.createComponent<Foo>( ent ).value()->x = i;
-        world.createComponent<Baz>( ent ).value()->z = (char)i + 1;
-        world.createComponent<Baz>( ent ).value()->w = (char)i + 2;
+        world.insertComponent(ent, Foo{i});
+        world.insertComponent(ent, Baz{(char)i + 1, (char)i + 2});
         vEnts.push_back(ent);
     }
     // 10 with Foo, Bar and Baz
     for (int i = 40; i < 50; i++)
     {
         CEntity ent = world.createEntity();
-        world.createComponent<Foo>( ent ).value()->x = i;
-        world.createComponent<Bar>( ent ).value()->y = i + 1;
-        world.createComponent<Baz>( ent ).value()->z = (char)i + 2;
-        world.createComponent<Baz>( ent ).value()->w = (char)i + 3;
+        world.insertComponent(ent, Foo{i});
+        world.insertComponent(ent, Bar{i + 1});
+        world.insertComponent(ent, Baz{(char)i + 2, (char)i + 3});
         vEnts.push_back(ent);
     }
     
@@ -194,8 +191,8 @@ TEST_CASE( "Entity world test - querying" )
         for (char i = 0; i < 5; i++)
         {
             CEntity ent = world.createEntity();
-            world.createComponent<Bar>( ent ).value() = {i};
-            world.createComponent<Baz>( ent ).value() = {char(i + 1), short(i + 2)};
+            world.insertComponent(ent, Bar{i});
+            world.insertComponent(ent, Baz{char(i + 1), short(i + 2)});
             vEnts.push_back(ent);
         }
 

@@ -1,8 +1,7 @@
 #include "native_components.hpp"
 
-#include <typelist.hpp>
-
 #include <exception>
+#include "entity_world.hpp"
 
 namespace chestnut::ecs
 {
@@ -28,45 +27,29 @@ namespace chestnut::ecs
         return entity;
     }
 
-    template<typename C>
-    inline CEntity CEntityWorld::createEntityWithComponents(C&& data)
+    template <typename... Components>
+    inline CEntity CEntityWorld::createEntity(Components &&...data)
     {
-        CEntity ent = m_entityRegistry.registerNewEntity();
+        CEntity entity = m_entityRegistry.registerNewEntity();
 
-        m_componentStorage.insert(ent.slot, CIdentityComponent{ent.uuid});
-        m_componentStorage.insert<C>(ent.slot, std::forward<C>(data));
+        m_componentStorage.insert(entity.slot, CIdentityComponent{entity.uuid});
+        (m_componentStorage.insert(entity.slot, std::forward<Components>(data)), ...); // insert for each component
 
-        CEntitySignature newSign = CEntitySignature::from<C>();
-        this->updateQueriesOnEntityChange(ent.slot, nullptr, &newSign);
+        //FIXME also needs identity component
+        CEntitySignature newSign = CEntitySignature::from<Components...>();
+        this->updateQueriesOnEntityChange(entity.slot, nullptr, &newSign);
 
-        return ent;
+        return entity;
     }
 
-    template<typename C, typename... CRest>
-    inline CEntity CEntityWorld::createEntityWithComponents(std::tuple<C, CRest...>&& data)
-    {
-        CEntity ent = m_entityRegistry.registerNewEntity();
-
-        m_componentStorage.insert(ent.slot, CIdentityComponent{ent.uuid});
-        tl::type_list<C, CRest...>::for_each([&](auto t) {
-            using _Type = typename decltype(t)::type;
-            m_componentStorage.insert<_Type>(ent.slot, std::forward<_Type>(std::get<_Type>(data)));
-        });
-
-        CEntitySignature newSign = CEntitySignature::from<C, CRest...>();
-        this->updateQueriesOnEntityChange(ent.slot, nullptr, &newSign);
-
-        return ent;
-    }
-
-    inline bool CEntityWorld::hasEntity(CEntity entity) const
+    inline bool CEntityWorld::isEntityAlive(CEntity entity) const
     {
         return m_entityRegistry.isEntityRegistered(entity.uuid);
     }
 
     inline void CEntityWorld::destroyEntity(CEntity entity) 
     {
-        if(hasEntity(entity))
+        if(isEntityAlive(entity))
         {
             const CEntitySignature signature = m_componentStorage.signature(entity.slot);
 
@@ -82,38 +65,11 @@ namespace chestnut::ecs
 
 
 
-
     template <typename C>
-    inline tl::expected<CComponentHandle<C>, std::string> CEntityWorld::createComponent(CEntity entity, C&& data)
+    inline tl::expected<CComponentHandle<C>, std::string> CEntityWorld::insertComponent(CEntity entity, C &&data)
     {
         // check if entity exists at all
-        if( !hasEntity(entity) )
-        {
-            return tl::make_unexpected("No such entity found");
-        }
-
-        // check if entity already owns the component
-        if(!m_componentStorage.contains<C>(entity.slot))
-        {
-            // make an updated signature for the entity
-            CEntitySignature oldSignature = m_componentStorage.signature(entity.slot);
-            CEntitySignature newSignature = oldSignature; 
-            newSignature.add<C>();
-            
-            // instantiate the actual new component
-            m_componentStorage.insert<C>(entity.slot, std::forward<C>(data));
-            updateQueriesOnEntityChange(entity.slot, &oldSignature, &newSignature );
-        }
-
-
-        return CComponentHandle<C>(entity, &m_componentStorage);
-    }
-
-    template <typename C>
-    inline tl::expected<CComponentHandle<C>, std::string> CEntityWorld::createOrUpdateComponent(CEntity entity, C &&data)
-    {
-        // check if entity exists at all
-        if( !hasEntity(entity) )
+        if( !isEntityAlive(entity) )
         {
             return tl::make_unexpected("No such entity found");
         }
@@ -137,7 +93,7 @@ namespace chestnut::ecs
     template < typename C >
     inline bool CEntityWorld::hasComponent(CEntity entity) const
     {
-        if(!hasEntity(entity))
+        if(!isEntityAlive(entity))
         {
             return false;
         }
@@ -178,8 +134,7 @@ namespace chestnut::ecs
 
     inline CEntityQuery *CEntityWorld::createQuery(const CEntitySignature& requireSignature, const CEntitySignature& rejectSignature)
     {
-        std::unique_ptr<internal::CEntityQueryGuard> guard = std::make_unique<internal::CEntityQueryGuard>(&m_componentStorage, requireSignature, rejectSignature);
-
+        auto guard = std::make_unique<internal::CEntityQueryGuard>(&m_componentStorage, requireSignature, rejectSignature);
 
         std::vector<CEntity> vecEntitiesToFetchFrom = findEntities( 
         [&guard]( const CEntitySignature& sign )
@@ -286,7 +241,7 @@ namespace chestnut::ecs
     
     inline tl::optional<CEntitySignature> CEntityWorld::getEntitySignature(CEntity entity) const
     {
-        if (!hasEntity(entity))
+        if (!isEntityAlive(entity))
         {
             return tl::nullopt;
         }

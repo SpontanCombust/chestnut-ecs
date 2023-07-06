@@ -37,14 +37,11 @@ TEST_CASE( "Entity world benchmarks - entity creation", "[benchmark]" )
             CEntity ent = world.createEntity();
 
             // every foo will be different
-            auto foo = world.createComponent<Foo>( ent ).value();
-            foo->x = i;
+            auto foo = world.insertComponent(ent, Foo{i});
 
             // but every bar and baz will be the same
-            auto bar = world.createComponent<Bar>( ent ).value();
-            bar->y = 2137;
-            auto baz = world.createComponent<Baz>( ent ).value();
-            baz->z = 123;
+            auto bar = world.insertComponent(ent, Bar{2137});
+            auto baz = world.insertComponent(ent, Baz{123});
         }
 
         return 2137; //returning something because catch2 wants it
@@ -57,15 +54,15 @@ TEST_CASE( "Entity world benchmarks - entity creation", "[benchmark]" )
             CEntity ent = world.createEntity();
 
             // every foo will be different
-            world.createComponent<Foo>( ent );
+            world.insertComponent(ent, Foo{});
             auto foo = world.getComponent<Foo>( ent ).value();
             foo->x = i;
 
             // but every bar and baz will be the same
-            world.createComponent<Bar>( ent );
+            world.insertComponent(ent, Bar{});
             auto bar = world.getComponent<Bar>( ent ).value();
             bar->y = 2137;
-            world.createComponent<Baz>( ent );
+            world.insertComponent(ent, Baz{});
             auto baz = world.getComponent<Baz>( ent ).value();
             baz->z = 123;
         }

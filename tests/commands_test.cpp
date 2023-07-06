@@ -48,20 +48,20 @@ TEST_CASE("Commands test")
            .getCommandQueue().execute(world);
 
         // ID recycling was not used
-        REQUIRE_FALSE(world.hasEntity(ent1));
-        REQUIRE(world.hasEntity(ent2));
-        REQUIRE_FALSE(world.hasEntity(ent3));
+        REQUIRE_FALSE(world.isEntityAlive(ent1));
+        REQUIRE(world.isEntityAlive(ent2));
+        REQUIRE_FALSE(world.isEntityAlive(ent3));
         REQUIRE(world.findEntities([](auto sign) { return true; }).size() == 3);
     }
 
-    SECTION("Create or update components")
+    SECTION("Insert components")
     {
-        CEntity ent1 = world.createEntityWithComponents(std::make_tuple(Foo{1}, Bar{2, 3}));
+        CEntity ent1 = world.createEntity(Foo{1}, Bar{2, 3});
         CEntity ent2 = world.createEntity();
-        CEntity ent3 = world.createEntityWithComponents(Foo{4});
+        CEntity ent3 = world.createEntity(Foo{4});
 
-        cmd.createOrUpdateComponent(ent1, Foo{6})
-           .createOrUpdateComponent(ent2, Bar{7, 8})
+        cmd.insertComponent(ent1, Foo{6})
+           .insertComponent(ent2, Bar{7, 8})
            .getCommandQueue().execute(world);
 
         REQUIRE(world.getComponent<Foo>(ent1).has_value());
@@ -91,8 +91,8 @@ TEST_CASE("Commands test")
 
     SECTION("Update components")
     {
-        CEntity ent1 = world.createEntityWithComponents(std::make_tuple(Foo{1}, Bar{2, 3}));
-        CEntity ent2 = world.createEntityWithComponents(std::make_tuple(Bar{4, 5}));
+        CEntity ent1 = world.createEntity(Foo{1}, Bar{2, 3});
+        CEntity ent2 = world.createEntity(Bar{4, 5});
 
         cmd.updateComponent<Foo>(ent1, [](Foo& foo) { foo.a = 11; })
            .updateComponent<Foo>(ent2, [](Foo& foo) { foo.a = 22; })
@@ -115,13 +115,13 @@ TEST_CASE("Commands test")
     SECTION("Destroy components")
     {
         CEntity ent1 = world.createEntity();
-        CEntity ent2 = world.createEntityWithComponents(Foo{1});
-        CEntity ent3 = world.createEntityWithComponents(std::make_tuple(Foo{2}, Bar{3, 4}));
+        CEntity ent2 = world.createEntity(Foo{1});
+        CEntity ent3 = world.createEntity(std::make_tuple(Foo{2}, Bar{3, 4}));
 
         cmd.destroyComponent<Foo>(ent1)
            .destroyComponent<Bar>(ent1)
            .destroyComponent<Foo>(ent2)
-           .createOrUpdateComponent<Foo>(ent2, Foo{5})
+           .insertComponent<Foo>(ent2, Foo{5})
            .destroyComponent<Foo>(ent3)
            .destroyComponent<Bar>(ent3)
            .getCommandQueue().execute(world);

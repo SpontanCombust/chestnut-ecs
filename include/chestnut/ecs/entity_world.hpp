@@ -72,32 +72,19 @@ namespace chestnut::ecs
 
         CEntity createEntity();
 
-        //TODO make uniform createEntity when ID recycling is hidden
-        template<typename C>
-        CEntity createEntityWithComponents(C&& data);
+        template<typename ...Components>
+        CEntity createEntity(Components&&... data);
 
-        template<typename C, typename... CRest>
-        CEntity createEntityWithComponents(std::tuple<C, CRest...>&& data);
-
-        //TODO rename to isEntityAlive
-        bool hasEntity(CEntity entity) const;
+        bool isEntityAlive(CEntity entity) const;
 
         void destroyEntity(CEntity entity);
 
 
 
-
-        //TODO delete function
-        // Returns null if entity doesn't exist
-        // Returns existing component if it was already created before
-        // Otherwise returns newly created component
-        template<typename C>
-        tl::expected<CComponentHandle<C>, std::string> createComponent(CEntity entity, C&& data = C());
-
-        //TODO rename to insertComponent
+        //TODO stronger typing (not primitive or pointer type and more) for components, use concept
         // Returns null if entity doesn't exist
         template<typename C>
-        tl::expected<CComponentHandle<C>, std::string> createOrUpdateComponent(CEntity entity, C&& data);
+        tl::expected<CComponentHandle<C>, std::string> insertComponent(CEntity entity, C&& data);
 
         template<typename C>
         bool hasComponent(CEntity entity) const;
