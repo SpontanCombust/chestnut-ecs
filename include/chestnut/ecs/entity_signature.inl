@@ -113,44 +113,26 @@ namespace chestnut::ecs
     }
 
 
-    template<typename Type, typename ...Rest>
+    template<typename ...Types>
     inline CEntitySignature& CEntitySignature::add()
     {
-        this->addImpl(typeid(Type));
-        return this->add<Rest...>();
-    }
-
-    template<typename ...Rest>
-    inline std::enable_if_t<sizeof...(Rest) == 0, CEntitySignature&> CEntitySignature::add()
-    {
+        (this->addImpl(typeid(Types)), ...);
         this->sort();
         return *this;
-    }
-
-    template<typename Type, typename ...Rest>
-    inline CEntitySignature& CEntitySignature::remove()
-    {
-        this->removeImpl(typeid(Type));
-        return this->remove<Rest...>();
-    }
-
-    template<typename ...Rest>
-    inline std::enable_if_t<sizeof...(Rest) == 0, CEntitySignature&> CEntitySignature::remove()
-    {
-        this->sort();
-        return *this;
-    }
-
-    template<typename Type, typename ...Rest>
-    inline bool CEntitySignature::has() const
-    {
-        return this->has(typeid(Type)) && this->has<Rest...>();
     }
 
     template<typename ...Types>
-    inline std::enable_if_t<sizeof...(Types) == 0, bool> CEntitySignature::has() const
+    inline CEntitySignature& CEntitySignature::remove()
     {
-        return true;
+        (this->removeImpl(typeid(Types)), ...);
+        this->sort();
+        return *this;
+    }
+
+    template<typename ...Types>
+    inline bool CEntitySignature::has() const
+    {
+        return (this->has(typeid(Types)) && ...);
     }
 
 

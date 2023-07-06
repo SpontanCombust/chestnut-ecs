@@ -47,25 +47,14 @@ namespace chestnut::ecs
         static CEntitySignature from();
 
         
-        template<typename Type, typename ...Rest>
+        template<typename ...Types>
         CEntitySignature& add();
 
-        template<typename ...Rest>
-        std::enable_if_t<sizeof...(Rest) == 0, CEntitySignature&> add();
-
-
-        template<typename Type, typename ...Rest>
+        template<typename ...Types>
         CEntitySignature& remove();
 
-        template<typename ...Rest>
-        std::enable_if_t<sizeof...(Rest) == 0, CEntitySignature&> remove();
-
-
-        template<typename Type, typename ...Rest>
-        bool has() const;
-
         template<typename ...Types>
-        std::enable_if_t<sizeof...(Types) == 0, bool> has() const;
+        bool has() const;
 
 
         bool operator==(const CEntitySignature& other) const;
