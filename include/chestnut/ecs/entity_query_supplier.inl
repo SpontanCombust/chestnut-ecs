@@ -1,51 +1,52 @@
-#include "entity_query_guard.hpp"
+#include "entity_query_supplier.hpp"
+
 namespace chestnut::ecs::internal
 {    
-    inline CEntityQueryGuard::CEntityQueryGuard(const CEntitySignature& requireSignature, const CEntitySignature& rejectSignature)
+    inline CEntityQuerySupplier::CEntityQuerySupplier(const CEntitySignature& requireSignature, const CEntitySignature& rejectSignature)
     : m_requireSignature(requireSignature),
       m_rejectSignature(rejectSignature)
     {
 
     }
 
-    inline const CEntitySignature &CEntityQueryGuard::requireSignature() const
+    inline const CEntitySignature &CEntityQuerySupplier::requireSignature() const
     {
         return m_requireSignature;
     }
 
-    inline const CEntitySignature &CEntityQueryGuard::rejectSignature() const
+    inline const CEntitySignature &CEntityQuerySupplier::rejectSignature() const
     {
         return m_rejectSignature;
     }
 
-    inline const std::unordered_set<entityslot_t> &CEntityQueryGuard::pendingIn() const
+    inline const std::unordered_set<entityslot_t> &CEntityQuerySupplier::pendingIn() const
     {
         return m_pendingIn_setEntitySlots;
     }
 
-    inline const std::unordered_set<entityslot_t> &CEntityQueryGuard::pendingOut() const
+    inline const std::unordered_set<entityslot_t> &CEntityQuerySupplier::pendingOut() const
     {
         return m_pendingOut_setEntitySlots;
     }
 
-    inline void CEntityQueryGuard::enqueueEntity( entityslot_t entitySlot ) 
+    inline void CEntityQuerySupplier::enqueueEntity( entityslot_t entitySlot ) 
     {
         m_pendingOut_setEntitySlots.erase(entitySlot);
         m_pendingIn_setEntitySlots.insert(entitySlot);
     }
 
-    inline void CEntityQueryGuard::dequeueEntity( entityslot_t entitySlot ) 
+    inline void CEntityQuerySupplier::dequeueEntity( entityslot_t entitySlot ) 
     {
         m_pendingIn_setEntitySlots.erase(entitySlot);
         m_pendingOut_setEntitySlots.insert(entitySlot);
     }
 
-    inline bool CEntityQueryGuard::hasQueuedEntities() const
+    inline bool CEntityQuerySupplier::hasQueuedEntities() const
     {
         return !m_pendingIn_setEntitySlots.empty() || !m_pendingOut_setEntitySlots.empty();
     }
 
-    inline SEntityQueryUpdateInfo CEntityQueryGuard::updateReceiver(std::vector<entityslot_t> &receiver)
+    inline SEntityQueryUpdateInfo CEntityQuerySupplier::updateReceiver(std::vector<entityslot_t> &receiver)
     {
         SEntityQueryUpdateInfo updateInfo {0, 0, 0};
 
@@ -91,7 +92,7 @@ namespace chestnut::ecs::internal
         return updateInfo;
     }
 
-    inline bool CEntityQueryGuard::testSignature( const CEntitySignature& signature ) const
+    inline bool CEntityQuerySupplier::testSignature( const CEntitySignature& signature ) const
     {
         return signature.has(m_requireSignature) 
             && (m_rejectSignature & signature).empty();

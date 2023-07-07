@@ -22,7 +22,7 @@ namespace chestnut::ecs
 
 namespace chestnut::ecs::internal
 {
-    //TODO unit test CEntityQueryGuard
+    //TODO unit test CEntityQuerySupplier
     /**
      * @brief A helper class for managing queries
      * 
@@ -30,7 +30,7 @@ namespace chestnut::ecs::internal
      * Acts as a buffer object between the storage and proper queries so that query object can't be mutated
      * during its usage.
      */
-    class CEntityQueryGuard
+    class CEntityQuerySupplier
     {
     private:
         CEntitySignature m_requireSignature;
@@ -40,7 +40,7 @@ namespace chestnut::ecs::internal
         std::unordered_set<entityslot_t> m_pendingOut_setEntitySlots;
 
     public:
-        CEntityQueryGuard(const CEntitySignature& requireSignature, const CEntitySignature& rejectSignature);
+        CEntityQuerySupplier(const CEntitySignature& requireSignature, const CEntitySignature& rejectSignature);
 
         const CEntitySignature& requireSignature() const;
         const CEntitySignature& rejectSignature() const;
@@ -60,4 +60,4 @@ namespace chestnut::ecs::internal
 } // namespace chestnut::ecs::internal
 
 
-#include "entity_query_guard.inl"
+#include "entity_query_supplier.inl"

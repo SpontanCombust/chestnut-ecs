@@ -2,7 +2,7 @@
 
 #include "types.hpp"
 #include "component_storage.hpp"
-#include "entity_query_guard.hpp"
+#include "entity_query_supplier.hpp"
 
 #include <functional>
 #include <vector>
@@ -11,7 +11,7 @@ namespace chestnut::ecs
 {
     class CEntityQuery
     {
-        friend class internal::CEntityQueryGuard;
+        friend class internal::CEntityQuerySupplier;
 
     public:
         template<typename ...Types>
@@ -21,13 +21,13 @@ namespace chestnut::ecs
 
     private:
         internal::CComponentStorage *m_storagePtr;
-        internal::CEntityQueryGuard *m_supplier;
+        internal::CEntityQuerySupplier *m_supplier;
 
         std::vector< entityslot_t > m_vecEntitySlots;
 
 
     public:
-        CEntityQuery(internal::CComponentStorage *storagePtr, internal::CEntityQueryGuard *supplier) noexcept;
+        CEntityQuery(internal::CComponentStorage *storagePtr, internal::CEntityQuerySupplier *supplier) noexcept;
 
 
         const CEntitySignature& getRequireSignature() const noexcept;

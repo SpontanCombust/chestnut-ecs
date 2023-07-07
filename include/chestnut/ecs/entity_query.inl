@@ -8,7 +8,7 @@
 namespace chestnut::ecs
 {
 
-inline CEntityQuery::CEntityQuery(internal::CComponentStorage *storagePtr, internal::CEntityQueryGuard *supplier) noexcept
+inline CEntityQuery::CEntityQuery(internal::CComponentStorage *storagePtr, internal::CEntityQuerySupplier *supplier) noexcept
 : m_storagePtr(storagePtr),
   m_supplier(supplier)
 {

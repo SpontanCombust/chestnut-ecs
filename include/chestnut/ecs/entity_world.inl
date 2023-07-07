@@ -134,7 +134,7 @@ namespace chestnut::ecs
 
     inline CEntityQuery CEntityWorld::createQuery(const CEntitySignature& requireSignature, const CEntitySignature& rejectSignature)
     {
-        auto supplier = std::make_unique<internal::CEntityQueryGuard>(requireSignature, rejectSignature);
+        auto supplier = std::make_unique<internal::CEntityQuerySupplier>(requireSignature, rejectSignature);
 
         std::vector<CEntity> vecEntitiesToFetchFrom = findEntities( 
         [&supplier]( const CEntitySignature& sign )

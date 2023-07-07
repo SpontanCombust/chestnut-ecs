@@ -15,7 +15,7 @@
 #include "types.hpp"
 #include "component_storage.hpp"
 #include "entity_registry.hpp"
-#include "entity_query_guard.hpp"
+#include "entity_query_supplier.hpp"
 #include "entity_query.hpp"
 #include "entity_iterator.hpp"
 #include "component_handle.hpp"
@@ -46,7 +46,7 @@ namespace chestnut::ecs
          * Query guards are mutable, because we cache pending components inside them and want to update them when calling update on query.
          * This action doesn't affect World itself.
          */
-        mutable std::list<std::unique_ptr<internal::CEntityQueryGuard>> m_listQuerySuppliers;
+        mutable std::list<std::unique_ptr<internal::CEntityQuerySupplier>> m_listQuerySuppliers;
 
 
 
