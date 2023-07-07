@@ -2,7 +2,9 @@
 
 #include "../include/chestnut/ecs/entity_signature.hpp"
 
+#include <algorithm>
 #include <set>
+#include <vector>
 
 
 using namespace chestnut::ecs;
@@ -186,5 +188,32 @@ TEST_CASE( "Entity signature test" )
             REQUIRE(*setIt == *signIt);
         }
         REQUIRE(signIt == sign.end());
+    }
+
+    SECTION("hash")
+    {
+        std::vector<CEntitySignature> signs {{
+            CEntitySignature(),
+            CEntitySignature::from<Foo>(),
+            CEntitySignature::from<Foo, Bar>(),
+            CEntitySignature::from<Foo, Bar, Baz>(),
+            CEntitySignature::from<Foo, Baz>(),
+            CEntitySignature::from<Bar, Baz>(),
+            CEntitySignature::from<Bar>(),
+            CEntitySignature::from<Baz>(),
+            CEntitySignature::from<Baz, int, char>(),
+            CEntitySignature::from<int, char>(),
+            CEntitySignature::from<Foo, Bar, Baz, char, unsigned char, int, long, short>(),
+            CEntitySignature::from<std::vector<CEntitySignature>>(),
+        }};
+
+        std::vector<size_t> hashes; 
+        std::transform(signs.cbegin(), signs.cend(), std::back_inserter(hashes), [](const CEntitySignature& sign) {
+            return std::hash<CEntitySignature>()(sign);
+        });
+        std::sort(hashes.begin(), hashes.end());
+
+        // should not find any two equal values
+        REQUIRE(std::adjacent_find(hashes.begin(), hashes.end()) == hashes.end());
     }
 }

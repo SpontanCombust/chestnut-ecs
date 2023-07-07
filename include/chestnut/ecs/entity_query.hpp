@@ -2,20 +2,13 @@
 
 #include "types.hpp"
 #include "component_storage.hpp"
-#include "entity_signature.hpp"
+#include "entity_query_guard.hpp"
 
 #include <functional>
 #include <vector>
 
 namespace chestnut::ecs
 {
-    namespace internal
-    {
-        class CEntityQueryGuard; // forward declaration
-
-    } // namespace internal
-    
-    
     class CEntityQuery
     {
         friend class internal::CEntityQueryGuard;
@@ -28,15 +21,13 @@ namespace chestnut::ecs
 
     private:
         internal::CComponentStorage *m_storagePtr;
-
-        CEntitySignature m_requireSignature;
-        CEntitySignature m_rejectSignature;
+        internal::CEntityQueryGuard *m_supplier;
 
         std::vector< entityslot_t > m_vecEntitySlots;
 
 
     public:
-        CEntityQuery(internal::CComponentStorage *storagePtr, CEntitySignature requireSignature, CEntitySignature rejectSignature ) noexcept;
+        CEntityQuery(internal::CComponentStorage *storagePtr, internal::CEntityQueryGuard *supplier) noexcept;
 
 
         const CEntitySignature& getRequireSignature() const noexcept;
@@ -44,7 +35,9 @@ namespace chestnut::ecs
         const std::vector<CEntity> getEntities() const;
         size_t getEntityCount() const noexcept;
 
-        
+
+        SEntityQueryUpdateInfo update();
+                
 
         template<typename ...Types>
         Iterator<Types...> begin();
@@ -58,7 +51,7 @@ namespace chestnut::ecs
 
 
         template<typename ...Types>
-        void sort(std::function<bool(Iterator<Types...>, Iterator<Types...>)> comparator) noexcept;
+        void sort(std::function<bool(Iterator<Types...>, Iterator<Types...>)> comparator);
     };
 
 } // namespace chestnut::ecs

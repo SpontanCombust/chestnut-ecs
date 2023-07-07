@@ -73,29 +73,18 @@ TEST_CASE( "Entity world test - querying" )
     }
     
 
-    SECTION( "Check for null" )
-    {
-        REQUIRE_THROWS(world.queryEntities(nullptr));
-
-        auto q = world.createQuery( CEntitySignature(), CEntitySignature() );
-        REQUIRE_NOTHROW(world.queryEntities(q));
-
-        world.destroyQuery(q);
-        REQUIRE_THROWS(world.queryEntities(q));
-    }
-
     SECTION( "Query entities with Foo" )
     {
         auto q = world.createQuery( CEntitySignature::from<Foo>(), CEntitySignature() );
-        auto updateInfo = world.queryEntities(q);
+        auto updateInfo = q.update();
 
         REQUIRE(updateInfo.added == 40);
         REQUIRE(updateInfo.removed == 0);
         REQUIRE(updateInfo.total == 40);
 
-        REQUIRE( q->getEntityCount() == 40 );
+        REQUIRE( q.getEntityCount() == 40 );
 
-        for(auto it = q->begin<Foo>(); it != q->end<Foo>(); it++)
+        for(auto it = q.begin<Foo>(); it != q.end<Foo>(); it++)
         {
             std::apply([it](Foo& foo) {
                 REQUIRE(( foo.x < 20 || foo.x >= 30 ));
@@ -113,15 +102,15 @@ TEST_CASE( "Entity world test - querying" )
     SECTION( "Query entities with Foo, Bar and Baz" )
     {
         auto q = world.createQuery( CEntitySignature::from<Foo, Bar, Baz>(), CEntitySignature() );
-        auto updateInfo = world.queryEntities(q);
+        auto updateInfo = q.update();
 
         REQUIRE(updateInfo.added == 10);
         REQUIRE(updateInfo.removed == 0);
         REQUIRE(updateInfo.total == 10);
 
-        REQUIRE( q->getEntityCount() == 10 );
+        REQUIRE( q.getEntityCount() == 10 );
 
-        for(auto it = q->begin<Foo, Bar, Baz>(); it != q->end<Foo, Bar, Baz>(); it++)
+        for(auto it = q.begin<Foo, Bar, Baz>(); it != q.end<Foo, Bar, Baz>(); it++)
         {
             std::apply([it](Foo& foo, Bar& bar, Baz& baz) {
                 REQUIRE(( foo.x >= 40 && foo.x < 50 ));
@@ -141,15 +130,15 @@ TEST_CASE( "Entity world test - querying" )
     SECTION( "Query entities with Baz but no Foo" )
     {
         auto q = world.createQuery( CEntitySignature::from<Baz>(), CEntitySignature::from<Foo>() );
-        auto updateInfo = world.queryEntities(q);
+        auto updateInfo = q.update();
 
         REQUIRE(updateInfo.added == 10);
         REQUIRE(updateInfo.removed == 0);
         REQUIRE(updateInfo.total == 10);
 
-        REQUIRE( q->getEntityCount() == 10 );
+        REQUIRE( q.getEntityCount() == 10 );
 
-        for(auto it = q->begin<Baz>(); it != q->end<Baz>(); it++)
+        for(auto it = q.begin<Baz>(); it != q.end<Baz>(); it++)
         {
             std::apply([it](Baz& baz) {
                 REQUIRE(( baz.z >= 21 && baz.z < 31 ));
@@ -162,26 +151,26 @@ TEST_CASE( "Entity world test - querying" )
     SECTION("Invalid query iterator")
     {
         auto q = world.createQuery( CEntitySignature::from<Foo>(), CEntitySignature::from<Bar>() );
-        world.queryEntities(q);
+        q.update();
 
-        REQUIRE_NOTHROW(q->begin<Foo>());
-        REQUIRE_NOTHROW(q->end<Foo>());
+        REQUIRE_NOTHROW(q.begin<Foo>());
+        REQUIRE_NOTHROW(q.end<Foo>());
 
-        REQUIRE_THROWS(q->begin<Bar>());
-        REQUIRE_THROWS(q->end<Bar>());
+        REQUIRE_THROWS(q.begin<Bar>());
+        REQUIRE_THROWS(q.end<Bar>());
 
-        REQUIRE_THROWS(q->begin<Baz>());
-        REQUIRE_THROWS(q->end<Baz>());
+        REQUIRE_THROWS(q.begin<Baz>());
+        REQUIRE_THROWS(q.end<Baz>());
 
-        REQUIRE_THROWS(q->begin<Foo, Bar>());
-        REQUIRE_THROWS(q->end<Foo, Bar>());
+        REQUIRE_THROWS(q.begin<Foo, Bar>());
+        REQUIRE_THROWS(q.end<Foo, Bar>());
     }
 
     SECTION("Query sequence")
     {
         auto q = world.createQuery( CEntitySignature::from<Baz>(), CEntitySignature::from<Foo>() );
 
-        auto updateInfo = world.queryEntities(q);
+        auto updateInfo = q.update();
 
         REQUIRE(updateInfo.added == 10);
         REQUIRE(updateInfo.removed == 0);
@@ -202,7 +191,7 @@ TEST_CASE( "Entity world test - querying" )
             world.destroyComponent<Baz>(ent);
         }
 
-        updateInfo = world.queryEntities(q);
+        updateInfo = q.update();
 
         REQUIRE(updateInfo.added == 5);
         REQUIRE(updateInfo.removed == 10);
@@ -213,9 +202,9 @@ TEST_CASE( "Entity world test - querying" )
     {
         auto q = world.createQuery( CEntitySignature::from<Bar>(), CEntitySignature::from<Foo, Baz>() );
 
-        world.queryEntities(q);
+        q.update();
 
-        REQUIRE( q->getEntityCount() == 0 );
+        REQUIRE( q.getEntityCount() == 0 );
 
         world.destroyQuery(q);
     }
@@ -223,11 +212,11 @@ TEST_CASE( "Entity world test - querying" )
     SECTION( "Use forEach" )
     {
         auto q = world.createQuery( CEntitySignature::from<Bar>() );
-        world.queryEntities(q);
+        q.update();
 
-        REQUIRE( q->getEntityCount() == 30 );  
+        REQUIRE( q.getEntityCount() == 30 );  
 
-        q->forEach<Bar>(std::function(
+        q.forEach<Bar>(std::function(
             [](Bar& bar) {
                 REQUIRE(((bar.y >= 10 && bar.y < 30) || bar.y > 40));
             }
@@ -239,33 +228,33 @@ TEST_CASE( "Entity world test - querying" )
     SECTION( "Sort the query" ) 
     {
         auto q = world.createQuery( CEntitySignature::from<Foo>() );
-        world.queryEntities(q);
+        q.update();
 
-        REQUIRE( q->getEntityCount() == 40 );
+        REQUIRE( q.getEntityCount() == 40 );
 
         using Iterator = CEntityQuery::Iterator<Foo>;
-        q->sort<Foo>(std::function(
+        q.sort<Foo>(std::function(
             [](Iterator it1, Iterator it2) -> bool {
                 // sort by entity ID descending
                 return it1.entity().uuid > it2.entity().uuid;
             }
         ));
 
-        for(auto it = q->begin<Foo>(); it != q->end<Foo>() - 1; it++)
+        for(auto it = q.begin<Foo>(); it != q.end<Foo>() - 1; it++)
         {
             auto next = it + 1;
             REQUIRE(it.entity().uuid > next.entity().uuid);
         }
 
 
-        q->sort<Foo>(std::function(
+        q.sort<Foo>(std::function(
             [](Iterator it1, Iterator it2) -> bool {
                 // now ascending
                 return it1.entity().uuid < it2.entity().uuid;
             }
         ));
 
-        for(auto it = q->begin<Foo>(); it != q->end<Foo>() - 1; it++)
+        for(auto it = q.begin<Foo>(); it != q.end<Foo>() - 1; it++)
         {
             auto next = it + 1;
             REQUIRE(it.entity().uuid < next.entity().uuid);

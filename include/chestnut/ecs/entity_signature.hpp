@@ -82,5 +82,25 @@ namespace chestnut::ecs
 
 } // namespace chestnut::ecs
 
+namespace std
+{
+    template<>
+    struct hash<chestnut::ecs::CEntitySignature>
+    {
+        size_t operator()(const chestnut::ecs::CEntitySignature& sign) const
+        {
+            size_t hash = 0;
+
+            for(auto type : sign)
+            {
+                hash ^= type.hash_code();
+            }
+
+            return hash;
+        }
+    };
+
+} // namespace std
+
 
 #include "entity_signature.inl"

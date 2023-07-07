@@ -20,10 +20,8 @@
 #include "entity_iterator.hpp"
 #include "component_handle.hpp"
 
-#include <memory>
 #include <string>
-#include <tuple>
-#include <vector>
+#include <list>
 
 namespace chestnut::ecs
 {
@@ -48,7 +46,7 @@ namespace chestnut::ecs
          * Query guards are mutable, because we cache pending components inside them and want to update them when calling update on query.
          * This action doesn't affect World itself.
          */
-        mutable std::unordered_map<CEntityQuery *, std::unique_ptr<internal::CEntityQueryGuard>> m_mapQueryIDToQueryGuard;
+        mutable std::list<std::unique_ptr<internal::CEntityQueryGuard>> m_listQuerySuppliers;
 
 
 
@@ -100,14 +98,10 @@ namespace chestnut::ecs
         
 
 
-        CEntityQuery *createQuery(const CEntitySignature& requireSignature, const CEntitySignature& rejectSignature);
-        CEntityQuery *createQuery(const CEntitySignature& requireSignature);
+        CEntityQuery createQuery(const CEntitySignature& requireSignature, const CEntitySignature& rejectSignature);
+        CEntityQuery createQuery(const CEntitySignature& requireSignature);
 
-        // Returns info on how the query got updated
-        // Throws exception if query is invalid
-        SEntityQueryUpdateInfo queryEntities(CEntityQuery *query) const;
-
-        void destroyQuery(CEntityQuery *query);
+        void destroyQuery(CEntityQuery& query);
 
 
         class EntityIteratorMethods
@@ -135,7 +129,7 @@ namespace chestnut::ecs
 
     private:
         // If null passed for signature, it is interpreted as that the signature is definitely empty
-        void updateQueriesOnEntityChange(entityslot_t entitySlot, const CEntitySignature* prevSignature, const CEntitySignature* currSignature);
+        void updateQuerySuppliersOnEntityChange(entityslot_t entitySlot, const CEntitySignature* prevSignature, const CEntitySignature* currSignature);
     };
 
 } // namespace chestnut::ecs

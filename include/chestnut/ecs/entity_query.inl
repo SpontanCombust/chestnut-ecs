@@ -3,24 +3,26 @@
 #include <algorithm> // stable_sort
 #include <exception>
 #include <numeric> // iota
+#include "entity_query.hpp"
 
 namespace chestnut::ecs
 {
 
-inline CEntityQuery::CEntityQuery(internal::CComponentStorage *storagePtr, CEntitySignature requireSignature, CEntitySignature rejectSignature) noexcept
-: m_storagePtr(storagePtr), m_requireSignature(requireSignature), m_rejectSignature(rejectSignature)
+inline CEntityQuery::CEntityQuery(internal::CComponentStorage *storagePtr, internal::CEntityQueryGuard *supplier) noexcept
+: m_storagePtr(storagePtr),
+  m_supplier(supplier)
 {
 
 }
 
 inline const CEntitySignature& CEntityQuery::getRejectSignature() const noexcept
 {
-    return m_rejectSignature;
+    return m_supplier->requireSignature();
 }
 
 inline const CEntitySignature& CEntityQuery::getRequireSignature() const noexcept
 {
-    return m_requireSignature;
+    return m_supplier->rejectSignature();
 }
 
 inline const std::vector<CEntity> CEntityQuery::getEntities() const
@@ -41,40 +43,38 @@ inline size_t CEntityQuery::getEntityCount() const noexcept
     return m_vecEntitySlots.size();
 }
 
-
-
+inline SEntityQueryUpdateInfo CEntityQuery::update()
+{
+    return m_supplier->updateReceiver(this->m_vecEntitySlots);
+}
 
 template<typename ...Types>
 CEntityQuery::Iterator<Types...> CEntityQuery::begin()
 {
-    if(!m_requireSignature.has<Types...>())
+    if(!m_supplier->testSignature(CEntitySignature::from<Types...>()))
     {
-        throw std::runtime_error("All types supplied must be in query's 'require' signature");
+        throw std::runtime_error("Iterator not compatible with the query");
     }
 
-    CEntitySignature sign = CEntitySignature::from<Types...>();
-
-    if(!(sign & m_rejectSignature).empty())
+    if (m_supplier->hasQueuedEntities())
     {
-        throw std::runtime_error("None of the supplied types should be in query's 'reject' signature");
+        m_supplier->updateReceiver(this->m_vecEntitySlots);
     }
-
+    
     return Iterator<Types...>(this, 0);
 }
 
 template<typename ...Types>
 CEntityQuery::Iterator<Types...> CEntityQuery::end()
 {
-    if(!m_requireSignature.has<Types...>())
+    if(!m_supplier->testSignature(CEntitySignature::from<Types...>()))
     {
-        throw std::runtime_error("All types supplied must be in query's 'require' signature");
+        throw std::runtime_error("Iterator not compatible with the query");
     }
 
-    CEntitySignature sign = CEntitySignature::from<Types...>();
-
-    if(!(sign & m_rejectSignature).empty())
+    if (m_supplier->hasQueuedEntities())
     {
-        throw std::runtime_error("None of the supplied types should be in query's 'reject' signature");
+        m_supplier->updateReceiver(this->m_vecEntitySlots);
     }
 
     return Iterator<Types...>(this, (unsigned int)m_vecEntitySlots.size());
@@ -85,6 +85,16 @@ CEntityQuery::Iterator<Types...> CEntityQuery::end()
 template<typename ...Types>
 void CEntityQuery::forEach(const std::function<void(Types&...)>& handler )
 {
+    if(!m_supplier->testSignature(CEntitySignature::from<Types...>()))
+    {
+        throw std::runtime_error("Iterator not compatible with the query");
+    }
+
+    if (m_supplier->hasQueuedEntities())
+    {
+        m_supplier->updateReceiver(this->m_vecEntitySlots);
+    }
+    
     for(auto it = this->begin<Types...>(); it != this->end<Types...>(); it++)
     {
         std::apply(handler, *it);
@@ -94,8 +104,18 @@ void CEntityQuery::forEach(const std::function<void(Types&...)>& handler )
 
 
 template<typename ...Types>
-void CEntityQuery::sort(std::function<bool(CEntityQuery::Iterator<Types...>, CEntityQuery::Iterator<Types...>)> comparator) noexcept
+void CEntityQuery::sort(std::function<bool(CEntityQuery::Iterator<Types...>, CEntityQuery::Iterator<Types...>)> comparator)
 {
+    if(!m_supplier->testSignature(CEntitySignature::from<Types...>()))
+    {
+        throw std::runtime_error("Iterator not compatible with the query");
+    }
+
+    if (m_supplier->hasQueuedEntities())
+    {
+        m_supplier->updateReceiver(this->m_vecEntitySlots);
+    }
+    
     std::vector<unsigned int> indices(m_vecEntitySlots.size());
     std::iota(indices.begin(), indices.end(), 0);
 

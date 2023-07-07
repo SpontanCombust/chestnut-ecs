@@ -15,16 +15,9 @@ namespace chestnut::ecs
 
         CEntity entity() const
         {
-            entityslot_t slot = this->slot();
-
-            auto identExp = m_query->m_storagePtr->at<CIdentityComponent>(slot);
-            if (!identExp.has_value())
-            {
-                throw std::runtime_error("Iterator invalidated: " + identExp.error());
-            }
-
-            CUniqueIdentifier uuid = identExp.value()->uuid;
-            return CEntity(uuid, slot);
+            const auto& identComp = this->fetchComponent<CIdentityComponent>();
+            CUniqueIdentifier uuid = identComp.uuid;
+            return CEntity(uuid, this->slot());
         }
 
         std::tuple<Types&...> operator*()
@@ -97,6 +90,19 @@ namespace chestnut::ecs
         T& fetchComponent()
         {
             auto compExp = m_query->m_storagePtr->at<T>(this->slot());
+            if (!compExp.has_value())
+            {
+                throw std::runtime_error("Iterator invalidated: " + compExp.error());
+            }
+
+            return *compExp.value();
+        }
+
+        // can throw exception
+        template<typename T>
+        const T& fetchComponent() const
+        {
+            const auto compExp = m_query->m_storagePtr->at<T>(this->slot());
             if (!compExp.has_value())
             {
                 throw std::runtime_error("Iterator invalidated: " + compExp.error());

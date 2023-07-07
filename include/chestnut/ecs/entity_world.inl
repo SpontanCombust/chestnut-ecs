@@ -37,7 +37,7 @@ namespace chestnut::ecs
 
         //FIXME also needs identity component
         CEntitySignature newSign = CEntitySignature::from<Components...>();
-        this->updateQueriesOnEntityChange(entity.slot, nullptr, &newSign);
+        this->updateQuerySuppliersOnEntityChange(entity.slot, nullptr, &newSign);
 
         return entity;
     }
@@ -55,7 +55,7 @@ namespace chestnut::ecs
 
             if(!signature.empty())
             {
-                updateQueriesOnEntityChange(entity.slot, &signature, nullptr);
+                updateQuerySuppliersOnEntityChange(entity.slot, &signature, nullptr);
                 m_componentStorage.eraseAll(entity.slot);
             }
 
@@ -82,7 +82,7 @@ namespace chestnut::ecs
             CEntitySignature newSignature = oldSignature; 
             newSignature.add<C>();
             
-            updateQueriesOnEntityChange(entity.slot, &oldSignature, &newSignature );
+            updateQuerySuppliersOnEntityChange(entity.slot, &oldSignature, &newSignature );
         }
 
         m_componentStorage.insert<C>(entity.slot, std::forward<C>(data));
@@ -124,7 +124,7 @@ namespace chestnut::ecs
 
             m_componentStorage.erase<C>(entity.slot);
 
-            updateQueriesOnEntityChange(entity.slot, &oldSignature, &newSignature );
+            updateQuerySuppliersOnEntityChange(entity.slot, &oldSignature, &newSignature );
         }
     }
 
@@ -132,54 +132,43 @@ namespace chestnut::ecs
 
 
 
-    inline CEntityQuery *CEntityWorld::createQuery(const CEntitySignature& requireSignature, const CEntitySignature& rejectSignature)
+    inline CEntityQuery CEntityWorld::createQuery(const CEntitySignature& requireSignature, const CEntitySignature& rejectSignature)
     {
-        auto guard = std::make_unique<internal::CEntityQueryGuard>(&m_componentStorage, requireSignature, rejectSignature);
+        auto supplier = std::make_unique<internal::CEntityQueryGuard>(requireSignature, rejectSignature);
 
         std::vector<CEntity> vecEntitiesToFetchFrom = findEntities( 
-        [&guard]( const CEntitySignature& sign )
+        [&supplier]( const CEntitySignature& sign )
         {
-            return guard->testQuery( sign );
+            return supplier->testSignature( sign );
         });
 
         for (const CEntity& entity: vecEntitiesToFetchFrom)
         {
-            guard->enqueueEntity(entity.slot);
+            supplier->enqueueEntity(entity.slot);
         }
     
-        CEntityQuery *query = &guard->getQuery();
-        m_mapQueryIDToQueryGuard[query] = std::move(guard);
+        CEntityQuery query(&m_componentStorage, supplier.get());
+        m_listQuerySuppliers.push_back(std::move(supplier));
 
         return query;
     }
 
-    inline CEntityQuery *CEntityWorld::createQuery(const CEntitySignature& requireSignature)
+    inline CEntityQuery CEntityWorld::createQuery(const CEntitySignature& requireSignature)
     {
         return this->createQuery(requireSignature, CEntitySignature());
     }
 
-    inline SEntityQueryUpdateInfo CEntityWorld::queryEntities( CEntityQuery *query ) const
+    inline void CEntityWorld::destroyQuery(CEntityQuery& query)
     {
-        if(!query)
+        for (auto it = m_listQuerySuppliers.cbegin(); it != m_listQuerySuppliers.cend(); ++it)
         {
-            throw std::runtime_error("Query is null");
-        }
-
-        auto it = m_mapQueryIDToQueryGuard.find( query );
-        if( it != m_mapQueryIDToQueryGuard.end() )
-        {
-            return it->second->updateQuery();
-        }
-
-        throw std::runtime_error("Query does not belong to this CEntityWorld");
-    }
-
-    inline void CEntityWorld::destroyQuery( CEntityQuery *query )
-    {
-        auto it = m_mapQueryIDToQueryGuard.find( query );
-        if( it != m_mapQueryIDToQueryGuard.end() )
-        {
-            m_mapQueryIDToQueryGuard.erase( it );
+            const auto& supplier = *it;
+            if (query.getRequireSignature() == supplier->requireSignature() 
+             && query.getRejectSignature() == supplier->rejectSignature())
+            {
+                m_listQuerySuppliers.erase(it);
+                break;
+            }
         }
     }
 
@@ -271,15 +260,15 @@ namespace chestnut::ecs
 
 
 
-    inline void CEntityWorld::updateQueriesOnEntityChange( entityslot_t entitySlot, const CEntitySignature* prevSignature, const CEntitySignature* currSignature )
+    inline void CEntityWorld::updateQuerySuppliersOnEntityChange( entityslot_t entitySlot, const CEntitySignature* prevSignature, const CEntitySignature* currSignature )
     {
         bool prevValid, currValid;
 
-        for( auto& [ id, guard ] : m_mapQueryIDToQueryGuard )
+        for( auto& supplier : m_listQuerySuppliers )
         {
             if( prevSignature )
             {
-                prevValid = guard->testQuery( *prevSignature );
+                prevValid = supplier->testSignature( *prevSignature );
             }
             else
             {
@@ -288,7 +277,7 @@ namespace chestnut::ecs
 
             if( currSignature )
             {
-                currValid = guard->testQuery( *currSignature );
+                currValid = supplier->testSignature( *currSignature );
             }
             else
             {
@@ -297,11 +286,11 @@ namespace chestnut::ecs
 
             if( !prevValid && currValid )
             {
-                guard->enqueueEntity( entitySlot );
+                supplier->enqueueEntity( entitySlot );
             }
             else if( prevValid && !currValid )
             {
-                guard->dequeueEntity( entitySlot );
+                supplier->dequeueEntity( entitySlot );
             }
         }
     }
