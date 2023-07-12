@@ -51,6 +51,7 @@ namespace chestnut::ecs::internal
         bool empty() const noexcept;
 
         void clear() noexcept;
+        void insert(size_t idx, const T& arg) noexcept;
         void insert(size_t idx, T&& arg) noexcept;
         void erase(size_t idx) noexcept override;
     };

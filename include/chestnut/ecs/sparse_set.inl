@@ -1,4 +1,5 @@
-#include <algorithm> // std::fill
+#include "sparse_set.hpp"
+
 #include <exception>
 
 namespace chestnut::ecs::internal
@@ -104,9 +105,34 @@ template<typename T>
 inline void CSparseSet<T>::clear() noexcept
 {
     m_dense.clear();
-    m_densePointers.clear();
 
-    std::fill(m_sparse.begin(), m_sparse.end(), NIL_INDEX);
+    for (size_t idx : m_densePointers)
+    {
+        m_sparse[idx] = NIL_INDEX;
+    }
+    
+    m_densePointers.clear();
+}
+
+template <typename T>
+inline void CSparseSet<T>::insert(size_t idx, const T &arg) noexcept
+{
+    if(idx >= m_sparse.size())
+    {
+        m_sparse.resize(idx + 1, NIL_INDEX);
+    }
+
+    if(m_sparse[idx] != NIL_INDEX)
+    {
+        m_dense[m_sparse[idx]] = arg;
+        m_densePointers[m_sparse[idx]] = idx;
+    }
+    else
+    {
+        m_dense.push_back(arg);
+        m_densePointers.push_back(idx);
+        m_sparse[idx] = (int)m_dense.size() - 1;
+    }
 }
 
 template<typename T>
