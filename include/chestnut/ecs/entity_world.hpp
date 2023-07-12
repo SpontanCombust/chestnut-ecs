@@ -20,6 +20,9 @@
 #include "entity_iterator.hpp"
 #include "component_handle.hpp"
 
+#include <tl/expected.hpp>
+#include <tl/optional.hpp>
+
 #include <string>
 #include <list>
 
@@ -129,7 +132,7 @@ namespace chestnut::ecs
 
     private:
         // If null passed for signature, it is interpreted as that the signature is definitely empty
-        void updateQuerySuppliersOnEntityChange(entityslot_t entitySlot, const CEntitySignature* prevSignature, const CEntitySignature* currSignature);
+        void updateQuerySuppliersOnEntityChange(entityslot_t entitySlot, tl::optional<CEntitySignature> prevSignature, tl::optional<CEntitySignature> currSignature);
     };
 
 } // namespace chestnut::ecs

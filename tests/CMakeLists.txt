@@ -8,6 +8,7 @@ target_sources(chestnut_ecs_test_auto PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/entity_world_querying_test.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/commands_test.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/uuid_test.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/entity_query_supplier_test.cpp
 )
 
 target_sources(chestnut_ecs_test_benchmarks PRIVATE

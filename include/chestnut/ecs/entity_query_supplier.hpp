@@ -1,28 +1,16 @@
 #pragma once
 
 #include "entity_signature.hpp"
+#include "sparse_set.hpp"
 #include "types.hpp"
+
+#include <tl/optional.hpp>
 
 #include <unordered_set>
 #include <vector>
 
-namespace chestnut::ecs
-{
-    /**
-     * @brief Struct used to tell how many entities got added and removed from query on its update
-     * 
-     */
-    struct SEntityQueryUpdateInfo
-    {
-        unsigned int added = 0;
-        unsigned int removed = 0;
-        unsigned int total = 0;
-    };
-}
-
 namespace chestnut::ecs::internal
 {
-    //TODO unit test CEntityQuerySupplier
     /**
      * @brief A helper class for managing queries
      * 
@@ -36,8 +24,9 @@ namespace chestnut::ecs::internal
         CEntitySignature m_requireSignature;
         CEntitySignature m_rejectSignature;
 
-        std::unordered_set<entityslot_t> m_pendingIn_setEntitySlots;
-        std::unordered_set<entityslot_t> m_pendingOut_setEntitySlots;
+        std::unordered_set<entityslot_t> m_pendingInEntitySlots;
+        std::unordered_set<entityslot_t> m_pendingOutEntitySlots;
+        CSparseSet<entityslot_t> m_currentEntitySlots;
 
     public:
         CEntityQuerySupplier(const CEntitySignature& requireSignature, const CEntitySignature& rejectSignature);
@@ -47,12 +36,13 @@ namespace chestnut::ecs::internal
 
         const std::unordered_set<entityslot_t>& pendingIn() const;
         const std::unordered_set<entityslot_t>& pendingOut() const;
+        const std::vector<entityslot_t>& current() const;
 
-        void enqueueEntity( entityslot_t entitySlot );
-        void dequeueEntity( entityslot_t entitySlot );
-        bool hasQueuedEntities() const;
 
-        SEntityQueryUpdateInfo updateReceiver(std::vector<entityslot_t>& receiver);
+        // Depending on previous and current entity signature, will add its slot to the pending-in queue, pending-out queue or won't add it to neither
+        bool proposeEntity(entityslot_t entitySlot, tl::optional<CEntitySignature> prevSign, tl::optional<CEntitySignature> currSign);
+        bool hasPendingEntities() const;
+        void processPendingEntities();
         
         bool testSignature(const CEntitySignature& signature) const;
     };

@@ -37,7 +37,7 @@ namespace chestnut::ecs
 
         //FIXME also needs identity component
         CEntitySignature newSign = CEntitySignature::from<Components...>();
-        this->updateQuerySuppliersOnEntityChange(entity.slot, nullptr, &newSign);
+        this->updateQuerySuppliersOnEntityChange(entity.slot, tl::nullopt, std::move(newSign));
 
         return entity;
     }
@@ -55,7 +55,7 @@ namespace chestnut::ecs
 
             if(!signature.empty())
             {
-                updateQuerySuppliersOnEntityChange(entity.slot, &signature, nullptr);
+                this->updateQuerySuppliersOnEntityChange(entity.slot, std::move(signature), tl::nullopt);
                 m_componentStorage.eraseAll(entity.slot);
             }
 
@@ -82,7 +82,7 @@ namespace chestnut::ecs
             CEntitySignature newSignature = oldSignature; 
             newSignature.add<C>();
             
-            updateQuerySuppliersOnEntityChange(entity.slot, &oldSignature, &newSignature );
+            updateQuerySuppliersOnEntityChange(entity.slot, std::move(oldSignature), std::move(newSignature));
         }
 
         m_componentStorage.insert<C>(entity.slot, std::forward<C>(data));
@@ -124,7 +124,7 @@ namespace chestnut::ecs
 
             m_componentStorage.erase<C>(entity.slot);
 
-            updateQuerySuppliersOnEntityChange(entity.slot, &oldSignature, &newSignature );
+            updateQuerySuppliersOnEntityChange(entity.slot, std::move(oldSignature), std::move(newSignature));
         }
     }
 
@@ -136,15 +136,9 @@ namespace chestnut::ecs
     {
         auto supplier = std::make_unique<internal::CEntityQuerySupplier>(requireSignature, rejectSignature);
 
-        std::vector<CEntity> vecEntitiesToFetchFrom = findEntities( 
-        [&supplier]( const CEntitySignature& sign )
+        for(auto it = this->entityIterator.cbegin(); it != this->entityIterator.cend(); ++it)
         {
-            return supplier->testSignature( sign );
-        });
-
-        for (const CEntity& entity: vecEntitiesToFetchFrom)
-        {
-            supplier->enqueueEntity(entity.slot);
+            supplier->proposeEntity(it.entity().slot, tl::nullopt, it.signature());
         }
     
         CEntityQuery query(&m_componentStorage, supplier.get());
@@ -242,9 +236,7 @@ namespace chestnut::ecs
     {
         std::vector<CEntity> v;
 
-        auto it = this->entityIterator.cbegin();
-        auto end = this->entityIterator.cend();
-        for(; it != end; ++it)
+        for(auto it = this->entityIterator.cbegin(); it != this->entityIterator.cend(); ++it)
         {
             if (pred(it.signature()))
             {
@@ -260,38 +252,11 @@ namespace chestnut::ecs
 
 
 
-    inline void CEntityWorld::updateQuerySuppliersOnEntityChange( entityslot_t entitySlot, const CEntitySignature* prevSignature, const CEntitySignature* currSignature )
+    inline void CEntityWorld::updateQuerySuppliersOnEntityChange(entityslot_t entitySlot, tl::optional<CEntitySignature> prevSignature, tl::optional<CEntitySignature> currSignature )
     {
-        bool prevValid, currValid;
-
         for( auto& supplier : m_listQuerySuppliers )
         {
-            if( prevSignature )
-            {
-                prevValid = supplier->testSignature( *prevSignature );
-            }
-            else
-            {
-                prevValid = false;
-            }
-
-            if( currSignature )
-            {
-                currValid = supplier->testSignature( *currSignature );
-            }
-            else
-            {
-                currValid = false;
-            }
-
-            if( !prevValid && currValid )
-            {
-                supplier->enqueueEntity( entitySlot );
-            }
-            else if( prevValid && !currValid )
-            {
-                supplier->dequeueEntity( entitySlot );
-            }
+            supplier->proposeEntity(entitySlot, prevSignature, currSignature);
         }
     }
 

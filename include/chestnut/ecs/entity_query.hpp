@@ -16,8 +16,6 @@ namespace chestnut::ecs
     public:
         template<typename ...Types>
         class Iterator;
-        template<typename ...Types>
-        friend class Iterator;
 
     private:
         internal::CComponentStorage *m_storagePtr;
@@ -36,9 +34,9 @@ namespace chestnut::ecs
         size_t getEntityCount() const noexcept;
 
 
-        SEntityQueryUpdateInfo update();
+        void update();
                 
-
+        //TODO iterate over newly added or removed entities
         template<typename ...Types>
         Iterator<Types...> begin();
 

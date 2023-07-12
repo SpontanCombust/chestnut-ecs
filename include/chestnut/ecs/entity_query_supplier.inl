@@ -1,12 +1,17 @@
 #include "entity_query_supplier.hpp"
 
+#include <exception>
+
 namespace chestnut::ecs::internal
 {    
     inline CEntityQuerySupplier::CEntityQuerySupplier(const CEntitySignature& requireSignature, const CEntitySignature& rejectSignature)
     : m_requireSignature(requireSignature),
       m_rejectSignature(rejectSignature)
     {
-
+        if (!(requireSignature & rejectSignature).empty())
+        {
+            throw std::runtime_error("'Require' and 'reject' signatures can't have any common types");
+        }
     }
 
     inline const CEntitySignature &CEntityQuerySupplier::requireSignature() const
@@ -21,78 +26,79 @@ namespace chestnut::ecs::internal
 
     inline const std::unordered_set<entityslot_t> &CEntityQuerySupplier::pendingIn() const
     {
-        return m_pendingIn_setEntitySlots;
+        return m_pendingInEntitySlots;
     }
 
     inline const std::unordered_set<entityslot_t> &CEntityQuerySupplier::pendingOut() const
     {
-        return m_pendingOut_setEntitySlots;
+        return m_pendingOutEntitySlots;
     }
 
-    inline void CEntityQuerySupplier::enqueueEntity( entityslot_t entitySlot ) 
+    inline const std::vector<entityslot_t> &CEntityQuerySupplier::current() const
     {
-        m_pendingOut_setEntitySlots.erase(entitySlot);
-        m_pendingIn_setEntitySlots.insert(entitySlot);
+        return m_currentEntitySlots.dense();
     }
 
-    inline void CEntityQuerySupplier::dequeueEntity( entityslot_t entitySlot ) 
+    inline bool CEntityQuerySupplier::proposeEntity(entityslot_t entitySlot, tl::optional<CEntitySignature> prevSign, tl::optional<CEntitySignature> currSign)
     {
-        m_pendingIn_setEntitySlots.erase(entitySlot);
-        m_pendingOut_setEntitySlots.insert(entitySlot);
-    }
+        bool prevValid = prevSign.map([&](const auto& sign) { return this->testSignature(sign); }).value_or(false);
+        bool currValid = currSign.map([&](const auto& sign) { return this->testSignature(sign); }).value_or(false);
 
-    inline bool CEntityQuerySupplier::hasQueuedEntities() const
-    {
-        return !m_pendingIn_setEntitySlots.empty() || !m_pendingOut_setEntitySlots.empty();
-    }
-
-    inline SEntityQueryUpdateInfo CEntityQuerySupplier::updateReceiver(std::vector<entityslot_t> &receiver)
-    {
-        SEntityQueryUpdateInfo updateInfo {0, 0, 0};
-
-        // first do the removal
-        if(!m_pendingOut_setEntitySlots.empty())
+        if (!prevValid && currValid)
         {
-            for(auto it = receiver.begin(); it != receiver.end(); /*NOP*/)
+            this->m_pendingOutEntitySlots.erase(entitySlot);
+
+            if (!this->m_currentEntitySlots.contains(entitySlot))
             {
-                if(m_pendingOut_setEntitySlots.find(*it) != m_pendingOut_setEntitySlots.end())
-                {
-                    m_pendingOut_setEntitySlots.erase(*it);
-                    it = receiver.erase(it);
-                    updateInfo.removed++;
-                }
-                else
-                {
-                    it++;
-                }
+                this->m_pendingInEntitySlots.insert(entitySlot);
+            }
+
+            return true;
+        }
+        else if (prevValid && !currValid)
+        {
+            this->m_pendingInEntitySlots.erase(entitySlot);
+
+            if (this->m_currentEntitySlots.contains(entitySlot))
+            {
+                this->m_pendingOutEntitySlots.insert(entitySlot);
+            }
+            
+            return true;
+        }
+
+        return false;
+    }
+
+    inline bool CEntityQuerySupplier::hasPendingEntities() const
+    {
+        return !m_pendingInEntitySlots.empty() || !m_pendingOutEntitySlots.empty();
+    }
+
+    inline void CEntityQuerySupplier::processPendingEntities()
+    {
+        if(!m_pendingOutEntitySlots.empty())
+        {
+            for (auto slot : m_pendingOutEntitySlots)
+            {
+                m_currentEntitySlots.erase(slot);
             }
         }
         
-
-        // then addition
-        if(!m_pendingIn_setEntitySlots.empty() )
+        if(!m_pendingInEntitySlots.empty() )
         {
-            receiver.insert(
-                receiver.end(),
-                m_pendingIn_setEntitySlots.begin(),
-                m_pendingIn_setEntitySlots.end()
-            );
-
-            updateInfo.added = (unsigned int)m_pendingIn_setEntitySlots.size();
+            for (auto slot : m_pendingInEntitySlots)
+            {
+                m_currentEntitySlots.insert(slot, slot);
+            }
         }
 
-        updateInfo.total = (unsigned int)receiver.size();
-
-
         // clear pending data
-        m_pendingOut_setEntitySlots.clear();
-        m_pendingIn_setEntitySlots.clear();
-
-
-        return updateInfo;
+        m_pendingOutEntitySlots.clear();
+        m_pendingInEntitySlots.clear();
     }
 
-    inline bool CEntityQuerySupplier::testSignature( const CEntitySignature& signature ) const
+    inline bool CEntityQuerySupplier::testSignature(const CEntitySignature& signature) const
     {
         return signature.has(m_requireSignature) 
             && (m_rejectSignature & signature).empty();

@@ -76,11 +76,7 @@ TEST_CASE( "Entity world test - querying" )
     SECTION( "Query entities with Foo" )
     {
         auto q = world.createQuery( CEntitySignature::from<Foo>(), CEntitySignature() );
-        auto updateInfo = q.update();
-
-        REQUIRE(updateInfo.added == 40);
-        REQUIRE(updateInfo.removed == 0);
-        REQUIRE(updateInfo.total == 40);
+        q.update();
 
         REQUIRE( q.getEntityCount() == 40 );
 
@@ -102,11 +98,7 @@ TEST_CASE( "Entity world test - querying" )
     SECTION( "Query entities with Foo, Bar and Baz" )
     {
         auto q = world.createQuery( CEntitySignature::from<Foo, Bar, Baz>(), CEntitySignature() );
-        auto updateInfo = q.update();
-
-        REQUIRE(updateInfo.added == 10);
-        REQUIRE(updateInfo.removed == 0);
-        REQUIRE(updateInfo.total == 10);
+        q.update();
 
         REQUIRE( q.getEntityCount() == 10 );
 
@@ -130,11 +122,7 @@ TEST_CASE( "Entity world test - querying" )
     SECTION( "Query entities with Baz but no Foo" )
     {
         auto q = world.createQuery( CEntitySignature::from<Baz>(), CEntitySignature::from<Foo>() );
-        auto updateInfo = q.update();
-
-        REQUIRE(updateInfo.added == 10);
-        REQUIRE(updateInfo.removed == 0);
-        REQUIRE(updateInfo.total == 10);
+        q.update();
 
         REQUIRE( q.getEntityCount() == 10 );
 
@@ -170,11 +158,7 @@ TEST_CASE( "Entity world test - querying" )
     {
         auto q = world.createQuery( CEntitySignature::from<Baz>(), CEntitySignature::from<Foo>() );
 
-        auto updateInfo = q.update();
-
-        REQUIRE(updateInfo.added == 10);
-        REQUIRE(updateInfo.removed == 0);
-        REQUIRE(updateInfo.total == 10);
+        q.update();
 
 
         for (char i = 0; i < 5; i++)
@@ -191,11 +175,7 @@ TEST_CASE( "Entity world test - querying" )
             world.destroyComponent<Baz>(ent);
         }
 
-        updateInfo = q.update();
-
-        REQUIRE(updateInfo.added == 5);
-        REQUIRE(updateInfo.removed == 10);
-        REQUIRE(updateInfo.total == 5);
+        q.update();
     }
 
     SECTION( "Query non-existing entities" )

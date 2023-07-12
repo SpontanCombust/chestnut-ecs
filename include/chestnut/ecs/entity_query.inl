@@ -43,9 +43,10 @@ inline size_t CEntityQuery::getEntityCount() const noexcept
     return m_vecEntitySlots.size();
 }
 
-inline SEntityQueryUpdateInfo CEntityQuery::update()
+inline void CEntityQuery::update()
 {
-    return m_supplier->updateReceiver(this->m_vecEntitySlots);
+    m_supplier->processPendingEntities();
+    this->m_vecEntitySlots = m_supplier->current();
 }
 
 template<typename ...Types>
@@ -56,9 +57,9 @@ CEntityQuery::Iterator<Types...> CEntityQuery::begin()
         throw std::runtime_error("Iterator not compatible with the query");
     }
 
-    if (m_supplier->hasQueuedEntities())
+    if (m_supplier->hasPendingEntities())
     {
-        m_supplier->updateReceiver(this->m_vecEntitySlots);
+        this->update();
     }
     
     return Iterator<Types...>(this, 0);
@@ -72,9 +73,9 @@ CEntityQuery::Iterator<Types...> CEntityQuery::end()
         throw std::runtime_error("Iterator not compatible with the query");
     }
 
-    if (m_supplier->hasQueuedEntities())
+    if (m_supplier->hasPendingEntities())
     {
-        m_supplier->updateReceiver(this->m_vecEntitySlots);
+        this->update();
     }
 
     return Iterator<Types...>(this, (unsigned int)m_vecEntitySlots.size());
@@ -90,9 +91,9 @@ void CEntityQuery::forEach(const std::function<void(Types&...)>& handler )
         throw std::runtime_error("Iterator not compatible with the query");
     }
 
-    if (m_supplier->hasQueuedEntities())
+    if (m_supplier->hasPendingEntities())
     {
-        m_supplier->updateReceiver(this->m_vecEntitySlots);
+        this->update();
     }
     
     for(auto it = this->begin<Types...>(); it != this->end<Types...>(); it++)
@@ -111,9 +112,9 @@ void CEntityQuery::sort(std::function<bool(CEntityQuery::Iterator<Types...>, CEn
         throw std::runtime_error("Iterator not compatible with the query");
     }
 
-    if (m_supplier->hasQueuedEntities())
+    if (m_supplier->hasPendingEntities())
     {
-        m_supplier->updateReceiver(this->m_vecEntitySlots);
+        this->update();
     }
     
     std::vector<unsigned int> indices(m_vecEntitySlots.size());
