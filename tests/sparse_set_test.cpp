@@ -60,9 +60,9 @@ TEST_CASE("Sparse set test")
         REQUIRE(testSet.sparse()[3] == 2);
 
         REQUIRE(testSet.dense().size() == 3);
-        REQUIRE(testSet.dense()[0].e == FooComp{1});
-        REQUIRE(testSet.dense()[1].e == FooComp{2});
-        REQUIRE(testSet.dense()[2].e == FooComp{3});
+        REQUIRE(testSet.dense()[0] == FooComp{1});
+        REQUIRE(testSet.dense()[1] == FooComp{2});
+        REQUIRE(testSet.dense()[2] == FooComp{3});
     }
 
     SECTION("Lookup")
@@ -129,8 +129,8 @@ TEST_CASE("Sparse set test")
         REQUIRE(testSet.sparse()[3] == 1);
 
         REQUIRE(testSet.dense().size() == 2);
-        REQUIRE(testSet.dense()[0].e == FooComp{0});
-        REQUIRE(testSet.dense()[1].e == FooComp{3});
+        REQUIRE(testSet.dense()[0] == FooComp{0});
+        REQUIRE(testSet.dense()[1] == FooComp{3});
     }
 
 

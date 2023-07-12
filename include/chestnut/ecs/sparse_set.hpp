@@ -33,22 +33,15 @@ namespace chestnut::ecs::internal
     template<typename T>
     class CSparseSet : public CSparseSetBase
     {
-    public:
-        struct SDenseElement 
-        {
-            T e;
-            size_t i;
-        };
-
     private:
-        std::vector<SDenseElement> m_dense;
-
+        std::vector<T> m_dense;
+        std::vector<size_t> m_densePointers;
 
     public:
         CSparseSet() noexcept = default;
         CSparseSet(size_t initSparseSize) noexcept;
 
-        const std::vector<SDenseElement>& dense() const noexcept;
+        const std::vector<T>& dense() const noexcept;
         size_t denseSize() const noexcept;
 
         tl::expected<T*, std::string> at(size_t idx);

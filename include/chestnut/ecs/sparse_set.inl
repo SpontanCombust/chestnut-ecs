@@ -43,13 +43,13 @@ inline void CSparseSetBase::erase(size_t idx) noexcept
 
 template<typename T>
 inline CSparseSet<T>::CSparseSet(size_t initSparseSize) noexcept
-: CSparseSetBase(initSparseSize), m_dense()
+: CSparseSetBase(initSparseSize), m_densePointers(), m_dense()
 {
 
 }
 
 template<typename T>
-inline const std::vector<typename CSparseSet<T>::SDenseElement>& CSparseSet<T>::dense() const noexcept
+inline const std::vector<T>& CSparseSet<T>::dense() const noexcept
 {
     return this->m_dense;
 }
@@ -73,7 +73,7 @@ inline tl::expected<T*, std::string> CSparseSet<T>::at(size_t idx)
     }
     else
     {
-        return &this->m_dense[m_sparse[idx]].e;
+        return &this->m_dense[m_sparse[idx]];
     }
 }
 
@@ -90,7 +90,7 @@ inline tl::expected<const T*, std::string> CSparseSet<T>::at(size_t idx) const
     }
     else
     {
-        return &this->m_dense[m_sparse[idx]].e;
+        return &this->m_dense[m_sparse[idx]];
     }
 }
 
@@ -104,6 +104,7 @@ template<typename T>
 inline void CSparseSet<T>::clear() noexcept
 {
     m_dense.clear();
+    m_densePointers.clear();
 
     std::fill(m_sparse.begin(), m_sparse.end(), NIL_INDEX);
 }
@@ -118,14 +119,13 @@ inline void CSparseSet<T>::insert(size_t idx, T&& arg) noexcept
 
     if(m_sparse[idx] != NIL_INDEX)
     {
-        m_dense[m_sparse[idx]].e = std::forward<T>(arg);
+        m_dense[m_sparse[idx]] = std::forward<T>(arg);
+        m_densePointers[m_sparse[idx]] = idx;
     }
     else
     {
-        m_dense.push_back({
-            std::forward<T>(arg),
-            idx
-        });
+        m_dense.push_back(std::forward<T>(arg));
+        m_densePointers.push_back(idx);
         m_sparse[idx] = (int)m_dense.size() - 1;
     }
 }
@@ -135,9 +135,11 @@ inline void CSparseSet<T>::erase(size_t idx) noexcept
 {
     if(idx < m_sparse.size() && m_sparse[idx] != NIL_INDEX)
     {
-        m_sparse[m_dense.back().i] = m_sparse[idx];
+        m_sparse[m_densePointers.back()] = m_sparse[idx];
         std::swap(m_dense[m_sparse[idx]], m_dense.back());
+        std::swap(m_densePointers[m_sparse[idx]], m_densePointers.back());
         m_dense.pop_back();
+        m_densePointers.pop_back();
         m_sparse[idx] = NIL_INDEX;
     }
 }
