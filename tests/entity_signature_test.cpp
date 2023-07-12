@@ -190,6 +190,14 @@ TEST_CASE( "Entity signature test" )
         REQUIRE(signIt == sign.end());
     }
 
+    SECTION("add in different order")
+    {
+        auto sign1 = CEntitySignature::from<Foo, Bar, Baz, short>();
+        auto sign2 = CEntitySignature::from<Baz, short, Bar, Foo, Baz>();
+
+        REQUIRE(sign1 == sign2);
+    }
+
     SECTION("hash")
     {
         std::vector<CEntitySignature> signs {{
