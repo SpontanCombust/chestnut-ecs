@@ -127,7 +127,10 @@ TEST_CASE("Entity query supplier test")
     SECTION("Queueuing")
     {
         CEntityQuerySupplier supplier(CEntitySignature::from<Foo>(), CEntitySignature());
-        std::vector<entityslot_t> slots;
+        std::vector<entityslot_t> incoming;
+        std::vector<entityslot_t> outgoing;
+        std::vector<entityslot_t> current;
+
 
         REQUIRE_FALSE(supplier.hasPendingEntities());
 
@@ -137,29 +140,30 @@ TEST_CASE("Entity query supplier test")
         supplier.proposeEntity(2, sign0, sign1);
         supplier.proposeEntity(3, sign0, sign1);
         supplier.proposeEntity(4, sign0, sign1);
-
         REQUIRE(supplier.hasPendingEntities());
-        REQUIRE(supplier.pendingIn() == std::unordered_set<entityslot_t>({1, 2, 3, 4}));
-        REQUIRE(supplier.pendingOut() == std::unordered_set<entityslot_t>({}));
 
-        supplier.processPendingEntities();
-        slots = supplier.current();
+        supplier.processPendingEntities(current, incoming, outgoing);
         REQUIRE_FALSE(supplier.hasPendingEntities());
-        std::sort(slots.begin(), slots.end());
-        REQUIRE(slots == std::vector<entityslot_t>({1, 2, 3, 4}));
+
+        std::sort(current.begin(), current.end());
+        std::sort(incoming.begin(), incoming.end());
+        std::sort(outgoing.begin(), outgoing.end());
+        REQUIRE(current == std::vector<entityslot_t>({1, 2, 3, 4}));
+        REQUIRE(incoming == std::vector<entityslot_t>({1, 2, 3, 4}));
+        REQUIRE(outgoing == std::vector<entityslot_t>({}));
 
 
         auto sign2 = CEntitySignature::from<Foo, Bar>();
         supplier.proposeEntity(2, sign1, sign2);
         supplier.proposeEntity(3, sign1, sign2);
 
-        REQUIRE(supplier.pendingIn() == std::unordered_set<entityslot_t>({}));
-        REQUIRE(supplier.pendingOut() == std::unordered_set<entityslot_t>({}));
-
-        supplier.processPendingEntities();
-        slots = supplier.current();
-        std::sort(slots.begin(), slots.end());
-        REQUIRE(slots == std::vector<entityslot_t>({1, 2, 3, 4}));
+        supplier.processPendingEntities(current, incoming, outgoing);
+        std::sort(current.begin(), current.end());
+        std::sort(incoming.begin(), incoming.end());
+        std::sort(outgoing.begin(), outgoing.end());
+        REQUIRE(current == std::vector<entityslot_t>({1, 2, 3, 4}));
+        REQUIRE(incoming == std::vector<entityslot_t>({}));
+        REQUIRE(outgoing == std::vector<entityslot_t>({}));
 
 
         auto sign3 = CEntitySignature::from<Bar>();
@@ -170,13 +174,13 @@ TEST_CASE("Entity query supplier test")
         supplier.proposeEntity(6, sign2, sign3);
         supplier.proposeEntity(7, sign2, sign3);
 
-        REQUIRE(supplier.pendingIn() == std::unordered_set<entityslot_t>({}));
-        REQUIRE(supplier.pendingOut() == std::unordered_set<entityslot_t>({1}));
-
-        supplier.processPendingEntities();
-        slots = supplier.current();
-        std::sort(slots.begin(), slots.end());
-        REQUIRE(slots == std::vector<entityslot_t>({2, 3, 4}));
+        supplier.processPendingEntities(current, incoming, outgoing);
+        std::sort(current.begin(), current.end());
+        std::sort(incoming.begin(), incoming.end());
+        std::sort(outgoing.begin(), outgoing.end());
+        REQUIRE(current == std::vector<entityslot_t>({2, 3, 4}));
+        REQUIRE(incoming == std::vector<entityslot_t>({}));
+        REQUIRE(outgoing == std::vector<entityslot_t>({1}));
 
 
         auto sign4 = CEntitySignature::from<Bar, Foo>();
@@ -190,12 +194,12 @@ TEST_CASE("Entity query supplier test")
         supplier.proposeEntity(10, sign4, sign3);        
         supplier.proposeEntity(8, sign4, sign3);
 
-        REQUIRE(supplier.pendingIn() == std::unordered_set<entityslot_t>({6, 7}));
-        REQUIRE(supplier.pendingOut() == std::unordered_set<entityslot_t>({}));
-
-        supplier.processPendingEntities();
-        slots = supplier.current();
-        std::sort(slots.begin(), slots.end());
-        REQUIRE(slots == std::vector<entityslot_t>({2, 3, 4, 6, 7}));  
+        supplier.processPendingEntities(current, incoming, outgoing);
+        std::sort(current.begin(), current.end());
+        std::sort(incoming.begin(), incoming.end());
+        std::sort(outgoing.begin(), outgoing.end());
+        REQUIRE(current == std::vector<entityslot_t>({2, 3, 4, 6, 7}));
+        REQUIRE(incoming == std::vector<entityslot_t>({6, 7}));
+        REQUIRE(outgoing == std::vector<entityslot_t>({}));
     }
 }

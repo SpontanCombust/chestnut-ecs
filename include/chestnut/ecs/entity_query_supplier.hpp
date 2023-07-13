@@ -26,7 +26,7 @@ namespace chestnut::ecs::internal
 
         std::unordered_set<entityslot_t> m_pendingInEntitySlots;
         std::unordered_set<entityslot_t> m_pendingOutEntitySlots;
-        CSparseSet<entityslot_t> m_currentEntitySlots;
+        std::unordered_set<entityslot_t> m_currentEntitySlots;
 
     public:
         CEntityQuerySupplier(const CEntitySignature& requireSignature, const CEntitySignature& rejectSignature);
@@ -34,15 +34,13 @@ namespace chestnut::ecs::internal
         const CEntitySignature& requireSignature() const;
         const CEntitySignature& rejectSignature() const;
 
-        const std::unordered_set<entityslot_t>& pendingIn() const;
-        const std::unordered_set<entityslot_t>& pendingOut() const;
-        const std::vector<entityslot_t>& current() const;
-
-
         // Depending on previous and current entity signature, will add its slot to the pending-in queue, pending-out queue or won't add it to neither
         bool proposeEntity(entityslot_t entitySlot, tl::optional<CEntitySignature> prevSign, tl::optional<CEntitySignature> currSign);
         bool hasPendingEntities() const;
-        void processPendingEntities();
+
+        void processPendingEntities(std::vector<entityslot_t>& destCurrent, 
+                                    std::vector<entityslot_t>& destIncoming, 
+                                    std::vector<entityslot_t>& destOutgoing);
         
         bool testSignature(const CEntitySignature& signature) const;
     };

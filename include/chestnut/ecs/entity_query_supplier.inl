@@ -24,31 +24,17 @@ namespace chestnut::ecs::internal
         return m_rejectSignature;
     }
 
-    inline const std::unordered_set<entityslot_t> &CEntityQuerySupplier::pendingIn() const
-    {
-        return m_pendingInEntitySlots;
-    }
-
-    inline const std::unordered_set<entityslot_t> &CEntityQuerySupplier::pendingOut() const
-    {
-        return m_pendingOutEntitySlots;
-    }
-
-    inline const std::vector<entityslot_t> &CEntityQuerySupplier::current() const
-    {
-        return m_currentEntitySlots.dense();
-    }
-
     inline bool CEntityQuerySupplier::proposeEntity(entityslot_t entitySlot, tl::optional<CEntitySignature> prevSign, tl::optional<CEntitySignature> currSign)
     {
         bool prevValid = prevSign.map([&](const auto& sign) { return this->testSignature(sign); }).value_or(false);
         bool currValid = currSign.map([&](const auto& sign) { return this->testSignature(sign); }).value_or(false);
+        bool isInCurrent = this->m_currentEntitySlots.find(entitySlot) != this->m_currentEntitySlots.end();
 
         if (!prevValid && currValid)
         {
             this->m_pendingOutEntitySlots.erase(entitySlot);
 
-            if (!this->m_currentEntitySlots.contains(entitySlot))
+            if (!isInCurrent)
             {
                 this->m_pendingInEntitySlots.insert(entitySlot);
             }
@@ -59,7 +45,7 @@ namespace chestnut::ecs::internal
         {
             this->m_pendingInEntitySlots.erase(entitySlot);
 
-            if (this->m_currentEntitySlots.contains(entitySlot))
+            if (isInCurrent)
             {
                 this->m_pendingOutEntitySlots.insert(entitySlot);
             }
@@ -75,8 +61,17 @@ namespace chestnut::ecs::internal
         return !m_pendingInEntitySlots.empty() || !m_pendingOutEntitySlots.empty();
     }
 
-    inline void CEntityQuerySupplier::processPendingEntities()
+    inline void CEntityQuerySupplier::processPendingEntities(
+        std::vector<entityslot_t>& destCurrent, 
+        std::vector<entityslot_t>& destIncoming, 
+        std::vector<entityslot_t>& destOutgoing)
     {
+        destIncoming.clear();
+        std::copy(m_pendingInEntitySlots.begin(), m_pendingInEntitySlots.end(), std::back_inserter(destIncoming));
+
+        destOutgoing.clear();
+        std::copy(m_pendingOutEntitySlots.begin(), m_pendingOutEntitySlots.end(), std::back_inserter(destOutgoing));
+
         if(!m_pendingOutEntitySlots.empty())
         {
             for (auto slot : m_pendingOutEntitySlots)
@@ -89,9 +84,12 @@ namespace chestnut::ecs::internal
         {
             for (auto slot : m_pendingInEntitySlots)
             {
-                m_currentEntitySlots.insert(slot, slot);
+                m_currentEntitySlots.insert(slot);
             }
         }
+
+        destCurrent.clear();
+        std::copy(m_currentEntitySlots.begin(), m_currentEntitySlots.end(), std::back_inserter(destCurrent));
 
         // clear pending data
         m_pendingOutEntitySlots.clear();
