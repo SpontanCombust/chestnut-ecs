@@ -38,7 +38,7 @@ inline const std::vector<CEntity> CEntityQuery::getEntities() const
 {
     std::vector<CEntity> v;
 
-    for(unsigned int slot : m_vecEntitySlots)
+    for(unsigned int slot : m_vecCurrentEntitySlots)
     {
         CUniqueIdentifier uuid = m_storagePtr->at<CIdentityComponent>(slot).value()->uuid;
         v.push_back(CEntity(uuid, slot));
@@ -49,15 +49,15 @@ inline const std::vector<CEntity> CEntityQuery::getEntities() const
 
 inline size_t CEntityQuery::getEntityCount() const noexcept
 {
-    return m_vecEntitySlots.size();
+    return m_vecCurrentEntitySlots.size();
 }
 
 inline void CEntityQuery::update()
 {
     m_supplier->processPendingEntities(
-        this->m_vecEntitySlots,
-        this->m_vecIncomingEntitySlots,
-        this->m_vecOutgoingEntitySlots
+        this->m_vecCurrentEntitySlots,
+        this->m_vecAcquiredEntitySlots,
+        this->m_vecDiscardedEntitySlots
     );
 }
 
@@ -83,41 +83,41 @@ inline CEntityQuery::CurrentEntitiesIterator<Types...> CEntityQuery::Iterators::
         throw std::runtime_error("Iterator not compatible with the query");
     }
 
-    return CurrentEntitiesIterator<Types...>(m_parent, m_parent->m_vecEntitySlots.size());
+    return CurrentEntitiesIterator<Types...>(m_parent, m_parent->m_vecCurrentEntitySlots.size());
 }
 
 
 template<typename ...Types>
-inline CEntityQuery::IncomingEntitiesIterator<Types...> CEntityQuery::Iterators::Incoming::begin()
+inline CEntityQuery::AcquiredEntitiesIterator<Types...> CEntityQuery::Iterators::Acquired::begin()
 {
     if(!m_parent->m_supplier->testSignature(CEntitySignature::from<Types...>()))
     {
         throw std::runtime_error("Iterator not compatible with the query");
     }
 
-    return IncomingEntitiesIterator<Types...>(m_parent, 0);    
+    return AcquiredEntitiesIterator<Types...>(m_parent, 0);    
 }
 
 template<typename ...Types>
-inline CEntityQuery::IncomingEntitiesIterator<Types...> CEntityQuery::Iterators::Incoming::end()
+inline CEntityQuery::AcquiredEntitiesIterator<Types...> CEntityQuery::Iterators::Acquired::end()
 {
     if(!m_parent->m_supplier->testSignature(CEntitySignature::from<Types...>()))
     {
         throw std::runtime_error("Iterator not compatible with the query");
     }
 
-    return IncomingEntitiesIterator<Types...>(m_parent, m_parent->m_vecIncomingEntitySlots.size());    
+    return AcquiredEntitiesIterator<Types...>(m_parent, m_parent->m_vecAcquiredEntitySlots.size());    
 }
 
 
-inline CEntityQuery::OutgoingEntitiesIterator CEntityQuery::Iterators::Outgoing::begin()
+inline CEntityQuery::DiscardedEntitiesIterator CEntityQuery::Iterators::Discarded::begin()
 {
-    return OutgoingEntitiesIterator(m_parent, 0);    
+    return DiscardedEntitiesIterator(m_parent, 0);    
 }
 
-inline CEntityQuery::OutgoingEntitiesIterator CEntityQuery::Iterators::Outgoing::end()
+inline CEntityQuery::DiscardedEntitiesIterator CEntityQuery::Iterators::Discarded::end()
 {
-    return OutgoingEntitiesIterator(m_parent, m_parent->m_vecOutgoingEntitySlots.size());    
+    return DiscardedEntitiesIterator(m_parent, m_parent->m_vecDiscardedEntitySlots.size());    
 }
 
 template<typename ...Types>
@@ -154,7 +154,7 @@ inline void CEntityQuery::sort(std::function<bool(CEntityQuery::Iterator<Types..
         throw std::runtime_error("Iterator not compatible with the query");
     }
 
-    std::vector<size_t> indices(m_vecEntitySlots.size());
+    std::vector<size_t> indices(m_vecCurrentEntitySlots.size());
     std::iota(indices.begin(), indices.end(), 0);
 
     std::stable_sort(indices.begin(), indices.end(),
@@ -166,14 +166,14 @@ inline void CEntityQuery::sort(std::function<bool(CEntityQuery::Iterator<Types..
         }
     );
 
-    std::vector<entityslot_t> sortedEnts(m_vecEntitySlots.size());
+    std::vector<entityslot_t> sortedEnts(m_vecCurrentEntitySlots.size());
 
-    for (size_t i = 0; i < m_vecEntitySlots.size(); i++)
+    for (size_t i = 0; i < m_vecCurrentEntitySlots.size(); i++)
     {
-        sortedEnts[i] = this->m_vecEntitySlots[indices[i]];
+        sortedEnts[i] = this->m_vecCurrentEntitySlots[indices[i]];
     }
 
-    this->m_vecEntitySlots = std::move(sortedEnts);
+    this->m_vecCurrentEntitySlots = std::move(sortedEnts);
 }
 
 } // namespace chestnut::ecs

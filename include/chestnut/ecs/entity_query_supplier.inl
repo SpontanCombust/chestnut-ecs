@@ -63,14 +63,14 @@ namespace chestnut::ecs::internal
 
     inline void CEntityQuerySupplier::processPendingEntities(
         std::vector<entityslot_t>& destCurrent, 
-        std::vector<entityslot_t>& destIncoming, 
-        std::vector<entityslot_t>& destOutgoing)
+        std::vector<entityslot_t>& destAcquired, 
+        std::vector<entityslot_t>& destDiscarded)
     {
-        destIncoming.clear();
-        std::copy(m_pendingInEntitySlots.begin(), m_pendingInEntitySlots.end(), std::back_inserter(destIncoming));
+        destAcquired.clear();
+        std::copy(m_pendingInEntitySlots.begin(), m_pendingInEntitySlots.end(), std::back_inserter(destAcquired));
 
-        destOutgoing.clear();
-        std::copy(m_pendingOutEntitySlots.begin(), m_pendingOutEntitySlots.end(), std::back_inserter(destOutgoing));
+        destDiscarded.clear();
+        std::copy(m_pendingOutEntitySlots.begin(), m_pendingOutEntitySlots.end(), std::back_inserter(destDiscarded));
 
         if(!m_pendingOutEntitySlots.empty())
         {

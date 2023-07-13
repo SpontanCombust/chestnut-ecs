@@ -131,63 +131,63 @@ namespace chestnut::ecs
     protected:
         entityslot_t slot() const override
         {
-            return m_query->m_vecEntitySlots[m_currentQueryIdx];
+            return m_query->m_vecCurrentEntitySlots[m_currentQueryIdx];
         }
     };
 
 
     template<typename ...Types>
-    class CEntityQuery::IncomingEntitiesIterator : public CEntityQuery::IteratorBase
+    class CEntityQuery::AcquiredEntitiesIterator : public CEntityQuery::IteratorBase
     {
     public:
-        IncomingEntitiesIterator(CEntityQuery *query, size_t queryIdx) noexcept
+        AcquiredEntitiesIterator(CEntityQuery *query, size_t queryIdx) noexcept
         : IteratorBase(query, queryIdx)
         {
             
         }
 
-        IncomingEntitiesIterator(const IteratorBase& base) noexcept
+        AcquiredEntitiesIterator(const IteratorBase& base) noexcept
         : IteratorBase(base)
         {
 
         }
 
-        IncomingEntitiesIterator& operator++() noexcept
+        AcquiredEntitiesIterator& operator++() noexcept
         {
             m_currentQueryIdx++;
             return *this;
         }
 
-        IncomingEntitiesIterator operator++(int) noexcept
+        AcquiredEntitiesIterator operator++(int) noexcept
         {
-            IncomingEntitiesIterator tmp(*this);
+            AcquiredEntitiesIterator tmp(*this);
             ++(*this);
             return tmp;
         }
 
-        IncomingEntitiesIterator operator+(unsigned int n) noexcept
+        AcquiredEntitiesIterator operator+(unsigned int n) noexcept
         {
-            IncomingEntitiesIterator tmp(*this);
+            AcquiredEntitiesIterator tmp(*this);
             tmp.m_currentQueryIdx += n;
             return tmp;
         }
 
-        IncomingEntitiesIterator& operator--() noexcept
+        AcquiredEntitiesIterator& operator--() noexcept
         {
             m_currentQueryIdx--;
             return *this;
         }
 
-        IncomingEntitiesIterator operator--(int) noexcept
+        AcquiredEntitiesIterator operator--(int) noexcept
         {
-            IncomingEntitiesIterator tmp(*this);
+            AcquiredEntitiesIterator tmp(*this);
             --(*this);
             return tmp;
         }
 
-        IncomingEntitiesIterator operator-(unsigned int n) noexcept
+        AcquiredEntitiesIterator operator-(unsigned int n) noexcept
         {
-            IncomingEntitiesIterator tmp(*this);
+            AcquiredEntitiesIterator tmp(*this);
             tmp.m_currentQueryIdx -= n;
             return tmp;
         }
@@ -200,62 +200,62 @@ namespace chestnut::ecs
     protected:
         entityslot_t slot() const override
         {
-            return m_query->m_vecIncomingEntitySlots[m_currentQueryIdx];
+            return m_query->m_vecAcquiredEntitySlots[m_currentQueryIdx];
         }
     };
 
 
-    class CEntityQuery::OutgoingEntitiesIterator : public CEntityQuery::IteratorBase
+    class CEntityQuery::DiscardedEntitiesIterator : public CEntityQuery::IteratorBase
     {
     public:
-        OutgoingEntitiesIterator(CEntityQuery *query, size_t queryIdx) noexcept
+        DiscardedEntitiesIterator(CEntityQuery *query, size_t queryIdx) noexcept
         : IteratorBase(query, queryIdx)
         {
             
         }
 
-        OutgoingEntitiesIterator(const IteratorBase& base) noexcept
+        DiscardedEntitiesIterator(const IteratorBase& base) noexcept
         : IteratorBase(base)
         {
 
         }
 
-        OutgoingEntitiesIterator& operator++() noexcept
+        DiscardedEntitiesIterator& operator++() noexcept
         {
             m_currentQueryIdx++;
             return *this;
         }
 
-        OutgoingEntitiesIterator operator++(int) noexcept
+        DiscardedEntitiesIterator operator++(int) noexcept
         {
-            OutgoingEntitiesIterator tmp(*this);
+            DiscardedEntitiesIterator tmp(*this);
             ++(*this);
             return tmp;
         }
 
-        OutgoingEntitiesIterator operator+(unsigned int n) noexcept
+        DiscardedEntitiesIterator operator+(unsigned int n) noexcept
         {
-            OutgoingEntitiesIterator tmp(*this);
+            DiscardedEntitiesIterator tmp(*this);
             tmp.m_currentQueryIdx += n;
             return tmp;
         }
 
-        OutgoingEntitiesIterator& operator--() noexcept
+        DiscardedEntitiesIterator& operator--() noexcept
         {
             m_currentQueryIdx--;
             return *this;
         }
 
-        OutgoingEntitiesIterator operator--(int) noexcept
+        DiscardedEntitiesIterator operator--(int) noexcept
         {
-            OutgoingEntitiesIterator tmp(*this);
+            DiscardedEntitiesIterator tmp(*this);
             --(*this);
             return tmp;
         }
 
-        OutgoingEntitiesIterator operator-(unsigned int n) noexcept
+        DiscardedEntitiesIterator operator-(unsigned int n) noexcept
         {
-            OutgoingEntitiesIterator tmp(*this);
+            DiscardedEntitiesIterator tmp(*this);
             tmp.m_currentQueryIdx -= n;
             return tmp;
         }
@@ -263,7 +263,7 @@ namespace chestnut::ecs
     protected:
         entityslot_t slot() const override
         {
-            return m_query->m_vecOutgoingEntitySlots[m_currentQueryIdx];
+            return m_query->m_vecDiscardedEntitySlots[m_currentQueryIdx];
         }
     };
 

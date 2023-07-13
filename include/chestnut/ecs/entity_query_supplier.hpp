@@ -39,8 +39,8 @@ namespace chestnut::ecs::internal
         bool hasPendingEntities() const;
 
         void processPendingEntities(std::vector<entityslot_t>& destCurrent, 
-                                    std::vector<entityslot_t>& destIncoming, 
-                                    std::vector<entityslot_t>& destOutgoing);
+                                    std::vector<entityslot_t>& destAcquired, 
+                                    std::vector<entityslot_t>& destDiscarded);
         
         bool testSignature(const CEntitySignature& signature) const;
     };

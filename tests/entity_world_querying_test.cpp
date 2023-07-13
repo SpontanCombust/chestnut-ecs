@@ -243,7 +243,7 @@ TEST_CASE( "Entity world test - querying" )
         world.destroyQuery(q);
     }
 
-    SECTION("Incoming and outgoing entities")
+    SECTION("Acquired and discarded entities")
     {
         //TODO
     }

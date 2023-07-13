@@ -20,9 +20,9 @@ namespace chestnut::ecs
         class CurrentEntitiesIterator;
 
         template<typename ...Types>
-        class IncomingEntitiesIterator;
+        class AcquiredEntitiesIterator;
 
-        class OutgoingEntitiesIterator;
+        class DiscardedEntitiesIterator;
 
 
         template<typename ...Types>
@@ -34,11 +34,11 @@ namespace chestnut::ecs
         internal::CEntityQuerySupplier *m_supplier;
 
         // New entity slots that arrived since last update()
-        std::vector<entityslot_t> m_vecIncomingEntitySlots;
+        std::vector<entityslot_t> m_vecAcquiredEntitySlots;
         // Entity slots that were removed since last update()
-        std::vector<entityslot_t> m_vecOutgoingEntitySlots;
+        std::vector<entityslot_t> m_vecDiscardedEntitySlots;
         // Current valid entity slots
-        std::vector<entityslot_t> m_vecEntitySlots;
+        std::vector<entityslot_t> m_vecCurrentEntitySlots;
 
 
     public:
@@ -57,7 +57,7 @@ namespace chestnut::ecs
 
         struct Iterators {
             Iterators(CEntityQuery *parent) 
-            : current(parent), incoming(parent), outgoing(parent) {}
+            : current(parent), acquired(parent), discarded(parent) {}
 
             struct Current {
                 CEntityQuery *m_parent;
@@ -69,23 +69,23 @@ namespace chestnut::ecs
                 CurrentEntitiesIterator<Types...> end();
             } current;
 
-            struct Incoming {
+            struct Acquired {
                 CEntityQuery *m_parent;
-                Incoming(CEntityQuery *parent) : m_parent(parent) {}
+                Acquired(CEntityQuery *parent) : m_parent(parent) {}
 
                 template<typename ...Types>
-                IncomingEntitiesIterator<Types...> begin();
+                AcquiredEntitiesIterator<Types...> begin();
                 template<typename ...Types>
-                IncomingEntitiesIterator<Types...> end();
-            } incoming;
+                AcquiredEntitiesIterator<Types...> end();
+            } acquired;
 
-            struct Outgoing {
+            struct Discarded {
                 CEntityQuery *m_parent;
-                Outgoing(CEntityQuery *parent) : m_parent(parent) {}
+                Discarded(CEntityQuery *parent) : m_parent(parent) {}
 
-                OutgoingEntitiesIterator begin();
-                OutgoingEntitiesIterator end();
-            } outgoing;
+                DiscardedEntitiesIterator begin();
+                DiscardedEntitiesIterator end();
+            } discarded;
 
         } iterators;
 

@@ -127,8 +127,8 @@ TEST_CASE("Entity query supplier test")
     SECTION("Queueuing")
     {
         CEntityQuerySupplier supplier(CEntitySignature::from<Foo>(), CEntitySignature());
-        std::vector<entityslot_t> incoming;
-        std::vector<entityslot_t> outgoing;
+        std::vector<entityslot_t> acquired;
+        std::vector<entityslot_t> discarded;
         std::vector<entityslot_t> current;
 
 
@@ -142,28 +142,28 @@ TEST_CASE("Entity query supplier test")
         supplier.proposeEntity(4, sign0, sign1);
         REQUIRE(supplier.hasPendingEntities());
 
-        supplier.processPendingEntities(current, incoming, outgoing);
+        supplier.processPendingEntities(current, acquired, discarded);
         REQUIRE_FALSE(supplier.hasPendingEntities());
 
         std::sort(current.begin(), current.end());
-        std::sort(incoming.begin(), incoming.end());
-        std::sort(outgoing.begin(), outgoing.end());
+        std::sort(acquired.begin(), acquired.end());
+        std::sort(discarded.begin(), discarded.end());
         REQUIRE(current == std::vector<entityslot_t>({1, 2, 3, 4}));
-        REQUIRE(incoming == std::vector<entityslot_t>({1, 2, 3, 4}));
-        REQUIRE(outgoing == std::vector<entityslot_t>({}));
+        REQUIRE(acquired == std::vector<entityslot_t>({1, 2, 3, 4}));
+        REQUIRE(discarded == std::vector<entityslot_t>({}));
 
 
         auto sign2 = CEntitySignature::from<Foo, Bar>();
         supplier.proposeEntity(2, sign1, sign2);
         supplier.proposeEntity(3, sign1, sign2);
 
-        supplier.processPendingEntities(current, incoming, outgoing);
+        supplier.processPendingEntities(current, acquired, discarded);
         std::sort(current.begin(), current.end());
-        std::sort(incoming.begin(), incoming.end());
-        std::sort(outgoing.begin(), outgoing.end());
+        std::sort(acquired.begin(), acquired.end());
+        std::sort(discarded.begin(), discarded.end());
         REQUIRE(current == std::vector<entityslot_t>({1, 2, 3, 4}));
-        REQUIRE(incoming == std::vector<entityslot_t>({}));
-        REQUIRE(outgoing == std::vector<entityslot_t>({}));
+        REQUIRE(acquired == std::vector<entityslot_t>({}));
+        REQUIRE(discarded == std::vector<entityslot_t>({}));
 
 
         auto sign3 = CEntitySignature::from<Bar>();
@@ -174,13 +174,13 @@ TEST_CASE("Entity query supplier test")
         supplier.proposeEntity(6, sign2, sign3);
         supplier.proposeEntity(7, sign2, sign3);
 
-        supplier.processPendingEntities(current, incoming, outgoing);
+        supplier.processPendingEntities(current, acquired, discarded);
         std::sort(current.begin(), current.end());
-        std::sort(incoming.begin(), incoming.end());
-        std::sort(outgoing.begin(), outgoing.end());
+        std::sort(acquired.begin(), acquired.end());
+        std::sort(discarded.begin(), discarded.end());
         REQUIRE(current == std::vector<entityslot_t>({2, 3, 4}));
-        REQUIRE(incoming == std::vector<entityslot_t>({}));
-        REQUIRE(outgoing == std::vector<entityslot_t>({1}));
+        REQUIRE(acquired == std::vector<entityslot_t>({}));
+        REQUIRE(discarded == std::vector<entityslot_t>({1}));
 
 
         auto sign4 = CEntitySignature::from<Bar, Foo>();
@@ -190,16 +190,16 @@ TEST_CASE("Entity query supplier test")
         supplier.proposeEntity(9, sign3, sign4);
         supplier.proposeEntity(10, sign3, sign4);   
      
+        supplier.proposeEntity(8, sign4, sign3);
         supplier.proposeEntity(9, sign4, sign3);       
         supplier.proposeEntity(10, sign4, sign3);        
-        supplier.proposeEntity(8, sign4, sign3);
 
-        supplier.processPendingEntities(current, incoming, outgoing);
+        supplier.processPendingEntities(current, acquired, discarded);
         std::sort(current.begin(), current.end());
-        std::sort(incoming.begin(), incoming.end());
-        std::sort(outgoing.begin(), outgoing.end());
+        std::sort(acquired.begin(), acquired.end());
+        std::sort(discarded.begin(), discarded.end());
         REQUIRE(current == std::vector<entityslot_t>({2, 3, 4, 6, 7}));
-        REQUIRE(incoming == std::vector<entityslot_t>({6, 7}));
-        REQUIRE(outgoing == std::vector<entityslot_t>({}));
+        REQUIRE(acquired == std::vector<entityslot_t>({6, 7}));
+        REQUIRE(discarded == std::vector<entityslot_t>({}));
     }
 }
